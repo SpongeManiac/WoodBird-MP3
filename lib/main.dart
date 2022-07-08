@@ -1,44 +1,60 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-
-import 'screens/home.dart';
-import 'screens/search.dart';
+import 'package:provider/provider.dart';
+import 'package:test_project/database/connection/shared.dart';
+import 'package:test_project/database/database.dart';
+import 'package:test_project/screens/homePage.dart';
+import 'package:test_project/screens/songPage.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(
+    Provider<SharedDatabase>(
+      create: (context) => constructDb(),
+      child: MyApp(),
+      dispose: (context, db) => db.close(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
+  final ValueNotifier<MaterialColor> _themeNotifier =
+      ValueNotifier(Colors.blue);
+
   MyApp({Key? key}) : super(key: key);
 
-  final _router = GoRouter(
-    routes: [
-      GoRoute(
-        path: '/',
-        builder: (_, __) => const HomePage(),
-        routes: [
-          GoRoute(
-            path: 'search',
-            builder: (_, __) => const SearchPage(),
-          ),
-        ],
-      ),
-    ],
-  );
-
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return ProviderScope(
-      child: MaterialApp.router(
-        title: 'Drift Todos',
-        theme: ThemeData(
-          primarySwatch: Colors.amber,
-          typography: Typography.material2018(),
-        ),
-        routeInformationParser: _router.routeInformationParser,
-        routerDelegate: _router.routerDelegate,
-      ),
-    );
+    //creates a new material app when _themeNotifier changes
+    return ValueListenableBuilder<MaterialColor>(
+        //the listener
+        valueListenable: _themeNotifier,
+        //underscores are used for unused variables. Give variable name for listener value.
+        builder: (_, themeColor, __) {
+          return MaterialApp(
+            title: 'WoodBird MP3',
+            theme: ThemeData(
+              // This is the theme of your application.
+              //
+              // Try running your application with "flutter run". You'll see the
+              // application has a blue toolbar. Then, without quitting the app, try
+              // changing the primarySwatch below to Colors.green and then invoke
+              // "hot reload" (press "r" in the console where you ran "flutter run",
+              // or simply save your changes to "hot reload" in a Flutter IDE).
+              // Notice that the counter didn't reset back to zero; the application
+              // is not restarted.
+
+              //use new themeColor
+              primarySwatch: themeColor,
+            ),
+            home: HomePage(
+              title: 'Home',
+              themeNotifier: _themeNotifier,
+            ),
+            routes: <String, WidgetBuilder>{
+              '/songs': (context) =>
+                  SongsPage(title: 'Songs', themeNotifier: _themeNotifier),
+            },
+          );
+        });
   }
 }

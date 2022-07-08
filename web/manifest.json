@@ -1,6 +1,6 @@
 {
-    "name": "app",
-    "short_name": "app",
+    "name": "test_project",
+    "short_name": "test_project",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

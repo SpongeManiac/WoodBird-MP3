@@ -1,6 +1,3 @@
-import 'package:drift/drift.dart';
+import '../database.dart';
 
-DatabaseConnection connect() {
-  throw UnsupportedError(
-      'No suitable database implementation was found on this platform.');
-}
+SharedDatabase constructDb() => throw UnimplementedError();

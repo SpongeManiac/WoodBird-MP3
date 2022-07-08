@@ -7,20 +7,274 @@ part of 'database.dart';
 // **************************************************************************
 
 // ignore_for_file: type=lint
-class Category extends DataClass implements Insertable<Category> {
+class Song extends DataClass implements Insertable<Song> {
+  final int id;
+  final String artist;
+  final String name;
+  final String localPath;
+  Song(
+      {required this.id,
+      required this.artist,
+      required this.name,
+      required this.localPath});
+  factory Song.fromData(Map<String, dynamic> data, {String? prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return Song(
+      id: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      artist: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}artist'])!,
+      name: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}name'])!,
+      localPath: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}local_path'])!,
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['artist'] = Variable<String>(artist);
+    map['name'] = Variable<String>(name);
+    map['local_path'] = Variable<String>(localPath);
+    return map;
+  }
+
+  SongsCompanion toCompanion(bool nullToAbsent) {
+    return SongsCompanion(
+      id: Value(id),
+      artist: Value(artist),
+      name: Value(name),
+      localPath: Value(localPath),
+    );
+  }
+
+  factory Song.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Song(
+      id: serializer.fromJson<int>(json['id']),
+      artist: serializer.fromJson<String>(json['artist']),
+      name: serializer.fromJson<String>(json['name']),
+      localPath: serializer.fromJson<String>(json['localPath']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'artist': serializer.toJson<String>(artist),
+      'name': serializer.toJson<String>(name),
+      'localPath': serializer.toJson<String>(localPath),
+    };
+  }
+
+  Song copyWith({int? id, String? artist, String? name, String? localPath}) =>
+      Song(
+        id: id ?? this.id,
+        artist: artist ?? this.artist,
+        name: name ?? this.name,
+        localPath: localPath ?? this.localPath,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('Song(')
+          ..write('id: $id, ')
+          ..write('artist: $artist, ')
+          ..write('name: $name, ')
+          ..write('localPath: $localPath')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, artist, name, localPath);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Song &&
+          other.id == this.id &&
+          other.artist == this.artist &&
+          other.name == this.name &&
+          other.localPath == this.localPath);
+}
+
+class SongsCompanion extends UpdateCompanion<Song> {
+  final Value<int> id;
+  final Value<String> artist;
+  final Value<String> name;
+  final Value<String> localPath;
+  const SongsCompanion({
+    this.id = const Value.absent(),
+    this.artist = const Value.absent(),
+    this.name = const Value.absent(),
+    this.localPath = const Value.absent(),
+  });
+  SongsCompanion.insert({
+    this.id = const Value.absent(),
+    required String artist,
+    required String name,
+    required String localPath,
+  })  : artist = Value(artist),
+        name = Value(name),
+        localPath = Value(localPath);
+  static Insertable<Song> custom({
+    Expression<int>? id,
+    Expression<String>? artist,
+    Expression<String>? name,
+    Expression<String>? localPath,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (artist != null) 'artist': artist,
+      if (name != null) 'name': name,
+      if (localPath != null) 'local_path': localPath,
+    });
+  }
+
+  SongsCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? artist,
+      Value<String>? name,
+      Value<String>? localPath}) {
+    return SongsCompanion(
+      id: id ?? this.id,
+      artist: artist ?? this.artist,
+      name: name ?? this.name,
+      localPath: localPath ?? this.localPath,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (artist.present) {
+      map['artist'] = Variable<String>(artist.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (localPath.present) {
+      map['local_path'] = Variable<String>(localPath.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SongsCompanion(')
+          ..write('id: $id, ')
+          ..write('artist: $artist, ')
+          ..write('name: $name, ')
+          ..write('localPath: $localPath')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SongsTable(this.attachedDatabase, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
+      'id', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      defaultConstraints: 'PRIMARY KEY AUTOINCREMENT');
+  final VerificationMeta _artistMeta = const VerificationMeta('artist');
+  @override
+  late final GeneratedColumn<String?> artist = GeneratedColumn<String?>(
+      'artist', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 4, maxTextLength: 128),
+      type: const StringType(),
+      requiredDuringInsert: true);
+  final VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String?> name = GeneratedColumn<String?>(
+      'name', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 4, maxTextLength: 128),
+      type: const StringType(),
+      requiredDuringInsert: true);
+  final VerificationMeta _localPathMeta = const VerificationMeta('localPath');
+  @override
+  late final GeneratedColumn<String?> localPath = GeneratedColumn<String?>(
+      'local_path', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 4, maxTextLength: 512),
+      type: const StringType(),
+      requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id, artist, name, localPath];
+  @override
+  String get aliasedName => _alias ?? 'songs';
+  @override
+  String get actualTableName => 'songs';
+  @override
+  VerificationContext validateIntegrity(Insertable<Song> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('artist')) {
+      context.handle(_artistMeta,
+          artist.isAcceptableOrUnknown(data['artist']!, _artistMeta));
+    } else if (isInserting) {
+      context.missing(_artistMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('local_path')) {
+      context.handle(_localPathMeta,
+          localPath.isAcceptableOrUnknown(data['local_path']!, _localPathMeta));
+    } else if (isInserting) {
+      context.missing(_localPathMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Song map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return Song.fromData(data,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $SongsTable createAlias(String alias) {
+    return $SongsTable(attachedDatabase, alias);
+  }
+}
+
+class Album extends DataClass implements Insertable<Album> {
   final int id;
   final String name;
-  final Color color;
-  Category({required this.id, required this.name, required this.color});
-  factory Category.fromData(Map<String, dynamic> data, {String? prefix}) {
+  final String description;
+  Album({required this.id, required this.name, required this.description});
+  factory Album.fromData(Map<String, dynamic> data, {String? prefix}) {
     final effectivePrefix = prefix ?? '';
-    return Category(
+    return Album(
       id: const IntType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
       name: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}name'])!,
-      color: $CategoriesTable.$converter0.fromSql(const IntType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}color'])!),
+      description: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}description'])!,
     );
   }
   @override
@@ -28,28 +282,25 @@ class Category extends DataClass implements Insertable<Category> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
-    {
-      final converter = $CategoriesTable.$converter0;
-      map['color'] = Variable<int>(converter.toSql(color));
-    }
+    map['description'] = Variable<String>(description);
     return map;
   }
 
-  CategoriesCompanion toCompanion(bool nullToAbsent) {
-    return CategoriesCompanion(
+  AlbumsCompanion toCompanion(bool nullToAbsent) {
+    return AlbumsCompanion(
       id: Value(id),
       name: Value(name),
-      color: Value(color),
+      description: Value(description),
     );
   }
 
-  factory Category.fromJson(Map<String, dynamic> json,
+  factory Album.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Category(
+    return Album(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
-      color: serializer.fromJson<Color>(json['color']),
+      description: serializer.fromJson<String>(json['description']),
     );
   }
   @override
@@ -58,69 +309,68 @@ class Category extends DataClass implements Insertable<Category> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
-      'color': serializer.toJson<Color>(color),
+      'description': serializer.toJson<String>(description),
     };
   }
 
-  Category copyWith({int? id, String? name, Color? color}) => Category(
+  Album copyWith({int? id, String? name, String? description}) => Album(
         id: id ?? this.id,
         name: name ?? this.name,
-        color: color ?? this.color,
+        description: description ?? this.description,
       );
   @override
   String toString() {
-    return (StringBuffer('Category(')
+    return (StringBuffer('Album(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('color: $color')
+          ..write('description: $description')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, color);
+  int get hashCode => Object.hash(id, name, description);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Category &&
+      (other is Album &&
           other.id == this.id &&
           other.name == this.name &&
-          other.color == this.color);
+          other.description == this.description);
 }
 
-class CategoriesCompanion extends UpdateCompanion<Category> {
+class AlbumsCompanion extends UpdateCompanion<Album> {
   final Value<int> id;
   final Value<String> name;
-  final Value<Color> color;
-  const CategoriesCompanion({
+  final Value<String> description;
+  const AlbumsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
-    this.color = const Value.absent(),
+    this.description = const Value.absent(),
   });
-  CategoriesCompanion.insert({
+  AlbumsCompanion.insert({
     this.id = const Value.absent(),
     required String name,
-    required Color color,
-  })  : name = Value(name),
-        color = Value(color);
-  static Insertable<Category> custom({
+    this.description = const Value.absent(),
+  }) : name = Value(name);
+  static Insertable<Album> custom({
     Expression<int>? id,
     Expression<String>? name,
-    Expression<Color>? color,
+    Expression<String>? description,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
-      if (color != null) 'color': color,
+      if (description != null) 'description': description,
     });
   }
 
-  CategoriesCompanion copyWith(
-      {Value<int>? id, Value<String>? name, Value<Color>? color}) {
-    return CategoriesCompanion(
+  AlbumsCompanion copyWith(
+      {Value<int>? id, Value<String>? name, Value<String>? description}) {
+    return AlbumsCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
-      color: color ?? this.color,
+      description: description ?? this.description,
     );
   }
 
@@ -133,30 +383,28 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
-    if (color.present) {
-      final converter = $CategoriesTable.$converter0;
-      map['color'] = Variable<int>(converter.toSql(color.value));
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
     }
     return map;
   }
 
   @override
   String toString() {
-    return (StringBuffer('CategoriesCompanion(')
+    return (StringBuffer('AlbumsCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('color: $color')
+          ..write('description: $description')
           ..write(')'))
         .toString();
   }
 }
 
-class $CategoriesTable extends Categories
-    with TableInfo<$CategoriesTable, Category> {
+class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $CategoriesTable(this.attachedDatabase, [this._alias]);
+  $AlbumsTable(this.attachedDatabase, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
@@ -168,21 +416,28 @@ class $CategoriesTable extends Categories
   @override
   late final GeneratedColumn<String?> name = GeneratedColumn<String?>(
       'name', aliasedName, false,
-      type: const StringType(), requiredDuringInsert: true);
-  final VerificationMeta _colorMeta = const VerificationMeta('color');
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 4, maxTextLength: 128),
+      type: const StringType(),
+      requiredDuringInsert: true);
+  final VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
   @override
-  late final GeneratedColumnWithTypeConverter<Color, int?> color =
-      GeneratedColumn<int?>('color', aliasedName, false,
-              type: const IntType(), requiredDuringInsert: true)
-          .withConverter<Color>($CategoriesTable.$converter0);
+  late final GeneratedColumn<String?> description = GeneratedColumn<String?>(
+      'description', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 0, maxTextLength: 256),
+      type: const StringType(),
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
   @override
-  List<GeneratedColumn> get $columns => [id, name, color];
+  List<GeneratedColumn> get $columns => [id, name, description];
   @override
-  String get aliasedName => _alias ?? 'categories';
+  String get aliasedName => _alias ?? 'albums';
   @override
-  String get actualTableName => 'categories';
+  String get actualTableName => 'albums';
   @override
-  VerificationContext validateIntegrity(Insertable<Category> instance,
+  VerificationContext validateIntegrity(Insertable<Album> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -195,84 +450,57 @@ class $CategoriesTable extends Categories
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    context.handle(_colorMeta, const VerificationResult.success());
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
     return context;
   }
 
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Category map(Map<String, dynamic> data, {String? tablePrefix}) {
-    return Category.fromData(data,
+  Album map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return Album.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
   @override
-  $CategoriesTable createAlias(String alias) {
-    return $CategoriesTable(attachedDatabase, alias);
+  $AlbumsTable createAlias(String alias) {
+    return $AlbumsTable(attachedDatabase, alias);
   }
-
-  static TypeConverter<Color, int> $converter0 = const ColorConverter();
 }
 
-class TodoEntry extends DataClass implements Insertable<TodoEntry> {
+class AlbumSong extends DataClass implements Insertable<AlbumSong> {
   final int id;
-  final String description;
-  final int? category;
-  final DateTime? dueDate;
-  TodoEntry(
-      {required this.id,
-      required this.description,
-      this.category,
-      this.dueDate});
-  factory TodoEntry.fromData(Map<String, dynamic> data, {String? prefix}) {
+  AlbumSong({required this.id});
+  factory AlbumSong.fromData(Map<String, dynamic> data, {String? prefix}) {
     final effectivePrefix = prefix ?? '';
-    return TodoEntry(
+    return AlbumSong(
       id: const IntType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
-      description: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}description'])!,
-      category: const IntType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}category']),
-      dueDate: const DateTimeType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}due_date']),
     );
   }
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['description'] = Variable<String>(description);
-    if (!nullToAbsent || category != null) {
-      map['category'] = Variable<int?>(category);
-    }
-    if (!nullToAbsent || dueDate != null) {
-      map['due_date'] = Variable<DateTime?>(dueDate);
-    }
     return map;
   }
 
-  TodoEntriesCompanion toCompanion(bool nullToAbsent) {
-    return TodoEntriesCompanion(
+  AlbumSongsCompanion toCompanion(bool nullToAbsent) {
+    return AlbumSongsCompanion(
       id: Value(id),
-      description: Value(description),
-      category: category == null && nullToAbsent
-          ? const Value.absent()
-          : Value(category),
-      dueDate: dueDate == null && nullToAbsent
-          ? const Value.absent()
-          : Value(dueDate),
     );
   }
 
-  factory TodoEntry.fromJson(Map<String, dynamic> json,
+  factory AlbumSong.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return TodoEntry(
+    return AlbumSong(
       id: serializer.fromJson<int>(json['id']),
-      description: serializer.fromJson<String>(json['description']),
-      category: serializer.fromJson<int?>(json['category']),
-      dueDate: serializer.fromJson<DateTime?>(json['dueDate']),
     );
   }
   @override
@@ -280,87 +508,46 @@ class TodoEntry extends DataClass implements Insertable<TodoEntry> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'description': serializer.toJson<String>(description),
-      'category': serializer.toJson<int?>(category),
-      'dueDate': serializer.toJson<DateTime?>(dueDate),
     };
   }
 
-  TodoEntry copyWith(
-          {int? id,
-          String? description,
-          Value<int?> category = const Value.absent(),
-          Value<DateTime?> dueDate = const Value.absent()}) =>
-      TodoEntry(
+  AlbumSong copyWith({int? id}) => AlbumSong(
         id: id ?? this.id,
-        description: description ?? this.description,
-        category: category.present ? category.value : this.category,
-        dueDate: dueDate.present ? dueDate.value : this.dueDate,
       );
   @override
   String toString() {
-    return (StringBuffer('TodoEntry(')
-          ..write('id: $id, ')
-          ..write('description: $description, ')
-          ..write('category: $category, ')
-          ..write('dueDate: $dueDate')
+    return (StringBuffer('AlbumSong(')
+          ..write('id: $id')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, description, category, dueDate);
+  int get hashCode => id.hashCode;
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is TodoEntry &&
-          other.id == this.id &&
-          other.description == this.description &&
-          other.category == this.category &&
-          other.dueDate == this.dueDate);
+      identical(this, other) || (other is AlbumSong && other.id == this.id);
 }
 
-class TodoEntriesCompanion extends UpdateCompanion<TodoEntry> {
+class AlbumSongsCompanion extends UpdateCompanion<AlbumSong> {
   final Value<int> id;
-  final Value<String> description;
-  final Value<int?> category;
-  final Value<DateTime?> dueDate;
-  const TodoEntriesCompanion({
+  const AlbumSongsCompanion({
     this.id = const Value.absent(),
-    this.description = const Value.absent(),
-    this.category = const Value.absent(),
-    this.dueDate = const Value.absent(),
   });
-  TodoEntriesCompanion.insert({
+  AlbumSongsCompanion.insert({
     this.id = const Value.absent(),
-    required String description,
-    this.category = const Value.absent(),
-    this.dueDate = const Value.absent(),
-  }) : description = Value(description);
-  static Insertable<TodoEntry> custom({
+  });
+  static Insertable<AlbumSong> custom({
     Expression<int>? id,
-    Expression<String>? description,
-    Expression<int?>? category,
-    Expression<DateTime?>? dueDate,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (description != null) 'description': description,
-      if (category != null) 'category': category,
-      if (dueDate != null) 'due_date': dueDate,
     });
   }
 
-  TodoEntriesCompanion copyWith(
-      {Value<int>? id,
-      Value<String>? description,
-      Value<int?>? category,
-      Value<DateTime?>? dueDate}) {
-    return TodoEntriesCompanion(
+  AlbumSongsCompanion copyWith({Value<int>? id}) {
+    return AlbumSongsCompanion(
       id: id ?? this.id,
-      description: description ?? this.description,
-      category: category ?? this.category,
-      dueDate: dueDate ?? this.dueDate,
     );
   }
 
@@ -370,36 +557,24 @@ class TodoEntriesCompanion extends UpdateCompanion<TodoEntry> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
-    if (description.present) {
-      map['description'] = Variable<String>(description.value);
-    }
-    if (category.present) {
-      map['category'] = Variable<int?>(category.value);
-    }
-    if (dueDate.present) {
-      map['due_date'] = Variable<DateTime?>(dueDate.value);
-    }
     return map;
   }
 
   @override
   String toString() {
-    return (StringBuffer('TodoEntriesCompanion(')
-          ..write('id: $id, ')
-          ..write('description: $description, ')
-          ..write('category: $category, ')
-          ..write('dueDate: $dueDate')
+    return (StringBuffer('AlbumSongsCompanion(')
+          ..write('id: $id')
           ..write(')'))
         .toString();
   }
 }
 
-class $TodoEntriesTable extends TodoEntries
-    with TableInfo<$TodoEntriesTable, TodoEntry> {
+class $AlbumSongsTable extends AlbumSongs
+    with TableInfo<$AlbumSongsTable, AlbumSong> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $TodoEntriesTable(this.attachedDatabase, [this._alias]);
+  $AlbumSongsTable(this.attachedDatabase, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
@@ -407,53 +582,19 @@ class $TodoEntriesTable extends TodoEntries
       type: const IntType(),
       requiredDuringInsert: false,
       defaultConstraints: 'PRIMARY KEY AUTOINCREMENT');
-  final VerificationMeta _descriptionMeta =
-      const VerificationMeta('description');
   @override
-  late final GeneratedColumn<String?> description = GeneratedColumn<String?>(
-      'description', aliasedName, false,
-      type: const StringType(), requiredDuringInsert: true);
-  final VerificationMeta _categoryMeta = const VerificationMeta('category');
+  List<GeneratedColumn> get $columns => [id];
   @override
-  late final GeneratedColumn<int?> category = GeneratedColumn<int?>(
-      'category', aliasedName, true,
-      type: const IntType(),
-      requiredDuringInsert: false,
-      defaultConstraints: 'REFERENCES categories (id)');
-  final VerificationMeta _dueDateMeta = const VerificationMeta('dueDate');
+  String get aliasedName => _alias ?? 'album_songs';
   @override
-  late final GeneratedColumn<DateTime?> dueDate = GeneratedColumn<DateTime?>(
-      'due_date', aliasedName, true,
-      type: const IntType(), requiredDuringInsert: false);
+  String get actualTableName => 'album_songs';
   @override
-  List<GeneratedColumn> get $columns => [id, description, category, dueDate];
-  @override
-  String get aliasedName => _alias ?? 'todo_entries';
-  @override
-  String get actualTableName => 'todo_entries';
-  @override
-  VerificationContext validateIntegrity(Insertable<TodoEntry> instance,
+  VerificationContext validateIntegrity(Insertable<AlbumSong> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('description')) {
-      context.handle(
-          _descriptionMeta,
-          description.isAcceptableOrUnknown(
-              data['description']!, _descriptionMeta));
-    } else if (isInserting) {
-      context.missing(_descriptionMeta);
-    }
-    if (data.containsKey('category')) {
-      context.handle(_categoryMeta,
-          category.isAcceptableOrUnknown(data['category']!, _categoryMeta));
-    }
-    if (data.containsKey('due_date')) {
-      context.handle(_dueDateMeta,
-          dueDate.isAcceptableOrUnknown(data['due_date']!, _dueDateMeta));
     }
     return context;
   }
@@ -461,253 +602,25 @@ class $TodoEntriesTable extends TodoEntries
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  TodoEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
-    return TodoEntry.fromData(data,
+  AlbumSong map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return AlbumSong.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
   @override
-  $TodoEntriesTable createAlias(String alias) {
-    return $TodoEntriesTable(attachedDatabase, alias);
+  $AlbumSongsTable createAlias(String alias) {
+    return $AlbumSongsTable(attachedDatabase, alias);
   }
 }
 
-class TextEntrie extends DataClass implements Insertable<TextEntrie> {
-  final String description;
-  TextEntrie({required this.description});
-  factory TextEntrie.fromData(Map<String, dynamic> data, {String? prefix}) {
-    final effectivePrefix = prefix ?? '';
-    return TextEntrie(
-      description: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}description'])!,
-    );
-  }
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['description'] = Variable<String>(description);
-    return map;
-  }
-
-  TextEntriesCompanion toCompanion(bool nullToAbsent) {
-    return TextEntriesCompanion(
-      description: Value(description),
-    );
-  }
-
-  factory TextEntrie.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return TextEntrie(
-      description: serializer.fromJson<String>(json['description']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'description': serializer.toJson<String>(description),
-    };
-  }
-
-  TextEntrie copyWith({String? description}) => TextEntrie(
-        description: description ?? this.description,
-      );
-  @override
-  String toString() {
-    return (StringBuffer('TextEntrie(')
-          ..write('description: $description')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => description.hashCode;
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is TextEntrie && other.description == this.description);
-}
-
-class TextEntriesCompanion extends UpdateCompanion<TextEntrie> {
-  final Value<String> description;
-  const TextEntriesCompanion({
-    this.description = const Value.absent(),
-  });
-  TextEntriesCompanion.insert({
-    required String description,
-  }) : description = Value(description);
-  static Insertable<TextEntrie> custom({
-    Expression<String>? description,
-  }) {
-    return RawValuesInsertable({
-      if (description != null) 'description': description,
-    });
-  }
-
-  TextEntriesCompanion copyWith({Value<String>? description}) {
-    return TextEntriesCompanion(
-      description: description ?? this.description,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (description.present) {
-      map['description'] = Variable<String>(description.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('TextEntriesCompanion(')
-          ..write('description: $description')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class TextEntries extends Table
-    with
-        TableInfo<TextEntries, TextEntrie>,
-        VirtualTableInfo<TextEntries, TextEntrie> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  TextEntries(this.attachedDatabase, [this._alias]);
-  final VerificationMeta _descriptionMeta =
-      const VerificationMeta('description');
-  late final GeneratedColumn<String?> description = GeneratedColumn<String?>(
-      'description', aliasedName, false,
-      type: const StringType(),
-      requiredDuringInsert: true,
-      $customConstraints: '');
-  @override
-  List<GeneratedColumn> get $columns => [description];
-  @override
-  String get aliasedName => _alias ?? 'text_entries';
-  @override
-  String get actualTableName => 'text_entries';
-  @override
-  VerificationContext validateIntegrity(Insertable<TextEntrie> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('description')) {
-      context.handle(
-          _descriptionMeta,
-          description.isAcceptableOrUnknown(
-              data['description']!, _descriptionMeta));
-    } else if (isInserting) {
-      context.missing(_descriptionMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => <GeneratedColumn>{};
-  @override
-  TextEntrie map(Map<String, dynamic> data, {String? tablePrefix}) {
-    return TextEntrie.fromData(data,
-        prefix: tablePrefix != null ? '$tablePrefix.' : null);
-  }
-
-  @override
-  TextEntries createAlias(String alias) {
-    return TextEntries(attachedDatabase, alias);
-  }
-
-  @override
-  bool get dontWriteConstraints => true;
-  @override
-  String get moduleAndArgs =>
-      'fts5(description, content=todo_entries, content_rowid=id)';
-}
-
-abstract class _$AppDatabase extends GeneratedDatabase {
-  _$AppDatabase(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
-  _$AppDatabase.connect(DatabaseConnection c) : super.connect(c);
-  late final $CategoriesTable categories = $CategoriesTable(this);
-  late final $TodoEntriesTable todoEntries = $TodoEntriesTable(this);
-  late final TextEntries textEntries = TextEntries(this);
-  late final Trigger todosInsert = Trigger(
-      'CREATE TRIGGER todos_insert AFTER INSERT ON todo_entries BEGIN INSERT INTO text_entries ("rowid", description) VALUES (new.id, new.description);END',
-      'todos_insert');
-  Selectable<CategoriesWithCountResult> _categoriesWithCount() {
-    return customSelect(
-        'SELECT c.*, (SELECT COUNT(*) FROM todo_entries WHERE category = c.id) AS amount FROM categories AS c UNION ALL SELECT NULL, NULL, NULL, (SELECT COUNT(*) FROM todo_entries WHERE category IS NULL)',
-        variables: [],
-        readsFrom: {
-          todoEntries,
-          categories,
-        }).map((QueryRow row) {
-      return CategoriesWithCountResult(
-        id: row.read<int?>('id'),
-        name: row.read<String?>('name'),
-        color: NullAwareTypeConverter.wrapFromSql(
-            $CategoriesTable.$converter0, row.read<int?>('color')),
-        amount: row.read<int>('amount'),
-      );
-    });
-  }
-
-  Selectable<SearchResult> _search(String query) {
-    return customSelect(
-        'SELECT"todos"."id" AS "nested_0.id", "todos"."description" AS "nested_0.description", "todos"."category" AS "nested_0.category", "todos"."due_date" AS "nested_0.due_date","cat"."id" AS "nested_1.id", "cat"."name" AS "nested_1.name", "cat"."color" AS "nested_1.color" FROM text_entries INNER JOIN todo_entries AS todos ON todos.id = text_entries."rowid" LEFT OUTER JOIN categories AS cat ON cat.id = todos.category WHERE text_entries MATCH @1 ORDER BY rank',
-        variables: [
-          Variable<String>(query)
-        ],
-        readsFrom: {
-          textEntries,
-          todoEntries,
-          categories,
-        }).map((QueryRow row) {
-      return SearchResult(
-        todos: todoEntries.mapFromRow(row, tablePrefix: 'nested_0'),
-        cat: categories.mapFromRowOrNull(row, tablePrefix: 'nested_1'),
-      );
-    });
-  }
-
+abstract class _$SharedDatabase extends GeneratedDatabase {
+  _$SharedDatabase(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
+  late final $SongsTable songs = $SongsTable(this);
+  late final $AlbumsTable albums = $AlbumsTable(this);
+  late final $AlbumSongsTable albumSongs = $AlbumSongsTable(this);
   @override
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [categories, todoEntries, textEntries, todosInsert];
-  @override
-  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
-        [
-          WritePropagation(
-            on: TableUpdateQuery.onTableName('todo_entries',
-                limitUpdateKind: UpdateKind.insert),
-            result: [
-              TableUpdate('text_entries', kind: UpdateKind.insert),
-            ],
-          ),
-        ],
-      );
-}
-
-class CategoriesWithCountResult {
-  final int? id;
-  final String? name;
-  final Color? color;
-  final int amount;
-  CategoriesWithCountResult({
-    this.id,
-    this.name,
-    this.color,
-    required this.amount,
-  });
-}
-
-class SearchResult {
-  final TodoEntry todos;
-  final Category? cat;
-  SearchResult({
-    required this.todos,
-    this.cat,
-  });
+      [songs, albums, albumSongs];
 }
