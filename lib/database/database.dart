@@ -2,6 +2,16 @@ import 'package:drift/drift.dart';
 
 part 'database.g.dart';
 
+@DataClassName('HomePageStateDB')
+class HomePageState extends Table {
+  //only allow one entry in table
+  IntColumn get id =>
+      integer().autoIncrement().withDefault(const Constant(1))();
+  //info to preload widget
+  IntColumn get theme => integer().withDefault(const Constant(0))();
+  IntColumn get count => integer().withDefault(const Constant(0))();
+}
+
 @DataClassName('Song')
 class Songs extends Table {
   // PrimaryKey
@@ -29,6 +39,7 @@ class AlbumSongs extends Table {
 }
 
 @DriftDatabase(tables: [
+  HomePageState,
   Songs,
   Albums,
   AlbumSongs,
@@ -41,4 +52,15 @@ class SharedDatabase extends _$SharedDatabase {
   // Migrations are covered later in the documentation.
   @override
   int get schemaVersion => 1;
+
+  Future<HomePageStateDB?> getHomeState() async {
+    return await (select(homePageState)
+          ..where((tbl) => tbl.id.equals(1))
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
+  Future<int> setHomeState(HomePageStateDB state) async {
+    return into(homePageState).insertOnConflictUpdate(state);
+  }
 }

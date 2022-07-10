@@ -7,6 +7,214 @@ part of 'database.dart';
 // **************************************************************************
 
 // ignore_for_file: type=lint
+class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
+  final int id;
+  final int theme;
+  final int count;
+  HomePageStateDB({required this.id, required this.theme, required this.count});
+  factory HomePageStateDB.fromData(Map<String, dynamic> data,
+      {String? prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return HomePageStateDB(
+      id: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      theme: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}theme'])!,
+      count: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}count'])!,
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['theme'] = Variable<int>(theme);
+    map['count'] = Variable<int>(count);
+    return map;
+  }
+
+  HomePageStateCompanion toCompanion(bool nullToAbsent) {
+    return HomePageStateCompanion(
+      id: Value(id),
+      theme: Value(theme),
+      count: Value(count),
+    );
+  }
+
+  factory HomePageStateDB.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HomePageStateDB(
+      id: serializer.fromJson<int>(json['id']),
+      theme: serializer.fromJson<int>(json['theme']),
+      count: serializer.fromJson<int>(json['count']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'theme': serializer.toJson<int>(theme),
+      'count': serializer.toJson<int>(count),
+    };
+  }
+
+  HomePageStateDB copyWith({int? id, int? theme, int? count}) =>
+      HomePageStateDB(
+        id: id ?? this.id,
+        theme: theme ?? this.theme,
+        count: count ?? this.count,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('HomePageStateDB(')
+          ..write('id: $id, ')
+          ..write('theme: $theme, ')
+          ..write('count: $count')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, theme, count);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HomePageStateDB &&
+          other.id == this.id &&
+          other.theme == this.theme &&
+          other.count == this.count);
+}
+
+class HomePageStateCompanion extends UpdateCompanion<HomePageStateDB> {
+  final Value<int> id;
+  final Value<int> theme;
+  final Value<int> count;
+  const HomePageStateCompanion({
+    this.id = const Value.absent(),
+    this.theme = const Value.absent(),
+    this.count = const Value.absent(),
+  });
+  HomePageStateCompanion.insert({
+    this.id = const Value.absent(),
+    this.theme = const Value.absent(),
+    this.count = const Value.absent(),
+  });
+  static Insertable<HomePageStateDB> custom({
+    Expression<int>? id,
+    Expression<int>? theme,
+    Expression<int>? count,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (theme != null) 'theme': theme,
+      if (count != null) 'count': count,
+    });
+  }
+
+  HomePageStateCompanion copyWith(
+      {Value<int>? id, Value<int>? theme, Value<int>? count}) {
+    return HomePageStateCompanion(
+      id: id ?? this.id,
+      theme: theme ?? this.theme,
+      count: count ?? this.count,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (theme.present) {
+      map['theme'] = Variable<int>(theme.value);
+    }
+    if (count.present) {
+      map['count'] = Variable<int>(count.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HomePageStateCompanion(')
+          ..write('id: $id, ')
+          ..write('theme: $theme, ')
+          ..write('count: $count')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $HomePageStateTable extends HomePageState
+    with TableInfo<$HomePageStateTable, HomePageStateDB> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HomePageStateTable(this.attachedDatabase, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
+      'id', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      defaultConstraints: 'PRIMARY KEY AUTOINCREMENT',
+      defaultValue: const Constant(1));
+  final VerificationMeta _themeMeta = const VerificationMeta('theme');
+  @override
+  late final GeneratedColumn<int?> theme = GeneratedColumn<int?>(
+      'theme', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  final VerificationMeta _countMeta = const VerificationMeta('count');
+  @override
+  late final GeneratedColumn<int?> count = GeneratedColumn<int?>(
+      'count', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns => [id, theme, count];
+  @override
+  String get aliasedName => _alias ?? 'home_page_state';
+  @override
+  String get actualTableName => 'home_page_state';
+  @override
+  VerificationContext validateIntegrity(Insertable<HomePageStateDB> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('theme')) {
+      context.handle(
+          _themeMeta, theme.isAcceptableOrUnknown(data['theme']!, _themeMeta));
+    }
+    if (data.containsKey('count')) {
+      context.handle(
+          _countMeta, count.isAcceptableOrUnknown(data['count']!, _countMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  HomePageStateDB map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return HomePageStateDB.fromData(data,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $HomePageStateTable createAlias(String alias) {
+    return $HomePageStateTable(attachedDatabase, alias);
+  }
+}
+
 class Song extends DataClass implements Insertable<Song> {
   final int id;
   final String artist;
@@ -615,6 +823,7 @@ class $AlbumSongsTable extends AlbumSongs
 
 abstract class _$SharedDatabase extends GeneratedDatabase {
   _$SharedDatabase(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
+  late final $HomePageStateTable homePageState = $HomePageStateTable(this);
   late final $SongsTable songs = $SongsTable(this);
   late final $AlbumsTable albums = $AlbumsTable(this);
   late final $AlbumSongsTable albumSongs = $AlbumSongsTable(this);
@@ -622,5 +831,5 @@ abstract class _$SharedDatabase extends GeneratedDatabase {
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [songs, albums, albumSongs];
+      [homePageState, songs, albums, albumSongs];
 }

@@ -1,25 +1,51 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'globals.dart' as globals;
+
 import 'package:provider/provider.dart';
 import 'package:test_project/database/connection/shared.dart';
 import 'package:test_project/database/database.dart';
-import 'package:test_project/screens/homePage.dart';
-import 'package:test_project/screens/songPage.dart';
+
+import 'models/tables/homePageData.dart';
 
 void main() {
+  //load page states
+  () async {
+    // if (!kIsWeb) {
+    //   String path = await globals.dbPath();
+    //   final file = File(path);
+    //   file.delete();
+    // }
+    //get homepagestate db object
+    var homeStateDB = await globals.db.getHomeState();
+    homeStateDB ??= HomePageStateDB(id: 1, theme: 0, count: 0);
+    if (homeStateDB.theme < 0 || homeStateDB.theme >= globals.themes.length) {
+      homeStateDB = HomePageStateDB(id: 1, theme: 0, count: homeStateDB.count);
+    }
+    //convert homepagestate db object to homepagedata
+    HomePageData homeState = HomePageData(homeStateDB.theme, homeStateDB.count);
+    //set global values
+    globals.homePageStateNotifier.value = homeState;
+    MaterialColor theme = globals.themes.values.elementAt(homeStateDB.theme);
+    globals.themeNotifier.value = theme;
+    print(homeState.theme);
+    print(globals.homePageStateNotifier.value.theme);
+    print(homeState.count);
+    print(globals.homePageStateNotifier.value.count);
+  }();
+
   runApp(
     Provider<SharedDatabase>(
       create: (context) => constructDb(),
-      child: MyApp(),
-      dispose: (context, db) => db.close(),
+      child: const MyApp(),
+      dispose: (_, db) => db.close(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  final ValueNotifier<MaterialColor> _themeNotifier =
-      ValueNotifier(Colors.blue);
-
-  MyApp({Key? key}) : super(key: key);
+  const MyApp({Key? key}) : super(key: key);
 
   // This widget is the root of your application.
   @override
@@ -27,9 +53,9 @@ class MyApp extends StatelessWidget {
     //creates a new material app when _themeNotifier changes
     return ValueListenableBuilder<MaterialColor>(
         //the listener
-        valueListenable: _themeNotifier,
+        valueListenable: globals.themeNotifier,
         //underscores are used for unused variables. Give variable name for listener value.
-        builder: (_, themeColor, __) {
+        builder: (context, themeColor, __) {
           return MaterialApp(
             title: 'WoodBird MP3',
             theme: ThemeData(
@@ -46,14 +72,7 @@ class MyApp extends StatelessWidget {
               //use new themeColor
               primarySwatch: themeColor,
             ),
-            home: HomePage(
-              title: 'Home',
-              themeNotifier: _themeNotifier,
-            ),
-            routes: <String, WidgetBuilder>{
-              '/songs': (context) =>
-                  SongsPage(title: 'Songs', themeNotifier: _themeNotifier),
-            },
+            home: globals.appScaffold,
           );
         });
   }

@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:test_project/widgets/flyout/flyoutItem.dart';
+import '../../globals.dart' as globals;
 
 class Flyout extends StatelessWidget {
   const Flyout({super.key});
 
   void navigate(BuildContext context, String route) {
-    print(ModalRoute.of(context)?.settings.name);
-    if (ModalRoute.of(context)?.settings.name != route) {
-      Navigator.pushReplacementNamed(context, route);
-    } else {
-      Navigator.pop(context);
-    }
+    globals.navigation.goto(context, route);
   }
 
   @override
@@ -37,6 +33,11 @@ class Flyout extends StatelessWidget {
             icon: Icons.home,
             text: 'Home',
             onTapped: () => navigate(context, '/'),
+          ),
+          FlyoutItem(
+            icon: Icons.music_note,
+            text: 'Files',
+            onTapped: () => navigate(context, '/files'),
           ),
         ], //drawer top
       ),

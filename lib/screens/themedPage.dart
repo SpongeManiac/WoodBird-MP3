@@ -1,27 +1,25 @@
 import 'package:flutter/material.dart';
-
-import '../widgets/flyout/flyout.dart';
+import '../globals.dart' as globals;
+import '../widgets/hideableFloatingAction.dart';
 
 abstract class ThemedPage extends StatefulWidget {
-  const ThemedPage({
+  ThemedPage({
     Key? key,
     required this.title,
-    required this.themeNotifier,
   }) : super(key: key);
 
+  final ValueNotifier<MaterialColor> themeNotifier = globals.themeNotifier;
   final String title;
-  final ValueNotifier<MaterialColor>? themeNotifier;
 
-  Scaffold getScaffold(Widget? body, [Widget? floatingActionButton]) {
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(title),
-      ),
-      drawer: const Flyout(),
-      body: body,
-      floatingActionButton: floatingActionButton,
-    );
+  void initFloatingAction([void Function()? action, Icon? icon]) {
+    //Run code after page is done building
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      //update hideableFloatingAction's data
+      globals.floatingActionNotifier.value = HideableFloatingActionData(
+        true,
+        action,
+        icon,
+      );
+    });
   }
 }

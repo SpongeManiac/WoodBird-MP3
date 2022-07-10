@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import 'themedPage.dart';
 
 class SongsPage extends ThemedPage {
-  const SongsPage({
+  SongsPage({
     Key? key,
     required super.title,
-    required super.themeNotifier,
   }) : super(key: key);
 
   @override
@@ -21,8 +20,6 @@ class _SongsPageState extends State<SongsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.getScaffold(
-      const Text('Song Page'),
-    );
+    return const Center(child: Text('Song Page'));
   }
 }
