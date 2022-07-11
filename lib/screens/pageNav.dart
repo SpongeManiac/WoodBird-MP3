@@ -1,23 +1,78 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_window_close/flutter_window_close.dart';
+import 'package:test_project/screens/themedPage.dart';
+
+import '../database/database.dart';
 import '../globals.dart' as globals;
+import '../models/states/home/homePageData.dart';
 import '../widgets/hideableFloatingAction.dart';
-import 'themedPage.dart';
-import 'homePage.dart';
-import 'songPage.dart';
 
 class PageNav extends StatefulWidget {
-  const PageNav({
-    Key? key,
-  }) : super(key: key);
+  PageNav({
+    super.key,
+  }) : super();
+
+  bool _alertShowing = false;
+
+  Future<bool> dialog(BuildContext context) async {
+    //print('running alert');
+    if (_alertShowing) return false;
+    _alertShowing = true;
+    //print('awaiting show dialog');
+    bool? result = await showDialog(
+        context: context,
+        builder: (context) {
+          print('building dialog');
+          return AlertDialog(
+              title: const Text('Do you really want to quit?'),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                      _alertShowing = false;
+                    },
+                    child: const Text('Yes')),
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                      _alertShowing = false;
+                    },
+                    child: const Text('No'))
+              ]);
+        });
+    //print('Alert is gone');
+    _alertShowing = false;
+    result ??= false;
+    if (result) {
+      globals.app.closeApp();
+    }
+    return result;
+  }
+
+  void setWebExitAlert(String alert) {
+    FlutterWindowClose.setWebReturnValue(alert);
+  }
+
+  void setAppExitAlert(
+    Future<bool> Function(BuildContext context) asyncResult,
+    BuildContext context,
+  ) {
+    print('setting app exit alert');
+    Future<bool> result() async {
+      return await asyncResult(context);
+    }
+
+    FlutterWindowClose.setWindowShouldCloseHandler(result);
+  }
 
   void goto(BuildContext context, String route) {
-    if (globals.routes.containsKey(route)) {
-      if (route != globals.currentRoute) {
-        globals.currentRoute = route;
-        globals.floatingActionNotifier.value =
+    if (globals.app.routes.containsKey(route)) {
+      if (route != globals.app.currentRoute) {
+        globals.app.currentRoute = route;
+        globals.app.floatingActionNotifier.value =
             HideableFloatingActionData(false);
-        //change current route
-        globals.routeNotifier.value = route;
+        globals.app.routeNotifier.value = route;
       } else {
         //when same route
       }
@@ -28,27 +83,43 @@ class PageNav extends StatefulWidget {
   }
 
   void refresh(BuildContext context) {
-    goto(context, globals.currentRoute);
+    goto(context, globals.app.currentRoute);
   }
 
   @override
   State<PageNav> createState() => _PageNavState();
+
+  void initState(context) {
+    //set exit alert
+    if (kIsWeb) {
+      setWebExitAlert('Leaving page could cause data loss.');
+    } else {
+      setAppExitAlert(dialog, context);
+    }
+  }
 }
 
 class _PageNavState extends State<PageNav> {
   _PageNavState() : super();
 
   @override
+  void initState() {
+    super.initState();
+    widget.initState(context);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<String>(
-      valueListenable: globals.routeNotifier,
+      valueListenable: globals.app.routeNotifier,
       builder: (_, newRoute, __) {
-        WidgetBuilder? builder = globals.routes[newRoute];
+        ThemedPage Function(BuildContext)? builder =
+            globals.app.routes[newRoute];
         if (builder == null) {
-          builder = globals.routes['/'];
-          globals.currentRoute = '/';
+          builder = globals.app.routes['/'];
+          globals.app.currentRoute = '/';
         } else {
-          globals.currentRoute = newRoute;
+          globals.app.currentRoute = newRoute;
         }
         return builder!(context);
       },

@@ -9,7 +9,7 @@ class HideableFloatingAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<HideableFloatingActionData>(
-        valueListenable: globals.floatingActionNotifier,
+        valueListenable: globals.app.floatingActionNotifier,
         builder: (context, data, _) {
           //setPress();
           if (data.action == null) {

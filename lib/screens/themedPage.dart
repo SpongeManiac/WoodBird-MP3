@@ -4,22 +4,32 @@ import '../widgets/hideableFloatingAction.dart';
 
 abstract class ThemedPage extends StatefulWidget {
   ThemedPage({
-    Key? key,
+    super.key,
     required this.title,
-  }) : super(key: key);
+  }) : super();
 
-  final ValueNotifier<MaterialColor> themeNotifier = globals.themeNotifier;
+  final ValueNotifier<MaterialColor> themeNotifier = globals.app.themeNotifier;
   final String title;
 
   void initFloatingAction([void Function()? action, Icon? icon]) {
     //Run code after page is done building
     WidgetsBinding.instance.addPostFrameCallback((_) {
       //update hideableFloatingAction's data
-      globals.floatingActionNotifier.value = HideableFloatingActionData(
+      globals.app.floatingActionNotifier.value = HideableFloatingActionData(
         true,
         action,
         icon,
       );
     });
+  }
+
+  void setNavTitle(String title) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      globals.app.setNavTitle(title);
+    });
+  }
+
+  void initState(BuildContext context) {
+    setNavTitle(title);
   }
 }

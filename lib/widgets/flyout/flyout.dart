@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_window_close/flutter_window_close.dart';
 import 'package:test_project/widgets/flyout/flyoutItem.dart';
 import '../../globals.dart' as globals;
 
@@ -6,7 +7,7 @@ class Flyout extends StatelessWidget {
   const Flyout({super.key});
 
   void navigate(BuildContext context, String route) {
-    globals.navigation.goto(context, route);
+    globals.app.navigation.goto(context, route);
   }
 
   @override
@@ -39,6 +40,10 @@ class Flyout extends StatelessWidget {
             text: 'Files',
             onTapped: () => navigate(context, '/files'),
           ),
+          FlyoutItem(
+              icon: Icons.close,
+              text: 'Exit',
+              onTapped: () => FlutterWindowClose.closeWindow())
         ], //drawer top
       ),
     );

@@ -1,18 +1,15 @@
-import 'package:drift/drift.dart' as d;
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:test_project/database/database.dart';
 import '../globals.dart' as globals;
 import 'package:test_project/screens/themedPage.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 
-import '../models/tables/homePageData.dart';
+import '../models/states/home/homePageData.dart';
 
 class HomePage extends ThemedPage {
   HomePage({
-    Key? key,
+    super.key,
     required super.title,
-  }) : super(key: key);
+  }) : super();
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -23,13 +20,15 @@ class _HomePageState extends State<HomePage> {
 
   int _counter = 0;
   MaterialColor? _selectedItem = globals.themes['Blue'];
-  HomePageData state() => globals.homePageStateNotifier.value;
+  HomePageData state() => globals.app.homePageStateNotifier.value;
 
   @override
   void initState() {
     super.initState();
     //init action button
     widget.initFloatingAction(_incrementCounter, const Icon(Icons.add));
+    //init this state
+    widget.initState(context);
 
     //build themedropdown
     for (var theme in globals.themes.keys) {
@@ -57,9 +56,7 @@ class _HomePageState extends State<HomePage> {
   void loadState(HomePageData state) {
     //set state
     _selectedItem = globals.themes.values.elementAt(state.theme);
-    //print('selected state: $_selectedItem');
     _counter = state.count;
-    //print('_counter: $_counter');
   }
 
   @override
@@ -71,20 +68,21 @@ class _HomePageState extends State<HomePage> {
   @override
   void deactivate() {
     super.deactivate();
-    globals.db.setHomeState(state().getEntry());
     print('deactivated');
   }
 
   @override
-  void dispose() {
+  void dispose() async {
     super.dispose();
-
+    print('saving state');
+    await globals.app.saveHomeState();
     print('disposed');
   }
 
   void _incrementCounter() {
     _counter++;
-    globals.homePageStateNotifier.value = HomePageData(state().theme, _counter);
+    globals.app.homePageStateNotifier.value =
+        HomePageData(state().theme, _counter);
   }
 
   void _themeChanged(MaterialColor? color) {
@@ -98,7 +96,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: globals.homePageStateNotifier,
+      valueListenable: globals.app.homePageStateNotifier,
       builder: (context, HomePageData newState, _) {
         //HomePageData newState = newStateUncasted;
         loadState(newState);

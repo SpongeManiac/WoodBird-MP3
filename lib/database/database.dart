@@ -53,7 +53,12 @@ class SharedDatabase extends _$SharedDatabase {
   @override
   int get schemaVersion => 1;
 
+  // Future<T?> getData<T extends DataClass>(Table targetTable) async {
+  //   return awaut (select(targetTable.))
+  // }
+
   Future<HomePageStateDB?> getHomeState() async {
+    print('Getting Home State');
     return await (select(homePageState)
           ..where((tbl) => tbl.id.equals(1))
           ..limit(1))
@@ -61,6 +66,7 @@ class SharedDatabase extends _$SharedDatabase {
   }
 
   Future<int> setHomeState(HomePageStateDB state) async {
+    print('Saving Home State');
     return into(homePageState).insertOnConflictUpdate(state);
   }
 }

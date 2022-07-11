@@ -16,6 +16,7 @@ class _SongsPageState extends State<SongsPage> {
   @override
   void initState() {
     super.initState();
+    widget.initState(context);
   }
 
   @override

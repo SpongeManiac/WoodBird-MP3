@@ -237,6 +237,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
+  flutter_platform_alert:
+    dependency: "direct main"
+    description:
+      name: flutter_platform_alert
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.8"
   flutter_riverpod:
     dependency: "direct main"
     description:
@@ -249,6 +256,18 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_web_plugins:
+    dependency: transitive
+    description: flutter
+    source: sdk
+    version: "0.0.0"
+  flutter_window_close:
+    dependency: "direct main"
+    description:
+      name: flutter_window_close
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.2"
   frontend_server_client:
     dependency: transitive
     description:
