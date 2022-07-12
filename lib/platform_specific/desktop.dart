@@ -1,5 +1,7 @@
 import 'dart:io';
-
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_window_close/flutter_window_close.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -19,6 +21,10 @@ class DesktopApp extends BaseApp {
   final dbName = 'db';
   final dbType = '.sqlite';
 
+  bool get isMobile {
+    return Platform.isAndroid || Platform.isIOS;
+  }
+
   Future<Directory> dbFolder() async {
     return getApplicationDocumentsDirectory();
   }
@@ -28,15 +34,73 @@ class DesktopApp extends BaseApp {
   }
 
   @override
+  Future<void> closeApp(BuildContext context) async {
+    if (kIsWeb) return;
+    if (isMobile) {
+      bool result = false;
+      result = await navigation.exitDialog(context);
+      if (result) {
+        if (Platform.isAndroid) {
+          //Android
+          SystemNavigator.pop();
+        } else {
+          // IOS
+          exit(0);
+        }
+      }
+    } else {
+      //desktop
+      FlutterWindowClose.closeWindow();
+    }
+  }
+
+  @override
   State<DesktopApp> createState() => _DesktopAppState();
 }
 
-class _DesktopAppState extends State<DesktopApp> {
+class _DesktopAppState extends State<DesktopApp> with WidgetsBindingObserver {
   _DesktopAppState();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    switch (state) {
+      case AppLifecycleState.inactive:
+        {
+          print('App is inactive');
+        }
+        break;
+      case AppLifecycleState.paused:
+        {
+          print('App is paused');
+        }
+        break;
+      case AppLifecycleState.detached:
+        {
+          print('App is detatched');
+        }
+        break;
+      case AppLifecycleState.resumed:
+        {
+          print('App is resumed');
+          setState(() {});
+        }
+        break;
+    }
+  }
+
+  @override
+  dispose() {
+    super.dispose();
+    print('disposing app');
+    WidgetsBinding.instance.removeObserver(this);
   }
 
   @override

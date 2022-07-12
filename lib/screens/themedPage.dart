@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_project/models/states/baseState.dart';
 import '../globals.dart' as globals;
 import '../widgets/hideableFloatingAction.dart';
 
@@ -32,4 +33,6 @@ abstract class ThemedPage extends StatefulWidget {
   void initState(BuildContext context) {
     setNavTitle(title);
   }
+
+  Future<void> saveState();
 }

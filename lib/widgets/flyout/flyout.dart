@@ -43,7 +43,7 @@ class Flyout extends StatelessWidget {
           FlyoutItem(
               icon: Icons.close,
               text: 'Exit',
-              onTapped: () => FlutterWindowClose.closeWindow())
+              onTapped: () => globals.app.closeApp(context))
         ], //drawer top
       ),
     );

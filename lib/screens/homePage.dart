@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_project/models/states/baseState.dart';
 import '../globals.dart' as globals;
 import 'package:test_project/screens/themedPage.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -13,6 +14,11 @@ class HomePage extends ThemedPage {
 
   @override
   State<HomePage> createState() => _HomePageState();
+
+  @override
+  Future<void> saveState() async {
+    await globals.app.saveHomeState();
+  }
 }
 
 class _HomePageState extends State<HomePage> {
@@ -59,26 +65,6 @@ class _HomePageState extends State<HomePage> {
     _counter = state.count;
   }
 
-  @override
-  void activated() {
-    super.activate();
-    print('activated');
-  }
-
-  @override
-  void deactivate() {
-    super.deactivate();
-    print('deactivated');
-  }
-
-  @override
-  void dispose() async {
-    super.dispose();
-    print('saving state');
-    await globals.app.saveHomeState();
-    print('disposed');
-  }
-
   void _incrementCounter() {
     _counter++;
     globals.app.homePageStateNotifier.value =
@@ -99,6 +85,7 @@ class _HomePageState extends State<HomePage> {
       valueListenable: globals.app.homePageStateNotifier,
       builder: (context, HomePageData newState, _) {
         //HomePageData newState = newStateUncasted;
+        newState.saveData();
         loadState(newState);
         // This method is rerun every time setState is called, for instance as done
         // by the _incrementCounter method above.
@@ -139,12 +126,8 @@ class _HomePageState extends State<HomePage> {
                   value: _selectedItem,
                   onChanged: (MaterialColor? newval) {
                     _themeChanged(newval);
-                    setState(() {
-                      _selectedItem;
-                    });
                   },
                   isExpanded: true,
-                  buttonWidth: 400,
                   buttonDecoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(15),
                     border: Border.all(
@@ -157,6 +140,7 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.grey,
                     ),
                   ),
+                  buttonWidth: 300,
                 ),
               ),
             ],

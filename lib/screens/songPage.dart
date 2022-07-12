@@ -10,6 +10,12 @@ class SongsPage extends ThemedPage {
 
   @override
   State<SongsPage> createState() => _SongsPageState();
+
+  @override
+  Future<void> saveState() {
+    // TODO: implement saveState
+    throw UnimplementedError();
+  }
 }
 
 class _SongsPageState extends State<SongsPage> {

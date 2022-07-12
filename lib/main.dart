@@ -1,16 +1,16 @@
-import 'package:flutter/foundation.dart';
+//import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'globals.dart' as globals;
 
 //import 'models/tables/homePageData.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   () async {
-    globals.app.loadPageStates();
-    if (!kIsWeb) {}
+    await globals.app.loadPageStates().then((value) {
+      runApp(globals.app);
+    });
   }();
-
-  runApp(globals.app);
 }
 
 // class MyApp extends StatelessWidget {

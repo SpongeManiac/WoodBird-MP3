@@ -15,7 +15,7 @@ class PageNav extends StatefulWidget {
 
   bool _alertShowing = false;
 
-  Future<bool> dialog(BuildContext context) async {
+  Future<bool> exitDialog(BuildContext context) async {
     //print('running alert');
     if (_alertShowing) return false;
     _alertShowing = true;
@@ -28,12 +28,22 @@ class PageNav extends StatefulWidget {
               title: const Text('Do you really want to quit?'),
               actions: [
                 ElevatedButton(
+                    // style: ButtonStyle(
+                    //   backgroundColor:
+                    //       MaterialStateProperty.all<Color>(Colors.red),
+                    // ),
                     onPressed: () {
                       Navigator.of(context).pop(true);
                       _alertShowing = false;
                     },
                     child: const Text('Yes')),
                 ElevatedButton(
+                    style: ButtonStyle(
+                      foregroundColor:
+                          MaterialStateProperty.all<Color>(Colors.black),
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                          const Color.fromARGB(255, 202, 202, 202)),
+                    ),
                     onPressed: () {
                       Navigator.of(context).pop(false);
                       _alertShowing = false;
@@ -45,7 +55,7 @@ class PageNav extends StatefulWidget {
     _alertShowing = false;
     result ??= false;
     if (result) {
-      globals.app.closeApp();
+      globals.app.appCleanup();
     }
     return result;
   }
@@ -94,7 +104,7 @@ class PageNav extends StatefulWidget {
     if (kIsWeb) {
       setWebExitAlert('Leaving page could cause data loss.');
     } else {
-      setAppExitAlert(dialog, context);
+      setAppExitAlert(exitDialog, context);
     }
   }
 }
@@ -106,6 +116,11 @@ class _PageNavState extends State<PageNav> {
   void initState() {
     super.initState();
     widget.initState(context);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override

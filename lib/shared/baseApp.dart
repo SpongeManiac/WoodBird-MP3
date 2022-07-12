@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:test_project/widgets/appBar.dart';
 
@@ -67,18 +68,21 @@ class BaseApp extends StatefulWidget {
     pageTitleNotifier.value = currentNavTitle;
   }
 
-  void loadPageStates() async {
+  Future<void> loadPageStates() async {
     //load homepage state
+    print('loading states');
     await loadHomeState();
   }
 
-  void savePageStates() async {
-    print('Saving page states');
+  Future<void> savePageStates() async {
+    print('saving states');
     await saveHomeState();
   }
 
-  Future<void> closeApp() async {
-    print('Closing app');
+  Future<void> closeApp(BuildContext context) async {}
+
+  Future<void> appCleanup() async {
+    print('Saving states');
     await saveHomeState();
   }
 
@@ -90,17 +94,10 @@ class BaseApp extends StatefulWidget {
       homeStateDB = HomePageStateDB(id: 1, theme: 0, count: homeStateDB.count);
     }
     //get homepagestate
-    print('getting home state');
-    HomePageData homeState = homePageStateNotifier.value.fromEntry(homeStateDB);
-    print(homeStateDB.theme);
-    print(homeStateDB.count);
-    //set homepagestate
-    print('setting home state');
-    print(homeState.theme);
-    print(homeState.count);
-    homePageStateNotifier.value = homeState;
-    MaterialColor theme = globals.themes.values.elementAt(homeStateDB.theme);
-    themeNotifier.value = theme;
+    print('getting & setting home state');
+    homePageStateNotifier.value =
+        homePageStateNotifier.value.fromEntry(homeStateDB);
+    themeNotifier.value = globals.themes.values.elementAt(homeStateDB.theme);
   }
 
   Future<void> saveHomeState() async {
