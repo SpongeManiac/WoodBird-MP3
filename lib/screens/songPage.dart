@@ -20,7 +20,7 @@ class SongsPage extends ThemedPage {
 
   Future<void> addSong() async {
     print('going to add song');
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.audio,
       //allowMultiple: true,
     );
@@ -35,15 +35,16 @@ class SongsPage extends ThemedPage {
 
   @override
   AppBarData getDefaultAppBar() {
+    print('getting def app bar');
     return AppBarData(title, <Widget>[
       PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
           itemBuilder: (context) {
             Map<String, Future<void> Function()> choices =
                 <String, Future<void> Function()>{
-              'Add Song': () async {
-                await addSong();
-              },
+              'Add Song': () async{
+                  await addSong();
+                },
               'Test 2': () async {},
             };
             Map<String, IconData> choiceIcon = <String, IconData>{

@@ -42,7 +42,7 @@ dependencies:
   flutter_window_close: ^0.2.2
   flutter_platform_alert: ^0.2.8
   sqlite3_flutter_libs: ^0.5.8
-  file_picker: ^3.0.4
+  file_picker: ^4.6.1
 
 dev_dependencies:
   flutter_test:
