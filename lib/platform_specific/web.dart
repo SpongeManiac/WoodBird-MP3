@@ -25,6 +25,7 @@ class _WebAppState extends State<WebApp> {
         //underscores are used for unused variables. Give variable name for listener value.
         builder: (context, themeColor, __) {
           return MaterialApp(
+            debugShowCheckedModeBanner: false,
             title: widget.appTitle,
             theme: ThemeData(
               // This is the theme of your application.

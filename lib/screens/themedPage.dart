@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test_project/models/states/baseState.dart';
+import 'package:test_project/widgets/appBar.dart';
 import '../globals.dart' as globals;
 import '../widgets/hideableFloatingAction.dart';
 
@@ -24,14 +25,30 @@ abstract class ThemedPage extends StatefulWidget {
     });
   }
 
-  void setNavTitle(String title) {
+  AppBarData getDefaultAppBar() {
+    return AppBarData(title, null);
+  }
+
+  void setAppBarData(AppBarData data) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      globals.app.setNavTitle(title);
+      globals.app.appBarNotifier.value = data;
     });
   }
 
+  void setAppBarTitle(String title) {
+    AppBarData tmp = globals.app.appBarNotifier.value.copy();
+    tmp.title = title;
+    setAppBarData(tmp);
+  }
+
+  void setAppBarActions(List<Widget> actions) {
+    AppBarData tmp = globals.app.appBarNotifier.value.copy();
+    tmp.actions = actions;
+    setAppBarData(tmp);
+  }
+
   void initState(BuildContext context) {
-    setNavTitle(title);
+    setAppBarData(getDefaultAppBar());
   }
 
   Future<void> saveState();

@@ -21,16 +21,18 @@ class BaseApp extends StatefulWidget {
 
   String appTitle;
 
-  ValueNotifier<String> pageTitleNotifier = ValueNotifier('WoodBird MP3');
+  ValueNotifier<AppBarData> appBarNotifier =
+      ValueNotifier(AppBarData('WoodBird MP3'));
   String? navTitle;
   String get currentNavTitle {
-    print('nav title given was $navTitle');
-    return navTitle ??= pageTitleNotifier.value;
+    return navTitle ??= appBarNotifier.value.title;
   }
 
   set currentNavTitle(String newTitle) {
     navTitle = newTitle;
-    pageTitleNotifier.value = newTitle;
+    AppBarData tmp = appBarNotifier.value.copy();
+    tmp.title = newTitle;
+    appBarNotifier.value = tmp;
   }
 
   //global app variables
@@ -65,7 +67,6 @@ class BaseApp extends StatefulWidget {
 
   void setNavTitle([String? title]) {
     currentNavTitle = title ??= currentNavTitle;
-    pageTitleNotifier.value = currentNavTitle;
   }
 
   Future<void> loadPageStates() async {
@@ -82,8 +83,7 @@ class BaseApp extends StatefulWidget {
   Future<void> closeApp(BuildContext context) async {}
 
   Future<void> appCleanup() async {
-    print('Saving states');
-    await saveHomeState();
+    await savePageStates();
   }
 
   Future<void> loadHomeState() async {
@@ -94,7 +94,7 @@ class BaseApp extends StatefulWidget {
       homeStateDB = HomePageStateDB(id: 1, theme: 0, count: homeStateDB.count);
     }
     //get homepagestate
-    print('getting & setting home state');
+    //print('getting & setting home state');
     homePageStateNotifier.value =
         homePageStateNotifier.value.fromEntry(homeStateDB);
     themeNotifier.value = globals.themes.values.elementAt(homeStateDB.theme);

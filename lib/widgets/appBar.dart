@@ -1,5 +1,7 @@
+import 'package:drift/src/runtime/data_class.dart';
 import 'package:flutter/material.dart';
 import '../globals.dart' as globals;
+import '../models/states/baseState.dart';
 
 class AppBarTitleListener extends AppBar {
   AppBarTitleListener({Key? key}) : super(key: key);
@@ -13,14 +15,27 @@ class _AppBarTitleListenerState extends State<AppBarTitleListener> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<String>(
+    return ValueListenableBuilder<AppBarData>(
         //the listener
-        valueListenable: globals.app.pageTitleNotifier,
+        valueListenable: globals.app.appBarNotifier,
         //underscores are used for unused variables. Give variable name for listener value.
-        builder: (context, newTitle, __) {
+        builder: (context, data, __) {
           return AppBar(
-            title: Text(newTitle),
+            title: Text(data.title),
+            actions: data.actions,
           );
         });
+  }
+}
+
+class AppBarData extends BaseData {
+  AppBarData(this.title, [this.actions]);
+
+  String title;
+  List<Widget>? actions;
+
+  @override
+  AppBarData copy() {
+    return AppBarData(title, actions);
   }
 }

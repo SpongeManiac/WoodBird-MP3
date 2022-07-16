@@ -104,7 +104,7 @@ class PageNav extends StatefulWidget {
     if (kIsWeb) {
       setWebExitAlert('Leaving page could cause data loss.');
     } else {
-      setAppExitAlert(exitDialog, context);
+      //setAppExitAlert(exitDialog, context);
     }
   }
 }

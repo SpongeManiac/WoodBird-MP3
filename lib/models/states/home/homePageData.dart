@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../baseState.dart';
 import '../../../database/database.dart';
 
-class HomePageData extends BaseData {
+class HomePageData extends BaseDataDB {
   HomePageData(this.theme, this.count);
   int theme;
   int count;
@@ -26,6 +26,11 @@ class HomePageData extends BaseData {
     copy.theme = data.theme;
     copy.count = data.count;
     return copy;
+  }
+
+  @override
+  HomePageData copy() {
+    return HomePageData(theme, count);
   }
 
   // @override
