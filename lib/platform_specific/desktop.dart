@@ -64,6 +64,7 @@ class _DesktopAppState extends State<DesktopApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    
     WidgetsBinding.instance.addObserver(this);
   }
 

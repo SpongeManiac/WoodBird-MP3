@@ -26,9 +26,7 @@ class SongsPage extends ThemedPage {
   Future<void> addSong() async {
     print('going to add song');
     final FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.audio,
-      allowMultiple: true,
-    );
+        type: FileType.any, allowMultiple: true, allowedExtensions: ['mp3']);
     if (result != null) {
       print('got ${result.count} file(s)');
       List<SongData> list = List.from(app.songsNotifier.value);
