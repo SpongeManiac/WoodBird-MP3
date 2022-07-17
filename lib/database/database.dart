@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 part 'database.g.dart';
 
+//Page States
 @DataClassName('HomePageStateDB')
 class HomePageState extends Table {
   //only allow one entry in table
@@ -12,7 +13,15 @@ class HomePageState extends Table {
   IntColumn get count => integer().withDefault(const Constant(0))();
 }
 
-@DataClassName('Song')
+// @DataClassName('SongPageStateDB')
+// class SongPageState extends Table {
+//   IntColumn get id =>
+//     integer().autoIncrement().withDefault(const Constant(1))();
+
+// }
+
+// Data
+@DataClassName('SongDataDB')
 class Songs extends Table {
   // PrimaryKey
   IntColumn get id => integer().autoIncrement()();
@@ -23,7 +32,7 @@ class Songs extends Table {
   TextColumn get localPath => text().withLength(min: 4, max: 512)();
 }
 
-@DataClassName('Album')
+@DataClassName('AlbumDataDB')
 class Albums extends Table {
   // PrimaryKey
   IntColumn get id => integer().autoIncrement()();
@@ -33,7 +42,7 @@ class Albums extends Table {
       text().withLength(min: 0, max: 256).withDefault(const Constant(''))();
 }
 
-@DataClassName('AlbumSong')
+@DataClassName('AlbumSongDataDB')
 class AlbumSongs extends Table {
   IntColumn get id => integer().autoIncrement()();
 }
@@ -53,10 +62,6 @@ class SharedDatabase extends _$SharedDatabase {
   @override
   int get schemaVersion => 1;
 
-  // Future<T?> getData<T extends DataClass>(Table targetTable) async {
-  //   return awaut (select(targetTable.))
-  // }
-
   Future<HomePageStateDB?> getHomeState() async {
     print('Getting Home State');
     return await (select(homePageState)
@@ -68,5 +73,22 @@ class SharedDatabase extends _$SharedDatabase {
   Future<int> setHomeState(HomePageStateDB state) async {
     print('Saving Home State');
     return into(homePageState).insertOnConflictUpdate(state);
+  }
+
+  Future<SongDataDB?> getSongData(int id) async {
+    return await (select(songs)
+          ..where((tbl) => tbl.id.equals(id))
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
+  Future<int> setSongData(SongsCompanion song) async {
+    return into(songs).insertOnConflictUpdate(song);
+  }
+
+  Future<List<SongDataDB>> getAllSongs() async {
+    return await (select(songs)
+          ..orderBy([(t) => OrderingTerm(expression: t.name)]))
+        .get();
   }
 }

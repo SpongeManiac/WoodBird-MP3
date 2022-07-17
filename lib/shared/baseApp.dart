@@ -5,6 +5,7 @@ import 'package:test_project/widgets/appBar.dart';
 import '../database/database.dart';
 import '../globals.dart' as globals;
 import '../models/states/home/homePageData.dart';
+import '../models/states/song/SongData.dart';
 import '../screens/homePage.dart';
 import '../screens/pageNav.dart';
 import '../screens/songPage.dart';
@@ -45,6 +46,10 @@ class BaseApp extends StatefulWidget {
   final ValueNotifier<HomePageData> homePageStateNotifier =
       ValueNotifier(HomePageData(0, 0));
 
+  //songs list
+  final ValueNotifier<List<SongData>> songsNotifier =
+      ValueNotifier(<SongData>[]);
+
   final Map<String, ThemedPage Function(BuildContext)> routes = {
     '/': (context) => HomePage(title: 'Home'),
     '/files': (context) => SongsPage(title: 'Songs'),
@@ -73,6 +78,9 @@ class BaseApp extends StatefulWidget {
     //load homepage state
     print('loading states');
     await loadHomeState();
+
+    //load songs
+    await loadSongs();
   }
 
   Future<void> savePageStates() async {
@@ -103,6 +111,15 @@ class BaseApp extends StatefulWidget {
   Future<void> saveHomeState() async {
     await globals.db
         .setHomeState(globals.app.homePageStateNotifier.value.getEntry());
+  }
+
+  Future<void> loadSongs() async {
+    List<SongData> songs = <SongData>[];
+    List<SongDataDB> songsDB = await globals.db.getAllSongs();
+    for (var song in songsDB) {
+      songs.add(SongData(song.artist, song.name, song.localPath, song.id));
+    }
+    songsNotifier.value = songs;
   }
 
   @override

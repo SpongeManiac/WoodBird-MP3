@@ -215,19 +215,19 @@ class $HomePageStateTable extends HomePageState
   }
 }
 
-class Song extends DataClass implements Insertable<Song> {
+class SongDataDB extends DataClass implements Insertable<SongDataDB> {
   final int id;
   final String artist;
   final String name;
   final String localPath;
-  Song(
+  SongDataDB(
       {required this.id,
       required this.artist,
       required this.name,
       required this.localPath});
-  factory Song.fromData(Map<String, dynamic> data, {String? prefix}) {
+  factory SongDataDB.fromData(Map<String, dynamic> data, {String? prefix}) {
     final effectivePrefix = prefix ?? '';
-    return Song(
+    return SongDataDB(
       id: const IntType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
       artist: const StringType()
@@ -257,10 +257,10 @@ class Song extends DataClass implements Insertable<Song> {
     );
   }
 
-  factory Song.fromJson(Map<String, dynamic> json,
+  factory SongDataDB.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Song(
+    return SongDataDB(
       id: serializer.fromJson<int>(json['id']),
       artist: serializer.fromJson<String>(json['artist']),
       name: serializer.fromJson<String>(json['name']),
@@ -278,8 +278,9 @@ class Song extends DataClass implements Insertable<Song> {
     };
   }
 
-  Song copyWith({int? id, String? artist, String? name, String? localPath}) =>
-      Song(
+  SongDataDB copyWith(
+          {int? id, String? artist, String? name, String? localPath}) =>
+      SongDataDB(
         id: id ?? this.id,
         artist: artist ?? this.artist,
         name: name ?? this.name,
@@ -287,7 +288,7 @@ class Song extends DataClass implements Insertable<Song> {
       );
   @override
   String toString() {
-    return (StringBuffer('Song(')
+    return (StringBuffer('SongDataDB(')
           ..write('id: $id, ')
           ..write('artist: $artist, ')
           ..write('name: $name, ')
@@ -301,14 +302,14 @@ class Song extends DataClass implements Insertable<Song> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Song &&
+      (other is SongDataDB &&
           other.id == this.id &&
           other.artist == this.artist &&
           other.name == this.name &&
           other.localPath == this.localPath);
 }
 
-class SongsCompanion extends UpdateCompanion<Song> {
+class SongsCompanion extends UpdateCompanion<SongDataDB> {
   final Value<int> id;
   final Value<String> artist;
   final Value<String> name;
@@ -327,7 +328,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
   })  : artist = Value(artist),
         name = Value(name),
         localPath = Value(localPath);
-  static Insertable<Song> custom({
+  static Insertable<SongDataDB> custom({
     Expression<int>? id,
     Expression<String>? artist,
     Expression<String>? name,
@@ -384,7 +385,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
   }
 }
 
-class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
+class $SongsTable extends Songs with TableInfo<$SongsTable, SongDataDB> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -427,7 +428,7 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
   @override
   String get actualTableName => 'songs';
   @override
-  VerificationContext validateIntegrity(Insertable<Song> instance,
+  VerificationContext validateIntegrity(Insertable<SongDataDB> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -458,8 +459,8 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Song map(Map<String, dynamic> data, {String? tablePrefix}) {
-    return Song.fromData(data,
+  SongDataDB map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return SongDataDB.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -469,14 +470,15 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
   }
 }
 
-class Album extends DataClass implements Insertable<Album> {
+class AlbumDataDB extends DataClass implements Insertable<AlbumDataDB> {
   final int id;
   final String name;
   final String description;
-  Album({required this.id, required this.name, required this.description});
-  factory Album.fromData(Map<String, dynamic> data, {String? prefix}) {
+  AlbumDataDB(
+      {required this.id, required this.name, required this.description});
+  factory AlbumDataDB.fromData(Map<String, dynamic> data, {String? prefix}) {
     final effectivePrefix = prefix ?? '';
-    return Album(
+    return AlbumDataDB(
       id: const IntType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
       name: const StringType()
@@ -502,10 +504,10 @@ class Album extends DataClass implements Insertable<Album> {
     );
   }
 
-  factory Album.fromJson(Map<String, dynamic> json,
+  factory AlbumDataDB.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Album(
+    return AlbumDataDB(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       description: serializer.fromJson<String>(json['description']),
@@ -521,14 +523,15 @@ class Album extends DataClass implements Insertable<Album> {
     };
   }
 
-  Album copyWith({int? id, String? name, String? description}) => Album(
+  AlbumDataDB copyWith({int? id, String? name, String? description}) =>
+      AlbumDataDB(
         id: id ?? this.id,
         name: name ?? this.name,
         description: description ?? this.description,
       );
   @override
   String toString() {
-    return (StringBuffer('Album(')
+    return (StringBuffer('AlbumDataDB(')
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('description: $description')
@@ -541,13 +544,13 @@ class Album extends DataClass implements Insertable<Album> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Album &&
+      (other is AlbumDataDB &&
           other.id == this.id &&
           other.name == this.name &&
           other.description == this.description);
 }
 
-class AlbumsCompanion extends UpdateCompanion<Album> {
+class AlbumsCompanion extends UpdateCompanion<AlbumDataDB> {
   final Value<int> id;
   final Value<String> name;
   final Value<String> description;
@@ -561,7 +564,7 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
     required String name,
     this.description = const Value.absent(),
   }) : name = Value(name);
-  static Insertable<Album> custom({
+  static Insertable<AlbumDataDB> custom({
     Expression<int>? id,
     Expression<String>? name,
     Expression<String>? description,
@@ -608,7 +611,7 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
   }
 }
 
-class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
+class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, AlbumDataDB> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -645,7 +648,7 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
   @override
   String get actualTableName => 'albums';
   @override
-  VerificationContext validateIntegrity(Insertable<Album> instance,
+  VerificationContext validateIntegrity(Insertable<AlbumDataDB> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -670,8 +673,8 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Album map(Map<String, dynamic> data, {String? tablePrefix}) {
-    return Album.fromData(data,
+  AlbumDataDB map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return AlbumDataDB.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -681,12 +684,13 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
   }
 }
 
-class AlbumSong extends DataClass implements Insertable<AlbumSong> {
+class AlbumSongDataDB extends DataClass implements Insertable<AlbumSongDataDB> {
   final int id;
-  AlbumSong({required this.id});
-  factory AlbumSong.fromData(Map<String, dynamic> data, {String? prefix}) {
+  AlbumSongDataDB({required this.id});
+  factory AlbumSongDataDB.fromData(Map<String, dynamic> data,
+      {String? prefix}) {
     final effectivePrefix = prefix ?? '';
-    return AlbumSong(
+    return AlbumSongDataDB(
       id: const IntType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
     );
@@ -704,10 +708,10 @@ class AlbumSong extends DataClass implements Insertable<AlbumSong> {
     );
   }
 
-  factory AlbumSong.fromJson(Map<String, dynamic> json,
+  factory AlbumSongDataDB.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return AlbumSong(
+    return AlbumSongDataDB(
       id: serializer.fromJson<int>(json['id']),
     );
   }
@@ -719,12 +723,12 @@ class AlbumSong extends DataClass implements Insertable<AlbumSong> {
     };
   }
 
-  AlbumSong copyWith({int? id}) => AlbumSong(
+  AlbumSongDataDB copyWith({int? id}) => AlbumSongDataDB(
         id: id ?? this.id,
       );
   @override
   String toString() {
-    return (StringBuffer('AlbumSong(')
+    return (StringBuffer('AlbumSongDataDB(')
           ..write('id: $id')
           ..write(')'))
         .toString();
@@ -734,10 +738,11 @@ class AlbumSong extends DataClass implements Insertable<AlbumSong> {
   int get hashCode => id.hashCode;
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || (other is AlbumSong && other.id == this.id);
+      identical(this, other) ||
+      (other is AlbumSongDataDB && other.id == this.id);
 }
 
-class AlbumSongsCompanion extends UpdateCompanion<AlbumSong> {
+class AlbumSongsCompanion extends UpdateCompanion<AlbumSongDataDB> {
   final Value<int> id;
   const AlbumSongsCompanion({
     this.id = const Value.absent(),
@@ -745,7 +750,7 @@ class AlbumSongsCompanion extends UpdateCompanion<AlbumSong> {
   AlbumSongsCompanion.insert({
     this.id = const Value.absent(),
   });
-  static Insertable<AlbumSong> custom({
+  static Insertable<AlbumSongDataDB> custom({
     Expression<int>? id,
   }) {
     return RawValuesInsertable({
@@ -778,7 +783,7 @@ class AlbumSongsCompanion extends UpdateCompanion<AlbumSong> {
 }
 
 class $AlbumSongsTable extends AlbumSongs
-    with TableInfo<$AlbumSongsTable, AlbumSong> {
+    with TableInfo<$AlbumSongsTable, AlbumSongDataDB> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -797,7 +802,7 @@ class $AlbumSongsTable extends AlbumSongs
   @override
   String get actualTableName => 'album_songs';
   @override
-  VerificationContext validateIntegrity(Insertable<AlbumSong> instance,
+  VerificationContext validateIntegrity(Insertable<AlbumSongDataDB> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -810,8 +815,8 @@ class $AlbumSongsTable extends AlbumSongs
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  AlbumSong map(Map<String, dynamic> data, {String? tablePrefix}) {
-    return AlbumSong.fromData(data,
+  AlbumSongDataDB map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return AlbumSongDataDB.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 

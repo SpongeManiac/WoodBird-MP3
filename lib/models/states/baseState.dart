@@ -9,6 +9,7 @@ abstract class BaseData extends Object {
 abstract class BaseDataDB extends BaseData {
   SharedDatabase get db => globals.db;
   void saveData();
-  BaseData fromEntry(DataClass data);
+  BaseData fromEntry(DataClass dataclass);
   DataClass getEntry();
+  UpdateCompanion getCompanion();
 }

@@ -1,5 +1,10 @@
+import 'dart:io';
+import 'dart:ui';
+import 'package:flutter/rendering.dart';
+import 'package:path/path.dart' show basename;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:test_project/models/states/song/SongData.dart';
 
 import '../widgets/appBar.dart';
 import 'themedPage.dart';
@@ -22,14 +27,29 @@ class SongsPage extends ThemedPage {
     print('going to add song');
     final FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.audio,
-      //allowMultiple: true,
+      allowMultiple: true,
     );
     if (result != null) {
       print('got ${result.count} file(s)');
-      return;
+      List<SongData> list = List.from(app.songsNotifier.value);
+      for (String? path in result.paths) {
+        path ??= '-1';
+        if (path == '-1') continue;
+        File file = File(path);
+        String base = basename(path);
+        var split = base.split('.');
+        var name = split.first;
+        var ext = split.last;
+        print(name);
+        print(ext);
+        //create song data
+        SongData song = SongData('unknown', name, path);
+        song.saveData();
+        list.add(song);
+        app.songsNotifier.value = list;
+      }
     } else {
       print('null result');
-      return;
     }
   }
 
@@ -42,9 +62,9 @@ class SongsPage extends ThemedPage {
           itemBuilder: (context) {
             Map<String, Future<void> Function()> choices =
                 <String, Future<void> Function()>{
-              'Add Song': () async{
-                  await addSong();
-                },
+              'Add Song': () async {
+                await addSong();
+              },
               'Test 2': () async {},
             };
             Map<String, IconData> choiceIcon = <String, IconData>{
@@ -106,6 +126,32 @@ class _SongsPageState extends State<SongsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Song Page'));
+    return ValueListenableBuilder(
+      valueListenable: widget.app.songsNotifier,
+      builder: (context, List<SongData> newSongs, _) {
+        print('got songs: ${newSongs.toList()}');
+        return RefreshIndicator(
+            onRefresh: () async => setState(() {}),
+            child: ScrollConfiguration(
+                behavior: ScrollConfiguration.of(context).copyWith(
+                  dragDevices: {
+                    PointerDeviceKind.touch,
+                    PointerDeviceKind.mouse,
+                  },
+                ),
+                child: ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: newSongs.length,
+                  itemBuilder: ((context, index) {
+                    SongData song = newSongs[index];
+                    return ListTile(
+                      title: Text(song.name),
+                      subtitle: Text(song.artist),
+                    );
+                  }),
+                )));
+      },
+    );
   }
 }

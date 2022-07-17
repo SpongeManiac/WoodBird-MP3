@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test_project/models/states/baseState.dart';
+import 'package:test_project/shared/baseApp.dart';
 import 'package:test_project/widgets/appBar.dart';
 import '../globals.dart' as globals;
 import '../widgets/hideableFloatingAction.dart';
@@ -12,6 +13,8 @@ abstract class ThemedPage extends StatefulWidget {
 
   final ValueNotifier<MaterialColor> themeNotifier = globals.app.themeNotifier;
   final String title;
+
+  BaseApp get app => globals.app;
 
   void initFloatingAction([void Function()? action, Icon? icon]) {
     //Run code after page is done building

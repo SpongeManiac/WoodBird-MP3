@@ -40,9 +40,10 @@ dependencies:
   path_provider: ^2.0.11
   flutter_riverpod: ^1.0.4
   flutter_window_close: ^0.2.2
-  flutter_platform_alert: ^0.2.8
+  flutter_platform_alert: ^0.3.0
   sqlite3_flutter_libs: ^0.5.8
   file_picker: ^4.6.1
+  receive_sharing_intent: ^1.4.5
 
 dev_dependencies:
   flutter_test:

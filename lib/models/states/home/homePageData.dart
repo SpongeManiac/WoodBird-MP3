@@ -1,5 +1,4 @@
 import 'package:drift/src/runtime/data_class.dart';
-import 'package:flutter/material.dart';
 
 import '../baseState.dart';
 import '../../../database/database.dart';
@@ -10,8 +9,17 @@ class HomePageData extends BaseDataDB {
   int count;
 
   @override
-  void saveData() {
-    db.setHomeState(getEntry());
+  HomePageData copy() {
+    return HomePageData(theme, count);
+  }
+
+  @override
+  HomePageData fromEntry(DataClass dataclass) {
+    HomePageStateDB data = dataclass as HomePageStateDB;
+    var copy = this;
+    copy.theme = data.theme;
+    copy.count = data.count;
+    return copy;
   }
 
   @override
@@ -20,23 +28,12 @@ class HomePageData extends BaseDataDB {
   }
 
   @override
-  HomePageData fromEntry(DataClass data) {
-    data as HomePageStateDB;
-    var copy = this;
-    copy.theme = data.theme;
-    copy.count = data.count;
-    return copy;
+  void saveData() {
+    db.setHomeState(getEntry());
   }
 
   @override
-  HomePageData copy() {
-    return HomePageData(theme, count);
+  HomePageStateCompanion getCompanion() {
+    return HomePageStateCompanion(theme: Value(theme), count: Value(count));
   }
-
-  // @override
-  // void fromEntry(BaseData data) {
-  //   var state = data as HomePageStateDB;
-  //   theme = state.theme;
-  //   count = state.count;
-  // }
 }
