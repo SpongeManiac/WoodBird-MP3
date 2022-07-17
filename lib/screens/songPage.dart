@@ -21,7 +21,10 @@ class SongsPage extends ThemedPage {
   Future<void> addSong() async {
     print('going to add song');
     final FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.audio,
+      type: FileType.any,
+      // allowedExtensions: <String>[
+      //   'mp3',
+      // ],
       //allowMultiple: true,
     );
     if (result != null) {
