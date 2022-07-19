@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_window_close/flutter_window_close.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:test_project/screens/themedPage.dart';
+import 'package:test_project/widgets/playerMenu.dart';
 
 import '../database/database.dart';
 import '../globals.dart' as globals;
@@ -112,6 +114,8 @@ class PageNav extends StatefulWidget {
 class _PageNavState extends State<PageNav> {
   _PageNavState() : super();
 
+  double seeker = 0;
+
   @override
   void initState() {
     super.initState();
@@ -136,7 +140,37 @@ class _PageNavState extends State<PageNav> {
         } else {
           globals.app.currentRoute = newRoute;
         }
-        return builder!(context);
+
+        return SlidingUpPanel(
+          minHeight: 120,
+          panel: PlayerMenu(),
+          body: builder!(context),
+          footer: Container(
+            height: 80,
+            width: MediaQuery.of(context).size.width,
+            color: Theme.of(context).primaryColorLight,
+            child: Row(
+              //width: double.infinity,
+              //child: Row(
+              children: [
+                Icon(
+                  Icons.play_circle_outline_rounded,
+                  color: Theme.of(context).primaryColor,
+                ),
+                Slider(
+                  value: seeker,
+                  onChanged: (value) {
+                    //print('newVal: $value');
+                    setState(() {
+                      seeker = value;
+                    });
+                  },
+                ),
+              ],
+              //),
+            ),
+          ),
+        );
       },
     );
   }

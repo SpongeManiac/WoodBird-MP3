@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:test_project/widgets/appBar.dart';
 
 import '../database/database.dart';
@@ -19,6 +20,9 @@ class BaseApp extends StatefulWidget {
       this.appTitle = 'WoodBird MP3',
       this.navTitle = 'WoodBird MP3'})
       : super();
+
+  AudioPlayer? _player;
+  AudioPlayer get player => _player ??= AudioPlayer();
 
   String appTitle;
 

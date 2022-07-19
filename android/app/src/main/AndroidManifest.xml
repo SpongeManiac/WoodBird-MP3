@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.package.woodbird">
+    package="com.example.woodbird">
    <application
         android:label="test_project"
         android:name="${applicationName}"

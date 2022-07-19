@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/rendering.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:path/path.dart' show basename;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:test_project/models/states/song/SongData.dart';
+import 'package:test_project/widgets/contextPopupButton.dart';
 
 import '../widgets/appBar.dart';
 import 'themedPage.dart';
@@ -14,6 +16,9 @@ class SongsPage extends ThemedPage {
     Key? key,
     required super.title,
   }) : super(key: key);
+
+  Map<SongData, ContextPopupButton> songContexts =
+      <SongData, ContextPopupButton>{};
 
   @override
   State<SongsPage> createState() => _SongsPageState();
@@ -26,7 +31,7 @@ class SongsPage extends ThemedPage {
   Future<void> addSong() async {
     print('going to add song');
     final FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.any, allowMultiple: true, allowedExtensions: ['mp3']);
+        type: FileType.custom, allowMultiple: true, allowedExtensions: ['mp3']);
     if (result != null) {
       print('got ${result.count} file(s)');
       List<SongData> list = List.from(app.songsNotifier.value);
@@ -51,23 +56,73 @@ class SongsPage extends ThemedPage {
     }
   }
 
+  ContextPopupButton getSongContext(SongData song) {
+    var popup = ContextPopupButton(
+        icon: const Icon(Icons.more_vert),
+        itemBuilder: (context) {
+          Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
+            'Add to playlist...': ContextItemTuple(
+              Icons.playlist_add,
+              () async {
+                await addSong();
+              },
+            ),
+            'Add to album...': ContextItemTuple(Icons.album),
+            'Play single': ContextItemTuple(Icons.play_arrow),
+            'Delete': ContextItemTuple(Icons.delete),
+          };
+
+          List<PopupMenuItem<String>> list = [];
+
+          for (String val in choices.keys) {
+            var choice = choices[val];
+            list.add(
+              PopupMenuItem(
+                  onTap: choice!.onPress,
+                  child: Row(
+                    children: [
+                      Icon(
+                        choice.icon,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      Expanded(
+                        child: Text(
+                          val,
+                          textAlign: TextAlign.right,
+                        ),
+                      )
+                    ],
+                  )),
+            );
+          }
+
+          return list;
+        });
+    // void Function() tmp = () {
+    //   print('showing dialog');
+    //   popup.showDialog();
+    // };
+
+    songContexts[song] = popup;
+    return popup;
+  }
+
   @override
   AppBarData getDefaultAppBar() {
     print('getting def app bar');
     return AppBarData(title, <Widget>[
       PopupMenuButton<String>(
+          //key: _key?,
           icon: const Icon(Icons.more_vert),
           itemBuilder: (context) {
-            Map<String, Future<void> Function()> choices =
-                <String, Future<void> Function()>{
-              'Add Song': () async {
-                await addSong();
-              },
-              'Test 2': () async {},
-            };
-            Map<String, IconData> choiceIcon = <String, IconData>{
-              'Add Song': Icons.folder,
-              'Test 2': Icons.bug_report,
+            Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
+              'Add Song': ContextItemTuple(
+                Icons.folder,
+                () async {
+                  await addSong();
+                },
+              ),
+              'Test 2': ContextItemTuple(Icons.bug_report),
             };
 
             List<PopupMenuItem<String>> list = [];
@@ -75,11 +130,11 @@ class SongsPage extends ThemedPage {
             for (String val in choices.keys) {
               list.add(
                 PopupMenuItem(
-                    onTap: choices[val],
+                    onTap: choices[val]!.onPress,
                     child: Row(
                       children: [
                         Icon(
-                          choiceIcon[val],
+                          choices[val]!.icon,
                           color: Theme.of(context).primaryColor,
                         ),
                         Expanded(
@@ -95,23 +150,28 @@ class SongsPage extends ThemedPage {
 
             return list;
           }),
-      // itemBuilder: (context) {
-      //   return {'Test 1', 'Test 2'}.map((String choice) {
-      //     return PopupMenuItem<String>(
-      //       value: choice,
-      //       child: Column(
-      //         children: [
-      //           const Icon(
-      //             Icons.file_copy,
-      //           ),
-      //           Text(choice),
-      //         ],
-      //       ),
-      //     );
-      //   }).toList();
-      //},
-      //)
     ]);
+  }
+
+  Future<void> songTapped(SongData song) async {
+    //stop current song if playing
+    if (app.player.playing) {
+      await app.player.pause();
+    }
+    await app.player.setUrl(song.localPath);
+    print('playing');
+    await togglePlay();
+    //there is only one queue, it is populated by a list of songs
+    //add this song to the top of the queue
+    //play song
+  }
+
+  Future<void> togglePlay() async {
+    if (app.player.playing) {
+      await app.player.pause();
+    } else {
+      await app.player.play();
+    }
   }
 }
 
@@ -143,13 +203,33 @@ class _SongsPageState extends State<SongsPage> {
                   itemCount: newSongs.length,
                   itemBuilder: ((context, index) {
                     SongData song = newSongs[index];
+
+                    var songContextBtn = widget.getSongContext(song);
                     return ListTile(
+                      enabled: true,
+                      onTap: () {
+                        print('tap');
+                        widget.songTapped(song);
+                      },
+                      onLongPress: () {
+                        print('long press');
+                        //print(widget.songContexts[song]);
+                        widget.songContexts[song]!.showDialog();
+                      },
                       title: Text(song.name),
                       subtitle: Text(song.artist),
+                      trailing: songContextBtn,
                     );
                   }),
                 )));
       },
     );
   }
+}
+
+class ContextItemTuple {
+  ContextItemTuple(this.icon, [this.onPress, this.onLongPress]);
+  IconData icon;
+  Future<void> Function()? onPress;
+  Future<void> Function()? onLongPress;
 }

@@ -7,7 +7,8 @@ import 'globals.dart' as globals;
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   () async {
-    await globals.app.loadPageStates().then((value) {
+    await globals.app.loadPageStates().then((value) async {
+      //}).then((value) {
       runApp(globals.app);
     });
   }();
