@@ -61,6 +61,7 @@ class SongsPage extends ThemedPage {
         icon: const Icon(Icons.more_vert),
         itemBuilder: (context) {
           Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
+            'Add to queue': ContextItemTuple(Icons.queue_music_rounded),
             'Add to playlist...': ContextItemTuple(
               Icons.playlist_add,
               () async {
@@ -68,7 +69,13 @@ class SongsPage extends ThemedPage {
               },
             ),
             'Add to album...': ContextItemTuple(Icons.album),
-            'Play single': ContextItemTuple(Icons.play_arrow),
+            'Play single': ContextItemTuple(
+              Icons.play_arrow,
+              () async {
+                app.playerInterface.playSingle(song);
+              },
+            ),
+            'Edit': ContextItemTuple(Icons.edit_rounded),
             'Delete': ContextItemTuple(Icons.delete),
           };
 
@@ -154,24 +161,8 @@ class SongsPage extends ThemedPage {
   }
 
   Future<void> songTapped(SongData song) async {
-    //stop current song if playing
-    if (app.player.playing) {
-      await app.player.pause();
-    }
-    await app.player.setUrl(song.localPath);
+    await app.playerInterface.playSingle(song);
     print('playing');
-    await togglePlay();
-    //there is only one queue, it is populated by a list of songs
-    //add this song to the top of the queue
-    //play song
-  }
-
-  Future<void> togglePlay() async {
-    if (app.player.playing) {
-      await app.player.pause();
-    } else {
-      await app.player.play();
-    }
   }
 }
 
@@ -208,11 +199,11 @@ class _SongsPageState extends State<SongsPage> {
                     return ListTile(
                       enabled: true,
                       onTap: () {
-                        print('tap');
+                        //print('tap');
                         widget.songTapped(song);
                       },
                       onLongPress: () {
-                        print('long press');
+                        //print('long press');
                         //print(widget.songContexts[song]);
                         widget.songContexts[song]!.showDialog();
                       },

@@ -13,21 +13,27 @@ class Flyout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      //backgroundColor: Theme.of(context).primaryColorLight,
       child: ListView(
+        padding: EdgeInsets.zero,
         children: [
           Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColorDark.withOpacity(0.8),
-            ),
+            color: Theme.of(context).primaryColorDark.withOpacity(0.8),
             height: 100,
             child: Center(
-              child: Text(
-                'Header',
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                  fontSize: Theme.of(context).textTheme.headline4?.fontSize,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                    0, MediaQuery.of(context).padding.top, 0, 0),
+                child: Text(
+                  'Header',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: Theme.of(context).textTheme.headline4?.fontSize,
+                  ),
                 ),
               ),
+
+              //),
             ),
           ),
           FlyoutItem(

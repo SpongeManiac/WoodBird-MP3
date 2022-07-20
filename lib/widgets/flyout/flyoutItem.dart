@@ -16,7 +16,11 @@ class FlyoutItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon),
+      leading: Icon(
+        icon,
+        color: Theme.of(context).primaryColor,
+      ),
+      selectedTileColor: Theme.of(context).primaryColorLight,
       onTap: onTapped,
       title: Text(
         text,

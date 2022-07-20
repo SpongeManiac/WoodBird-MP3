@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:test_project/models/AudioInterface.dart';
 import 'package:test_project/widgets/appBar.dart';
 
 import '../database/database.dart';
@@ -23,7 +24,7 @@ class BaseApp extends StatefulWidget {
 
   AudioPlayer? _player;
   AudioPlayer get player => _player ??= AudioPlayer();
-
+  AudioInterface playerInterface = AudioInterface();
   String appTitle;
 
   ValueNotifier<AppBarData> appBarNotifier =
@@ -61,14 +62,12 @@ class BaseApp extends StatefulWidget {
 
   Flyout flyout = const Flyout();
   PageNav navigation = PageNav();
-  HideableFloatingAction floatingActionButton = const HideableFloatingAction();
 
   Scaffold appScaffold() {
     return Scaffold(
       appBar: AppBarTitleListener(),
       drawer: flyout,
       body: navigation,
-      floatingActionButton: floatingActionButton,
     );
   }
 

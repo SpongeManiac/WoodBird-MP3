@@ -4,6 +4,7 @@ import 'package:test_project/screens/themedPage.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 
 import '../models/states/home/homePageData.dart';
+import '../widgets/actionButtonLayout.dart';
 
 class HomePage extends ThemedPage {
   HomePage({
@@ -92,58 +93,61 @@ class _HomePageState extends State<HomePage> {
         // The Flutter framework has been optimized to make rerunning build methods
         // fast, so that you can just rebuild anything that needs updating rather
         // than having to individually change instances of widgets.
-        return Center(
-          // Center is a layout widget. It takes a single child and positions it
-          // in the middle of the parent.
-          child: Column(
-            // Column is also a layout widget. It takes a list of children and
-            // arranges them vertically. By default, it sizes itself to fit its
-            // children horizontally, and tries to be as tall as its parent.
-            //
-            // Invoke "debug painting" (press "p" in the console, choose the
-            // "Toggle Debug Paint" action from the Flutter Inspector in Android
-            // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-            // to see the wireframe for each widget.
-            //
-            // Column has various properties to control how it sizes itself and
-            // how it positions its children. Here we use mainAxisAlignment to
-            // center the children vertically; the main axis here is the vertical
-            // axis because Columns are vertical (the cross axis would be
-            // horizontal).
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              const Text(
-                'You have pushed the button this many times:',
-              ),
-              Text(
-                '$_counter',
-                style: Theme.of(context).textTheme.headline4,
-              ),
-              DropdownButtonHideUnderline(
-                child: DropdownButton2(
-                  items: _themeDropdown,
-                  value: _selectedItem,
-                  onChanged: (MaterialColor? newval) {
-                    _themeChanged(newval);
-                  },
-                  isExpanded: true,
-                  buttonDecoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(
-                      color: Colors.grey,
-                    ),
-                  ),
-                  dropdownDecoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(
-                      color: Colors.grey,
-                    ),
-                  ),
-                  buttonWidth: 300,
+        return ActionButtonLayout(
+          body: Center(
+            // Center is a layout widget. It takes a single child and positions it
+            // in the middle of the parent.
+            child: Column(
+              // Column is also a layout widget. It takes a list of children and
+              // arranges them vertically. By default, it sizes itself to fit its
+              // children horizontally, and tries to be as tall as its parent.
+              //
+              // Invoke "debug painting" (press "p" in the console, choose the
+              // "Toggle Debug Paint" action from the Flutter Inspector in Android
+              // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
+              // to see the wireframe for each widget.
+              //
+              // Column has various properties to control how it sizes itself and
+              // how it positions its children. Here we use mainAxisAlignment to
+              // center the children vertically; the main axis here is the vertical
+              // axis because Columns are vertical (the cross axis would be
+              // horizontal).
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Text(
+                  'You have pushed the button this many times:',
                 ),
-              ),
-            ],
+                Text(
+                  '$_counter',
+                  style: Theme.of(context).textTheme.headline4,
+                ),
+                DropdownButtonHideUnderline(
+                  child: DropdownButton2(
+                    items: _themeDropdown,
+                    value: _selectedItem,
+                    onChanged: (MaterialColor? newval) {
+                      _themeChanged(newval);
+                    },
+                    isExpanded: true,
+                    buttonDecoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(
+                        color: Colors.grey,
+                      ),
+                    ),
+                    dropdownDecoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(
+                        color: Colors.grey,
+                      ),
+                    ),
+                    buttonWidth: 300,
+                  ),
+                ),
+              ],
+            ),
           ),
+          actionButton: widget.floatingActionButton,
         );
       },
     );

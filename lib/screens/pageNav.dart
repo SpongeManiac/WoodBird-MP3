@@ -142,34 +142,47 @@ class _PageNavState extends State<PageNav> {
         }
 
         return SlidingUpPanel(
-          minHeight: 120,
+          minHeight: 60,
+          maxHeight: MediaQuery.of(context).size.height * 0.75,
           panel: PlayerMenu(),
-          body: builder!(context),
-          footer: Container(
-            height: 80,
-            width: MediaQuery.of(context).size.width,
-            color: Theme.of(context).primaryColorLight,
-            child: Row(
-              //width: double.infinity,
-              //child: Row(
-              children: [
-                Icon(
-                  Icons.play_circle_outline_rounded,
-                  color: Theme.of(context).primaryColor,
-                ),
-                Slider(
-                  value: seeker,
-                  onChanged: (value) {
-                    //print('newVal: $value');
-                    setState(() {
-                      seeker = value;
-                    });
-                  },
-                ),
-              ],
-              //),
-            ),
+          body: Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 0, 60),
+            child: builder!(context),
           ),
+          // footer: Container(
+          //   height: 100,
+          //   width: MediaQuery.of(context).size.width,
+          //   color: Theme.of(context).primaryColorLight,
+          //   child: Center(
+          //     child: Padding(
+          //       padding: EdgeInsets.fromLTRB(10, 0, 100, 0),
+          //       child: Column(
+          //         children: [
+          //           Row(
+          //             children: [
+          //               IconButton(
+          //                 onPressed: () {},
+          //                 color: Theme.of(context).primaryColor,
+          //                 icon: Icon(
+          //                   Icons.play_circle_outline_rounded,
+          //                 ),
+          //               ),
+          //             ],
+          //           ),
+          //           Slider(
+          //             value: seeker,
+          //             onChanged: (value) {
+          //               //print('newVal: $value');
+          //               setState(() {
+          //                 seeker = value;
+          //               });
+          //             },
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          // ),
         );
       },
     );
