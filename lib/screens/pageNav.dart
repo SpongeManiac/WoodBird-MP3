@@ -6,7 +6,7 @@ import 'package:test_project/screens/themedPage.dart';
 import 'package:test_project/widgets/playerMenu.dart';
 
 import '../database/database.dart';
-import '../globals.dart' as globals;
+import '../globals.dart' show app;
 import '../models/states/home/homePageData.dart';
 import '../widgets/hideableFloatingAction.dart';
 
@@ -57,7 +57,7 @@ class PageNav extends StatefulWidget {
     _alertShowing = false;
     result ??= false;
     if (result) {
-      globals.app.appCleanup();
+      app.appCleanup();
     }
     return result;
   }
@@ -79,12 +79,11 @@ class PageNav extends StatefulWidget {
   }
 
   void goto(BuildContext context, String route) {
-    if (globals.app.routes.containsKey(route)) {
-      if (route != globals.app.currentRoute) {
-        globals.app.currentRoute = route;
-        globals.app.floatingActionNotifier.value =
-            HideableFloatingActionData(false);
-        globals.app.routeNotifier.value = route;
+    if (app.routes.containsKey(route)) {
+      if (route != app.currentRoute) {
+        app.currentRoute = route;
+        app.floatingActionNotifier.value = HideableFloatingActionData(false);
+        app.routeNotifier.value = route;
       } else {
         //when same route
       }
@@ -95,7 +94,7 @@ class PageNav extends StatefulWidget {
   }
 
   void refresh(BuildContext context) {
-    goto(context, globals.app.currentRoute);
+    goto(context, app.currentRoute);
   }
 
   @override
@@ -130,59 +129,37 @@ class _PageNavState extends State<PageNav> {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<String>(
-      valueListenable: globals.app.routeNotifier,
+      valueListenable: app.routeNotifier,
       builder: (_, newRoute, __) {
-        ThemedPage Function(BuildContext)? builder =
-            globals.app.routes[newRoute];
+        ThemedPage Function(BuildContext)? builder = app.routes[newRoute];
         if (builder == null) {
-          builder = globals.app.routes['/'];
-          globals.app.currentRoute = '/';
+          builder = app.routes['/'];
+          app.currentRoute = '/';
         } else {
-          globals.app.currentRoute = newRoute;
+          app.currentRoute = newRoute;
         }
-
-        return SlidingUpPanel(
-          minHeight: 60,
-          maxHeight: MediaQuery.of(context).size.height * 0.75,
-          panel: PlayerMenu(),
-          body: Padding(
-            padding: EdgeInsets.fromLTRB(0, 0, 0, 60),
-            child: builder!(context),
-          ),
-          // footer: Container(
-          //   height: 100,
-          //   width: MediaQuery.of(context).size.width,
-          //   color: Theme.of(context).primaryColorLight,
-          //   child: Center(
-          //     child: Padding(
-          //       padding: EdgeInsets.fromLTRB(10, 0, 100, 0),
-          //       child: Column(
-          //         children: [
-          //           Row(
-          //             children: [
-          //               IconButton(
-          //                 onPressed: () {},
-          //                 color: Theme.of(context).primaryColor,
-          //                 icon: Icon(
-          //                   Icons.play_circle_outline_rounded,
-          //                 ),
-          //               ),
-          //             ],
-          //           ),
-          //           Slider(
-          //             value: seeker,
-          //             onChanged: (value) {
-          //               //print('newVal: $value');
-          //               setState(() {
-          //                 seeker = value;
-          //               });
-          //             },
-          //           ),
-          //         ],
-          //       ),
-          //     ),
-          //   ),
-          // ),
+        var size = MediaQuery.of(context).size;
+        //print('size: $size');
+        int maxHeight = MediaQuery.of(context).size.shortestSide.ceil();
+        //print('Max height: $maxHeight');
+        return Stack(
+          children: [
+            Padding(
+              padding: EdgeInsets.only(bottom: 60),
+              child: Container(
+                //height: newHeight,
+                //color: Colors.red,
+                child: builder!(context),
+              ),
+            ),
+            SlidingUpPanel(
+              //margin: EdgeInsets.only(top: 60),
+              //color: Theme.of(context),
+              minHeight: 60,
+              maxHeight: maxHeight.toDouble(),
+              panel: PlayerMenu(),
+            ),
+          ],
         );
       },
     );

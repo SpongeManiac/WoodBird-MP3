@@ -24,7 +24,9 @@ class BaseApp extends StatefulWidget {
 
   AudioPlayer? _player;
   AudioPlayer get player => _player ??= AudioPlayer();
-  AudioInterface playerInterface = AudioInterface();
+  AudioInterface? _audioInterface;
+  AudioInterface get audioInterface =>
+      _audioInterface ??= AudioInterface(player);
   String appTitle;
 
   ValueNotifier<AppBarData> appBarNotifier =
@@ -60,12 +62,13 @@ class BaseApp extends StatefulWidget {
     '/files': (context) => SongsPage(title: 'Songs'),
   };
 
+  AppBarTitleListener appBar = AppBarTitleListener();
   Flyout flyout = const Flyout();
   PageNav navigation = PageNav();
 
   Scaffold appScaffold() {
     return Scaffold(
-      appBar: AppBarTitleListener(),
+      appBar: appBar,
       drawer: flyout,
       body: navigation,
     );
@@ -120,7 +123,11 @@ class BaseApp extends StatefulWidget {
     List<SongData> songs = <SongData>[];
     List<SongDataDB> songsDB = await globals.db.getAllSongs();
     for (var song in songsDB) {
-      songs.add(SongData(song.artist, song.name, song.localPath, song.id));
+      songs.add(SongData(
+          artist: song.artist,
+          name: song.name,
+          localPath: song.localPath,
+          id: song.id));
     }
     songsNotifier.value = songs;
   }

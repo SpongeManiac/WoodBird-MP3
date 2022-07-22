@@ -6,13 +6,13 @@ class PlayPauseButton extends StatelessWidget {
   PlayPauseButton({super.key});
 
   Future<void> togglePlaying() async {
-    await app.playerInterface.togglePlay();
+    await app.audioInterface.togglePlay();
   }
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
-      valueListenable: app.playerInterface.playingNotifier,
+      valueListenable: app.audioInterface.playingNotifier,
       builder: (context, value, _) {
         print('playing: $value');
         var color = Theme.of(context).primaryColor;

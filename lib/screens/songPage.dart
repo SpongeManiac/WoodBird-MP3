@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:test_project/models/states/song/SongData.dart';
 import 'package:test_project/widgets/contextPopupButton.dart';
 
+import '../models/AudioInterface.dart';
 import '../widgets/appBar.dart';
 import 'themedPage.dart';
 
@@ -19,6 +20,8 @@ class SongsPage extends ThemedPage {
 
   Map<SongData, ContextPopupButton> songContexts =
       <SongData, ContextPopupButton>{};
+
+  AudioInterface get interface => app.audioInterface;
 
   @override
   State<SongsPage> createState() => _SongsPageState();
@@ -46,7 +49,11 @@ class SongsPage extends ThemedPage {
         print(name);
         print(ext);
         //create song data
-        SongData song = SongData('unknown', name, path);
+        SongData song = SongData(
+          artist: 'unknown',
+          name: name,
+          localPath: path,
+        );
         song.saveData();
         list.add(song);
         app.songsNotifier.value = list;
@@ -61,9 +68,14 @@ class SongsPage extends ThemedPage {
         icon: const Icon(Icons.more_vert),
         itemBuilder: (context) {
           Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
-            'Add to queue': ContextItemTuple(Icons.queue_music_rounded),
+            'Add to queue': ContextItemTuple(
+              Icons.queue_music_rounded,
+              () async {
+                await app.audioInterface.addToQueue(song);
+              },
+            ),
             'Add to playlist...': ContextItemTuple(
-              Icons.playlist_add,
+              Icons.playlist_add_rounded,
               () async {
                 await addSong();
               },
@@ -72,11 +84,11 @@ class SongsPage extends ThemedPage {
             'Play single': ContextItemTuple(
               Icons.play_arrow,
               () async {
-                app.playerInterface.playSingle(song);
+                app.audioInterface.playSingle(song);
               },
             ),
             'Edit': ContextItemTuple(Icons.edit_rounded),
-            'Delete': ContextItemTuple(Icons.delete),
+            'Delete': ContextItemTuple(Icons.delete_rounded),
           };
 
           List<PopupMenuItem<String>> list = [];
@@ -161,8 +173,8 @@ class SongsPage extends ThemedPage {
   }
 
   Future<void> songTapped(SongData song) async {
-    await app.playerInterface.playSingle(song);
-    print('playing');
+    await app.audioInterface.addToQueue(song);
+    print('tapped ${song.name}');
   }
 }
 
@@ -175,9 +187,9 @@ class _SongsPageState extends State<SongsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
+    return ValueListenableBuilder<List<SongData>>(
       valueListenable: widget.app.songsNotifier,
-      builder: (context, List<SongData> newSongs, _) {
+      builder: (context, newSongs, _) {
         print('got songs: ${newSongs.toList()}');
         return RefreshIndicator(
             onRefresh: () async => setState(() {}),

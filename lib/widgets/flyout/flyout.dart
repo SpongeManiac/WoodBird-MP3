@@ -19,11 +19,10 @@ class Flyout extends StatelessWidget {
         children: [
           Container(
             color: Theme.of(context).primaryColorDark.withOpacity(0.8),
-            height: 100,
+            height: MediaQuery.of(context).padding.top + 100,
             child: Center(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                    0, MediaQuery.of(context).padding.top, 0, 0),
+                padding: EdgeInsets.fromLTRB(0, 50, 0, 0),
                 child: Text(
                   'Header',
                   style: TextStyle(

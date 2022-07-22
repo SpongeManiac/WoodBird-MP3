@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:test_project/platform_specific/desktop.dart';
+import 'package:test_project/platform_specific/device.dart';
 import '../database.dart';
 import '../../globals.dart' as globals;
 

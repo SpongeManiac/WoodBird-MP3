@@ -1,18 +1,27 @@
 import 'package:drift/src/runtime/data_class.dart';
+import 'package:just_audio/just_audio.dart';
 
+import '../../../globals.dart' show app, db;
 import '../baseState.dart';
 import '../../../database/database.dart';
 
 class SongData extends BaseDataDB {
-  SongData(this.artist, this.name, this.localPath, [this.id]);
+  SongData({
+    required this.artist,
+    required this.name,
+    required this.localPath,
+    this.id,
+  }) : super();
   int? id;
   String artist;
   String name;
   String localPath;
 
+  AudioSource get source => AudioSource.uri(Uri.file(localPath));
+
   @override
   SongData copy() {
-    return SongData(artist, name, localPath, id);
+    return SongData(artist: artist, name: name, localPath: localPath, id: id);
   }
 
   @override

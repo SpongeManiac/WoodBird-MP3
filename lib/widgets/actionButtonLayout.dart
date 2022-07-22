@@ -13,7 +13,7 @@ class ActionButtonLayout extends StatelessWidget {
       children: [
         body!,
         Positioned(
-          bottom: 120,
+          bottom: 20,
           right: 20,
           child: actionButton!,
         ),
