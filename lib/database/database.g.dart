@@ -209,7 +209,7 @@ class $HomePageStateTable extends HomePageState
       'color', aliasedName, false,
       type: const IntType(),
       requiredDuringInsert: false,
-      defaultValue: const Constant(0));
+      defaultValue: const Constant(0xFF000000));
   @override
   List<GeneratedColumn> get $columns => [id, theme, count, color];
   @override
