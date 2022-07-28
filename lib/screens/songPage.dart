@@ -268,8 +268,11 @@ class SongsPage extends ThemedPage {
 
   ContextPopupButton getSongContext(SongData song) {
     var popup = ContextPopupButton(
-        icon: Badge(
-            badgeContent: Text('${song.id}'), child: Icon(Icons.more_vert)),
+        icon:
+            //Badge(
+            //badgeContent: Text('${song.id}'), child:
+            Icon(Icons.more_vert),
+        //),
         itemBuilder: (context) {
           Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
             'Add to queue': ContextItemTuple(
