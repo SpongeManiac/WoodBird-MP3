@@ -1,4 +1,5 @@
 //import 'package:flutter/foundation.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'globals.dart' as globals;
 
@@ -7,8 +8,10 @@ import 'globals.dart' as globals;
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   () async {
+    final session = await AudioSession.instance;
+    await session.configure(AudioSessionConfiguration.music());
+    await session.setActive(true);
     await globals.app.loadPageStates().then((value) async {
-      //}).then((value) {
       runApp(globals.app);
     });
   }();

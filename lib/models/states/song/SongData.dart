@@ -10,9 +10,11 @@ class SongData extends BaseDataDB {
     required this.artist,
     required this.name,
     required this.localPath,
+    this.art = '',
     this.id,
   }) : super();
   int? id;
+  String art;
   String artist;
   String name;
   String localPath;
@@ -32,23 +34,34 @@ class SongData extends BaseDataDB {
     copy.artist = data.artist;
     copy.name = data.name;
     copy.localPath = data.localPath;
+    copy.art = art;
     return copy;
-  }
-
-  @override
-  SongDataDB getEntry() {
-    return SongDataDB(
-        id: id!, artist: artist, localPath: localPath, name: name);
-  }
-
-  @override
-  void saveData() async {
-    id = await db.setSongData(getCompanion());
   }
 
   @override
   SongsCompanion getCompanion() {
     return SongsCompanion(
         artist: Value(artist), name: Value(name), localPath: Value(localPath));
+  }
+
+  @override
+  SongDataDB getEntry() {
+    return SongDataDB(
+        id: id!, artist: artist, localPath: localPath, name: name, art: art);
+  }
+
+  @override
+  void saveData() async {
+    id ??= -1;
+    print('id before: $id');
+    //check if id exists already
+    if (await db.songExists(id!)) {
+      print('song exists, updating');
+      await db.updateSongData(getEntry());
+    } else {
+      print('Song does not exist, upserting');
+      id = await db.setSongData(getCompanion());
+    }
+    print('id after: $id');
   }
 }

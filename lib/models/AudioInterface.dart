@@ -1,7 +1,9 @@
 import 'dart:math';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:test_project/models/AudioHandlerCustom.dart';
 import 'package:test_project/models/states/song/SongData.dart';
 
 enum LoopMode {
@@ -32,8 +34,44 @@ class AudioInterface {
           break;
       }
     });
+    () async {
+      handler = await makeHandler();
+      print('made audio handler');
+    }();
   }
+
   AudioPlayer player;
+  late AudioHandler handler;
+
+  Future<AudioHandler> makeHandler() async {
+    var handler = await AudioService.init(
+      builder: () => AudioHandlerCustom(this),
+      config: const AudioServiceConfig(
+        androidNotificationChannelId: 'com.example.woodbirdmp3.channel.audio',
+        androidNotificationChannelName: 'Bluetooth Control',
+        androidNotificationOngoing: true,
+      ),
+    );
+
+    handler.playbackState.add(PlaybackState(
+      controls: [
+        MediaControl.skipToPrevious,
+        if (playing) MediaControl.play else MediaControl.pause,
+        MediaControl.skipToNext
+      ],
+      systemActions: const {MediaAction.seek},
+      androidCompactActionIndices: [0, 1, 3],
+      processingState: const {
+        ProcessingState.idle: AudioProcessingState.idle,
+        ProcessingState.loading: AudioProcessingState.loading,
+        ProcessingState.buffering: AudioProcessingState.buffering,
+        ProcessingState.ready: AudioProcessingState.ready,
+        ProcessingState.completed: AudioProcessingState.completed,
+      }[player.processingState]!,
+      playing: false,
+    ));
+    return handler;
+  }
 
   bool get playing => player.playing;
   //bool get && ;
@@ -68,6 +106,25 @@ class AudioInterface {
   Future<void> Function() onReady = () async {};
   Future<void> Function() onIdle = () async {};
   Future<void> Function() onComplete = () async {};
+  Future<void> Function() onCompleteNext() {
+    print('getting oncomplete next');
+    return () async {
+      print('completed audio');
+      print('play next complete');
+      print('playing next');
+      await playNext();
+    };
+  }
+
+  Future<void> Function() onCompleteSingle() {
+    print('getting oncomplete single');
+    return () async {
+      print('completed audio');
+      print('play single complete');
+      print('pausing');
+      await pause();
+    };
+  }
 
   Future<void> Function() postPlay = () async {};
   Future<void> Function() postPause = () async {};
@@ -123,6 +180,14 @@ class AudioInterface {
     setSource(song);
   }
 
+  Future<void> setCurrentAndPlay(SongData song) async {
+    await pause();
+    print('setting current by song');
+    current = song;
+    setSource(song);
+    await play();
+  }
+
   Future<void> setCurrentCont(SongData song) async {
     bool wasPlaying = false;
     if (playing) {
@@ -137,6 +202,8 @@ class AudioInterface {
       }
     }
   }
+
+  Future<void> seek(Duration position) async {}
 
   Future<void> play([Future<void> Function()? postPlay]) async {
     print('playing');
@@ -160,6 +227,10 @@ class AudioInterface {
     );
     print('paused');
     playingNotifier.value = playing;
+  }
+
+  Future<void> stop() async {
+    await player.stop();
   }
 
   Future<void> cycleLoopMode() async {
@@ -284,7 +355,11 @@ class AudioInterface {
   }
 
   Future<void> addToQueue(SongData song) async {
-    print('adding to queue');
+    // var newOnComplete = onCompleteNext();
+    // if (onComplete != newOnComplete) {
+    //   onComplete = newOnComplete;
+    // }
+    onComplete = onCompleteNext();
     var tmp = copy;
     tmp.add(song);
     queueNotifier.value = tmp;
@@ -318,10 +393,11 @@ class AudioInterface {
   }
 
   Future<void> playQueue() async {
-    onComplete = () async {
-      print('completed audio');
-      await playNext();
-    };
+    // var newOnComplete = onCompleteNext();
+    // if (onComplete != newOnComplete) {
+    //   onComplete = newOnComplete;
+    // }
+    onComplete = onCompleteNext();
     if (!playing) {
       print('playing queue');
       await play();
@@ -345,9 +421,11 @@ class AudioInterface {
     tmp.clear();
     tmp.add(song);
     queueNotifier.value = tmp;
-    onComplete = () async {
-      pause();
-    };
+    // var newOnComplete = onCompleteSingle();
+    // if (onComplete != newOnComplete) {
+    //   onComplete = newOnComplete;
+    // }
+    onComplete = onCompleteSingle();
     await setCurrentCont(song);
   }
 

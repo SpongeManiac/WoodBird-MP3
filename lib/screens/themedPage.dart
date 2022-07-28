@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_project/database/database.dart';
 import 'package:test_project/models/states/baseState.dart';
 import 'package:test_project/shared/baseApp.dart';
 import 'package:test_project/widgets/appBar.dart';
@@ -13,6 +14,7 @@ abstract class ThemedPage extends StatefulWidget {
   }) : super();
 
   BaseApp get app => globals.app;
+  SharedDatabase get db => globals.db;
 
   ValueNotifier<MaterialColor> get themeNotifier => app.themeNotifier;
   final String title;

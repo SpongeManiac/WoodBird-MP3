@@ -26,7 +26,8 @@ class PlayerMenu extends StatefulWidget {
             await interface.removeFromQueue(song);
           }),
           'Play': ContextItemTuple(Icons.play_arrow_rounded, () async {
-            await interface.setCurrentCont(song);
+            await interface.setCurrent(song);
+            await interface.playQueue();
           }),
           'Move Up': ContextItemTuple(Icons.move_up_rounded, () async {
             await interface.moveUp(song);
@@ -104,7 +105,9 @@ class _PlayerMenuState extends State<PlayerMenu> {
                               return Marquee(
                                   text:
                                       '${newSong.name} - ${newSong.artist} | ',
-                                  style: TextStyle(color: Colors.white));
+                                  style: TextStyle(
+                                      color:
+                                          Theme.of(context).primaryColorDark));
                             },
                           ),
                         ),
@@ -112,7 +115,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
                       Center(
                         child: Icon(
                           Icons.drag_handle_rounded,
-                          color: Theme.of(context).primaryColor,
+                          color: Theme.of(context).primaryColorDark,
                           size: 40,
                         ),
                       ),
@@ -123,7 +126,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
                             IconButton(
                               icon: Icon(
                                 Icons.skip_previous_rounded,
-                                color: Theme.of(context).primaryColor,
+                                color: Theme.of(context).primaryColorDark,
                               ),
                               onPressed: () async {
                                 await widget.interface.playPrev();
@@ -188,11 +191,13 @@ class _PlayerMenuState extends State<PlayerMenu> {
                               // },
                               title: Text(
                                 song.name,
-                                style: TextStyle(color: Colors.white),
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColor),
                               ),
                               subtitle: Text(
                                 song.artist,
-                                style: TextStyle(color: Colors.white),
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColor),
                               ),
                               trailing: songContextBtn,
                             );

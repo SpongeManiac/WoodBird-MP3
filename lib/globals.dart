@@ -16,10 +16,11 @@ SharedDatabase? _db;
 SharedDatabase get db => _db ??= constructDb();
 
 //themes
-const Map<String, MaterialColor> themes = {
+Map<String, MaterialColor> themes = {
   'Blue': Colors.blue,
   'Red': Colors.red,
   'Purple': Colors.purple,
   'Teal': Colors.teal,
   'Orange': Colors.orange,
+  'Custom': Colors.green,
 };

@@ -11,6 +11,7 @@ class HomePageState extends Table {
   //info to preload widget
   IntColumn get theme => integer().withDefault(const Constant(0))();
   IntColumn get count => integer().withDefault(const Constant(0))();
+  IntColumn get color => integer().withDefault(const Constant(0xFF000000))();
 }
 
 // @DataClassName('SongPageStateDB')
@@ -26,25 +27,48 @@ class Songs extends Table {
   // PrimaryKey
   IntColumn get id => integer().autoIncrement()();
   //Song data
-  TextColumn get artist => text().withLength(min: 4, max: 128)();
-  TextColumn get name => text().withLength(min: 4, max: 128)();
+  TextColumn get artist => text().withLength(min: 0, max: 128)();
+  TextColumn get name => text().withLength(min: 0, max: 128)();
   // where the file is stored locally
-  TextColumn get localPath => text().withLength(min: 4, max: 512)();
+  TextColumn get localPath => text().withLength(min: 0, max: 512)();
+  TextColumn get art =>
+      text().withLength(min: 0, max: 512).withDefault(const Constant(''))();
+}
+
+@DataClassName('PlaylistDataDB')
+class Playlists extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text().withLength(min: 0, max: 128)();
+  TextColumn get description =>
+      text().withLength(min: 0, max: 256).withDefault(const Constant(''))();
+  TextColumn get art =>
+      text().withLength(min: 0, max: 512).withDefault(const Constant(''))();
 }
 
 @DataClassName('AlbumDataDB')
 class Albums extends Table {
   // PrimaryKey
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get name => text().withLength(min: 4, max: 128)();
+  TextColumn get name => text().withLength(min: 0, max: 128)();
   // set default to empty description
   TextColumn get description =>
       text().withLength(min: 0, max: 256).withDefault(const Constant(''))();
+  TextColumn get art =>
+      text().withLength(min: 0, max: 512).withDefault(const Constant(''))();
+}
+
+@DataClassName('PlaylistSongDataDB')
+class PlaylistSongs extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get playlist => integer().references(Playlists, #id)();
+  IntColumn get song => integer().references(Songs, #id)();
 }
 
 @DataClassName('AlbumSongDataDB')
 class AlbumSongs extends Table {
   IntColumn get id => integer().autoIncrement()();
+  IntColumn get album => integer().references(Albums, #id)();
+  IntColumn get song => integer().references(Songs, #id)();
 }
 
 @DriftDatabase(tables: [
@@ -75,6 +99,18 @@ class SharedDatabase extends _$SharedDatabase {
     return into(homePageState).insertOnConflictUpdate(state);
   }
 
+  Future<bool> songExists(int id) async {
+    var count = countAll(filter: songs.id.equals(id));
+    var res = await (selectOnly(songs)..addColumns([count]))
+        .map((row) => row.read(count))
+        .getSingle();
+    if (res > 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   Future<SongDataDB?> getSongData(int id) async {
     return await (select(songs)
           ..where((tbl) => tbl.id.equals(id))
@@ -84,6 +120,15 @@ class SharedDatabase extends _$SharedDatabase {
 
   Future<int> setSongData(SongsCompanion song) async {
     return into(songs).insertOnConflictUpdate(song);
+  }
+
+  Future updateSongData(SongDataDB song) async {
+    return update(songs).replace(song);
+  }
+
+  Future delSongData(SongDataDB song) async {
+    print('deleting ${song.name}, index ${song.id}');
+    return (delete(songs)..where((s) => s.id.equals(song.id))).go();
   }
 
   Future<List<SongDataDB>> getAllSongs() async {

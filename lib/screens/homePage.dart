@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:test_project/models/colorMaterializer.dart';
 import '../globals.dart' as globals;
 import 'package:test_project/screens/themedPage.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -26,7 +28,9 @@ class _HomePageState extends State<HomePage> {
 
   int _counter = 0;
   MaterialColor? _selectedItem = globals.themes['Blue'];
-  HomePageData state() => globals.app.homePageStateNotifier.value;
+  HomePageData get state => globals.app.homePageStateNotifier.value;
+
+  Color pickerColor = Colors.black;
 
   @override
   void initState() {
@@ -37,8 +41,10 @@ class _HomePageState extends State<HomePage> {
     widget.initState(context);
 
     //build themedropdown
+    print('rebuilding dropdown list');
     for (var theme in globals.themes.keys) {
       MaterialColor color = globals.themes[theme]!;
+      print('adding theme: $theme, ${globals.themes[theme]!.value}');
       _themeDropdown.add(
         DropdownMenuItem(
           value: color,
@@ -54,28 +60,86 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       );
+
+      pickerColor = globals.themes['Custom']!;
     }
 
-    loadState(state());
+    loadState(state);
   }
 
   void loadState(HomePageData state) {
     //set state
     _selectedItem = globals.themes.values.elementAt(state.theme);
+    pickerColor = Color(state.color);
     _counter = state.count;
   }
 
   void _incrementCounter() {
     _counter++;
     globals.app.homePageStateNotifier.value =
-        HomePageData(state().theme, _counter);
+        HomePageData(state.theme, _counter, state.color);
   }
 
-  void _themeChanged(MaterialColor? color) {
+  Future<void> _themeChanged(MaterialColor? color) async {
     _selectedItem = color;
     if (color != null) {
-      state().theme = globals.themes.values.toList().indexOf(color);
-      widget.themeNotifier.value = color;
+      var idx = globals.themes.values.toList().indexOf(color);
+      if (idx == 5) {
+        //user chose custom color, show the color picker
+        await showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text('Select a color'),
+                content: SingleChildScrollView(
+                  child: ColorPicker(
+                    pickerColor: pickerColor,
+                    onColorChanged: (color) {
+                      pickerColor = color;
+                    },
+                  ),
+                ),
+                actions: [
+                  ElevatedButton(
+                    child: const Text('Done'),
+                    onPressed: () {
+                      print('custom color: ${pickerColor.value}');
+                      var mat = ColorMaterializer.getMaterial(pickerColor);
+                      setState(() {
+                        //print('themes before:');
+                        print(globals.themes.values);
+                        globals.themes['Custom'] = mat;
+                        //print('themes after:');
+                        //print(globals.themes.values);
+                        _themeDropdown[idx] = DropdownMenuItem(
+                          value: mat,
+                          child: Container(
+                            constraints: const BoxConstraints(maxHeight: 50),
+                            child: Center(
+                              child: Text(
+                                'Custom',
+                                style: TextStyle(color: mat),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        );
+                        Navigator.of(context).pop();
+                        state.color = pickerColor.value;
+                        state.theme = idx;
+                        state.saveData();
+                        widget.themeNotifier.value = mat;
+                      });
+                    },
+                  ),
+                ],
+              );
+            });
+      } else {
+        state.theme = idx;
+        state.saveData();
+        widget.themeNotifier.value = color;
+      }
     }
   }
 

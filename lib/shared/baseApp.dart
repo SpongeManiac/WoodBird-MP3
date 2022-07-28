@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:test_project/models/AudioInterface.dart';
@@ -6,6 +5,7 @@ import 'package:test_project/widgets/appBar.dart';
 
 import '../database/database.dart';
 import '../globals.dart' as globals;
+import '../models/colorMaterializer.dart';
 import '../models/states/home/homePageData.dart';
 import '../models/states/song/SongData.dart';
 import '../screens/homePage.dart';
@@ -51,7 +51,7 @@ class BaseApp extends StatefulWidget {
 
   //homepage
   final ValueNotifier<HomePageData> homePageStateNotifier =
-      ValueNotifier(HomePageData(0, 0));
+      ValueNotifier(HomePageData(0, 0, 0));
 
   //songs list
   final ValueNotifier<List<SongData>> songsNotifier =
@@ -103,15 +103,23 @@ class BaseApp extends StatefulWidget {
   Future<void> loadHomeState() async {
     //get homepagestate db object
     var homeStateDB = await globals.db.getHomeState();
-    homeStateDB ??= HomePageStateDB(id: 1, theme: 0, count: 0);
+    homeStateDB ??=
+        HomePageStateDB(id: 1, theme: 0, count: 0, color: 0xFF000000);
     if (homeStateDB.theme < 0 || homeStateDB.theme >= globals.themes.length) {
-      homeStateDB = HomePageStateDB(id: 1, theme: 0, count: homeStateDB.count);
+      homeStateDB = HomePageStateDB(
+          id: 1, theme: 0, count: homeStateDB.count, color: homeStateDB.color);
     }
     //get homepagestate
     //print('getting & setting home state');
+    print('db theme: ${homeStateDB.theme}');
     homePageStateNotifier.value =
         homePageStateNotifier.value.fromEntry(homeStateDB);
-    themeNotifier.value = globals.themes.values.elementAt(homeStateDB.theme);
+    var theme = ColorMaterializer.getMaterial(Color(homeStateDB.color));
+    //set theme custom color
+    print('custom color: ${theme}');
+    globals.themes['Custom'] = theme;
+    themeNotifier.value =
+        globals.themes[globals.themes.keys.toList()[homeStateDB.theme]]!;
   }
 
   Future<void> saveHomeState() async {

@@ -4,13 +4,14 @@ import '../baseState.dart';
 import '../../../database/database.dart';
 
 class HomePageData extends BaseDataDB {
-  HomePageData(this.theme, this.count);
+  HomePageData(this.theme, this.count, this.color);
   int theme;
   int count;
+  int color;
 
   @override
   HomePageData copy() {
-    return HomePageData(theme, count);
+    return HomePageData(theme, count, color);
   }
 
   @override
@@ -19,12 +20,13 @@ class HomePageData extends BaseDataDB {
     var copy = this;
     copy.theme = data.theme;
     copy.count = data.count;
+    copy.color = data.color;
     return copy;
   }
 
   @override
   HomePageStateDB getEntry() {
-    return HomePageStateDB(id: 1, theme: theme, count: count);
+    return HomePageStateDB(id: 1, theme: theme, count: count, color: color);
   }
 
   @override
@@ -34,6 +36,7 @@ class HomePageData extends BaseDataDB {
 
   @override
   HomePageStateCompanion getCompanion() {
-    return HomePageStateCompanion(theme: Value(theme), count: Value(count));
+    return HomePageStateCompanion(
+        theme: Value(theme), count: Value(count), color: Value(color));
   }
 }
