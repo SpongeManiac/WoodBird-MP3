@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:test_project/models/states/song/SongData.dart';
+import 'package:test_project/models/states/song/songData.dart';
 
 class ConcatenatingSongDataSource extends ConcatenatingAudioSource {
   ConcatenatingSongDataSource(this.queueNotifier) : super(children: []);

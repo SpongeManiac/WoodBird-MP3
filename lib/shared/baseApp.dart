@@ -6,11 +6,13 @@ import 'package:test_project/widgets/appBar.dart';
 import '../database/database.dart';
 import '../globals.dart' as globals;
 import '../models/colorMaterializer.dart';
-import '../models/states/home/homePageData.dart';
-import '../models/states/song/SongData.dart';
+import '../models/states/pages/homePageData.dart';
+import '../models/states/playlist/playlistData.dart';
+import '../models/states/song/songData.dart';
 import '../screens/homePage.dart';
 import '../screens/pageNav.dart';
-import '../screens/songPage.dart';
+import '../screens/playlistsPage.dart';
+import '../screens/songsPage.dart';
 import '../screens/themedPage.dart';
 import '../widgets/flyout/flyout.dart';
 import '../widgets/hideableFloatingAction.dart';
@@ -57,9 +59,14 @@ class BaseApp extends StatefulWidget {
   final ValueNotifier<List<SongData>> songsNotifier =
       ValueNotifier(<SongData>[]);
 
+  //playlists
+  final ValueNotifier<List<PlaylistData>> playlistsNotifier =
+      ValueNotifier(<PlaylistData>[]);
+
   final Map<String, ThemedPage Function(BuildContext)> routes = {
     '/': (context) => HomePage(title: 'Home'),
-    '/files': (context) => SongsPage(title: 'Songs'),
+    '/songs': (context) => SongsPage(title: 'Songs'),
+    '/playlists': (context) => PlaylistsPage(title: 'Playlists'),
   };
 
   AppBarTitleListener appBar = AppBarTitleListener();

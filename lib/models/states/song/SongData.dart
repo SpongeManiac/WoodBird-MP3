@@ -1,4 +1,4 @@
-import 'package:drift/src/runtime/data_class.dart';
+import 'package:drift/src/runtime/data_class.dart' show DataClass, Value;
 import 'package:just_audio/just_audio.dart';
 
 import '../../../globals.dart' show app, db;
@@ -12,7 +12,7 @@ class SongData extends BaseDataDB {
     required this.localPath,
     this.art = '',
     this.id,
-  }) : super();
+  });
   int? id;
   String art;
   String artist;
@@ -23,13 +23,27 @@ class SongData extends BaseDataDB {
 
   @override
   SongData copy() {
-    return SongData(artist: artist, name: name, localPath: localPath, id: id);
+    return SongData(
+      artist: artist,
+      name: name,
+      localPath: localPath,
+      id: id,
+    );
+  }
+
+  static SongData fromDB(SongDataDB data) {
+    return SongData(
+        id: data.id,
+        artist: data.artist,
+        name: data.name,
+        localPath: data.localPath,
+        art: data.art);
   }
 
   @override
   SongData fromEntry(DataClass dataclass) {
     SongData data = dataclass as SongData;
-    var copy = this;
+    var copy = this.copy();
     copy.id = data.id;
     copy.artist = data.artist;
     copy.name = data.name;
@@ -41,17 +55,25 @@ class SongData extends BaseDataDB {
   @override
   SongsCompanion getCompanion() {
     return SongsCompanion(
-        artist: Value(artist), name: Value(name), localPath: Value(localPath));
+      artist: Value(artist),
+      name: Value(name),
+      localPath: Value(localPath),
+    );
   }
 
   @override
   SongDataDB getEntry() {
     return SongDataDB(
-        id: id!, artist: artist, localPath: localPath, name: name, art: art);
+      id: id!,
+      artist: artist,
+      name: name,
+      localPath: localPath,
+      art: art,
+    );
   }
 
   @override
-  void saveData() async {
+  Future<void> saveData() async {
     id ??= -1;
     print('id before: $id');
     //check if id exists already

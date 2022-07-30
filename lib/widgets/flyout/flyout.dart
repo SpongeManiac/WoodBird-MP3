@@ -36,17 +36,22 @@ class Flyout extends StatelessWidget {
             ),
           ),
           FlyoutItem(
-            icon: Icons.home,
+            icon: Icons.home_rounded,
             text: 'Home',
             onTapped: () => navigate(context, '/'),
           ),
           FlyoutItem(
-            icon: Icons.music_note,
+            icon: Icons.music_note_rounded,
             text: 'Files',
-            onTapped: () => navigate(context, '/files'),
+            onTapped: () => navigate(context, '/songs'),
           ),
           FlyoutItem(
-              icon: Icons.close,
+            icon: Icons.queue_music_rounded,
+            text: 'Playlists',
+            onTapped: () => navigate(context, '/playlists'),
+          ),
+          FlyoutItem(
+              icon: Icons.close_rounded,
               text: 'Exit',
               onTapped: () => globals.app.closeApp(context))
         ], //drawer top

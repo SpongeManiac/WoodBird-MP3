@@ -7,7 +7,7 @@ import 'package:test_project/widgets/playerMenu.dart';
 
 import '../database/database.dart';
 import '../globals.dart' show app;
-import '../models/states/home/homePageData.dart';
+import '../models/states/pages/homePageData.dart';
 import '../widgets/hideableFloatingAction.dart';
 
 class PageNav extends StatefulWidget {

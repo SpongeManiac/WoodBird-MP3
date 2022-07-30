@@ -60,5 +60,5 @@ abstract class ThemedPage extends StatefulWidget {
     setAppBarData(getDefaultAppBar());
   }
 
-  Future<void> saveState();
+  Future<void> saveState() async {}
 }

@@ -4,7 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:test_project/models/AudioHandlerCustom.dart';
-import 'package:test_project/models/states/song/SongData.dart';
+import 'package:test_project/models/states/song/songData.dart';
 
 enum LoopMode {
   shuffle,

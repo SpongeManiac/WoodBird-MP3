@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:test_project/models/states/playlist/playlistData.dart';
 
 part 'database.g.dart';
 
@@ -74,6 +75,8 @@ class AlbumSongs extends Table {
 @DriftDatabase(tables: [
   HomePageState,
   Songs,
+  Playlists,
+  PlaylistSongs,
   Albums,
   AlbumSongs,
 ])
@@ -99,7 +102,11 @@ class SharedDatabase extends _$SharedDatabase {
     return into(homePageState).insertOnConflictUpdate(state);
   }
 
+  //songs
   Future<bool> songExists(int id) async {
+    if (id < 0) {
+      return false;
+    }
     var count = countAll(filter: songs.id.equals(id));
     var res = await (selectOnly(songs)..addColumns([count]))
         .map((row) => row.read(count))
@@ -122,11 +129,11 @@ class SharedDatabase extends _$SharedDatabase {
     return into(songs).insertOnConflictUpdate(song);
   }
 
-  Future updateSongData(SongDataDB song) async {
+  Future<bool> updateSongData(SongDataDB song) async {
     return update(songs).replace(song);
   }
 
-  Future delSongData(SongDataDB song) async {
+  Future<int> delSongData(SongDataDB song) async {
     print('deleting ${song.name}, index ${song.id}');
     return (delete(songs)..where((s) => s.id.equals(song.id))).go();
   }
@@ -135,5 +142,54 @@ class SharedDatabase extends _$SharedDatabase {
     return await (select(songs)
           ..orderBy([(t) => OrderingTerm(expression: t.name)]))
         .get();
+  }
+
+  //playlists
+  Future<bool> playlistExists(int id) async {
+    if (id < 0) {
+      return false;
+    }
+    var count = countAll(filter: playlists.id.equals(id));
+    var res = await (selectOnly(playlists)..addColumns([count]))
+        .map((row) => row.read(count))
+        .getSingle();
+    if (res > 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<int> setPlaylistData(PlaylistsCompanion companion) {
+    return into(playlists).insertOnConflictUpdate(companion);
+  }
+
+  Future<bool> updatePlaylistData(PlaylistDataDB playlist) {
+    return update(playlists).replace(playlist);
+  }
+
+  Future<int> delPlaylistData(PlaylistDataDB playlist) async {
+    print('deleting ${playlist.name}, index ${playlist.id}');
+    return (delete(playlists)..where((p) => p.id.equals(playlist.id))).go();
+  }
+
+  Future<List<SongDataDB>> getPlaylistSongs(PlaylistData playlist) {
+    // var playlistQuery = select(playlists)
+    //   ..where((tbl) => tbl.id.equals(playlist.id));
+    //get songs from playlist
+    final songsQuery = (select(playlistSongs).join(
+      [
+        innerJoin(
+          songs,
+          songs.id.equalsExp(playlistSongs.song),
+        ),
+      ],
+    )..where(playlistSongs.playlist.equals(playlist.id)));
+
+    final songList = songsQuery.get() as Future<List<SongDataDB>>;
+    print(songList);
+
+    //combine queries into one
+    return songList;
   }
 }

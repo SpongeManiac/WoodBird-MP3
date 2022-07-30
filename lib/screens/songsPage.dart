@@ -1,20 +1,20 @@
 import 'dart:io';
 import 'dart:ui';
-import 'package:badges/badges.dart';
-import 'package:marquee/marquee.dart';
+//import 'package:badges/badges.dart';
+//import 'package:marquee/marquee.dart';
 import 'package:path/path.dart' show basename;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:test_project/models/states/song/SongData.dart';
+import 'package:test_project/models/states/song/songData.dart';
 import 'package:test_project/widgets/contextPopupButton.dart';
-
+import '../widgets/contextPopupButton.dart';
 import '../models/AudioInterface.dart';
 import '../widgets/appBar.dart';
 import 'themedPage.dart';
 
 class SongsPage extends ThemedPage {
   SongsPage({
-    Key? key,
+    super.key,
     required super.title,
   }) {
     editingNotifier = ValueNotifier<SongData?>(null);
@@ -208,7 +208,7 @@ class SongsPage extends ThemedPage {
     song.art = newArt.text;
     //song.saveData();
     //List<SongData> tmp = List.from(songs);
-    List<SongData> q = List.from(app.audioInterface.queueNotifier.value);
+    //List<SongData> q = List.from(app.audioInterface.queueNotifier.value);
     //ValueNotifier<SongData> currentPlaying = app.audioInterface.currentNotifier!;
     // if (tmp.contains(song)) {
     //   print('found match in songs, updating song');
@@ -266,72 +266,73 @@ class SongsPage extends ThemedPage {
     }
   }
 
-  ContextPopupButton getSongContext(SongData song) {
+  ContextPopupButton getSongContext(BuildContext context, SongData song) {
     var popup = ContextPopupButton(
-        icon:
-            //Badge(
-            //badgeContent: Text('${song.id}'), child:
-            Icon(Icons.more_vert),
-        //),
-        itemBuilder: (context) {
-          Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
-            'Add to queue': ContextItemTuple(
-              Icons.queue_music_rounded,
-              () async {
-                await app.audioInterface.addToQueue(song);
-              },
-            ),
-            'Add to playlist...': ContextItemTuple(
-              Icons.playlist_add_rounded,
-              () async {
-                await addSong();
-              },
-            ),
-            'Add to album...': ContextItemTuple(Icons.album),
-            'Play single': ContextItemTuple(
-              Icons.play_arrow,
-              () async {
-                app.audioInterface.playSingle(song);
-              },
-            ),
-            'Edit': ContextItemTuple(Icons.edit_rounded, () async {
-              editingNotifier.value = song;
-            }),
-            'Delete': ContextItemTuple(Icons.delete_rounded, () async {
-              await delSong(song);
-            }),
-          };
+      icon:
+          //Badge(
+          //badgeContent: Text('${song.id}'), child:
+          Icon(
+        Icons.more_vert,
+        color: Theme.of(context).primaryColor,
+      ),
+      //),
+      itemBuilder: (context) {
+        Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
+          'Add to queue': ContextItemTuple(
+            Icons.queue_music_rounded,
+            () async {
+              await app.audioInterface.addToQueue(song);
+            },
+          ),
+          'Add to playlist...': ContextItemTuple(
+            Icons.playlist_add_rounded,
+            () async {
+              await addSong();
+            },
+          ),
+          'Add to album...': ContextItemTuple(Icons.album),
+          'Play single': ContextItemTuple(
+            Icons.play_arrow,
+            () async {
+              app.audioInterface.playSingle(song);
+            },
+          ),
+          'Edit': ContextItemTuple(Icons.edit_rounded, () async {
+            editingNotifier.value = song;
+          }),
+          'Delete': ContextItemTuple(Icons.delete_rounded, () async {
+            await delSong(song);
+          }),
+        };
 
-          List<PopupMenuItem<String>> list = [];
+        List<PopupMenuItem<String>> list = [];
 
-          for (String val in choices.keys) {
-            var choice = choices[val];
-            list.add(
-              PopupMenuItem(
-                  onTap: choice!.onPress,
-                  child: Row(
-                    children: [
-                      Icon(
-                        choice.icon,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                      Expanded(
-                        child: Text(
-                          val,
-                          textAlign: TextAlign.right,
-                        ),
-                      )
-                    ],
-                  )),
-            );
-          }
+        for (String val in choices.keys) {
+          var choice = choices[val];
+          list.add(
+            PopupMenuItem(
+              onTap: choice!.onPress,
+              child: Row(
+                children: [
+                  Icon(
+                    choice.icon,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  Expanded(
+                    child: Text(
+                      val,
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
 
-          return list;
-        });
-    // void Function() tmp = () {
-    //   print('showing dialog');
-    //   popup.showDialog();
-    // };
+        return list;
+      },
+    );
 
     songContexts[song] = popup;
     return popup;
@@ -419,10 +420,11 @@ class _SongsPageState extends State<SongsPage> {
                         scrollDirection: Axis.vertical,
                         physics: const AlwaysScrollableScrollPhysics(),
                         itemCount: newSongs.length,
-                        itemBuilder: ((context, index) {
+                        itemBuilder: (context, index) {
                           SongData song = newSongs[index];
 
-                          var songContextBtn = widget.getSongContext(song);
+                          var songContextBtn =
+                              widget.getSongContext(context, song);
                           return ListTile(
                             enabled: true,
                             onTap: () {
@@ -438,7 +440,7 @@ class _SongsPageState extends State<SongsPage> {
                             subtitle: Text(song.artist),
                             trailing: songContextBtn,
                           );
-                        }),
+                        },
                       )));
             },
           );

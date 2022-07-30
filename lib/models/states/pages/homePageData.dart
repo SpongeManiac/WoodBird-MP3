@@ -1,4 +1,4 @@
-import 'package:drift/src/runtime/data_class.dart';
+import 'package:drift/src/runtime/data_class.dart' show DataClass;
 
 import '../baseState.dart';
 import '../../../database/database.dart';
@@ -17,7 +17,7 @@ class HomePageData extends BaseDataDB {
   @override
   HomePageData fromEntry(DataClass dataclass) {
     HomePageStateDB data = dataclass as HomePageStateDB;
-    var copy = this;
+    var copy = this.copy();
     copy.theme = data.theme;
     copy.count = data.count;
     copy.color = data.color;
@@ -36,7 +36,8 @@ class HomePageData extends BaseDataDB {
 
   @override
   HomePageStateCompanion getCompanion() {
-    return HomePageStateCompanion(
-        theme: Value(theme), count: Value(count), color: Value(color));
+    // return HomePageStateCompanion(
+    //     theme: Value(theme), count: Value(count), color: Value(color));
+    return getEntry().toCompanion(true);
   }
 }

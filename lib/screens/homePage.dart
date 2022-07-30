@@ -5,7 +5,7 @@ import '../globals.dart' as globals;
 import 'package:test_project/screens/themedPage.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 
-import '../models/states/home/homePageData.dart';
+import '../models/states/pages/homePageData.dart';
 import '../widgets/actionButtonLayout.dart';
 
 class HomePage extends ThemedPage {
@@ -158,7 +158,8 @@ class _HomePageState extends State<HomePage> {
         // fast, so that you can just rebuild anything that needs updating rather
         // than having to individually change instances of widgets.
         return ActionButtonLayout(
-          body: Center(
+          actionButton: widget.floatingActionButton,
+          child: Center(
             // Center is a layout widget. It takes a single child and positions it
             // in the middle of the parent.
             child: Column(
@@ -211,7 +212,6 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          actionButton: widget.floatingActionButton,
         );
       },
     );

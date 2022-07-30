@@ -2,16 +2,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:test_project/widgets/hideableFloatingAction.dart';
 
 class ActionButtonLayout extends StatelessWidget {
-  ActionButtonLayout({this.body, this.actionButton});
-  Widget? body;
+  ActionButtonLayout({this.actionButton, required this.child});
   Widget? actionButton;
+  Widget child;
   @override
   Widget build(BuildContext context) {
-    body ??= const Center(child: Text('Default Body'));
     actionButton ??= const HideableFloatingAction();
     return Stack(
       children: [
-        body!,
+        child,
         Positioned(
           bottom: 20,
           right: 20,

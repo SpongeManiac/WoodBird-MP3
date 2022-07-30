@@ -547,6 +547,475 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, SongDataDB> {
   }
 }
 
+class PlaylistDataDB extends DataClass implements Insertable<PlaylistDataDB> {
+  final int id;
+  final String name;
+  final String description;
+  final String art;
+  PlaylistDataDB(
+      {required this.id,
+      required this.name,
+      required this.description,
+      required this.art});
+  factory PlaylistDataDB.fromData(Map<String, dynamic> data, {String? prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return PlaylistDataDB(
+      id: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      name: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}name'])!,
+      description: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}description'])!,
+      art: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}art'])!,
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['description'] = Variable<String>(description);
+    map['art'] = Variable<String>(art);
+    return map;
+  }
+
+  PlaylistsCompanion toCompanion(bool nullToAbsent) {
+    return PlaylistsCompanion(
+      id: Value(id),
+      name: Value(name),
+      description: Value(description),
+      art: Value(art),
+    );
+  }
+
+  factory PlaylistDataDB.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PlaylistDataDB(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      description: serializer.fromJson<String>(json['description']),
+      art: serializer.fromJson<String>(json['art']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'description': serializer.toJson<String>(description),
+      'art': serializer.toJson<String>(art),
+    };
+  }
+
+  PlaylistDataDB copyWith(
+          {int? id, String? name, String? description, String? art}) =>
+      PlaylistDataDB(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        description: description ?? this.description,
+        art: art ?? this.art,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('PlaylistDataDB(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('art: $art')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, description, art);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PlaylistDataDB &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.description == this.description &&
+          other.art == this.art);
+}
+
+class PlaylistsCompanion extends UpdateCompanion<PlaylistDataDB> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<String> description;
+  final Value<String> art;
+  const PlaylistsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    this.art = const Value.absent(),
+  });
+  PlaylistsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.description = const Value.absent(),
+    this.art = const Value.absent(),
+  }) : name = Value(name);
+  static Insertable<PlaylistDataDB> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<String>? description,
+    Expression<String>? art,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (art != null) 'art': art,
+    });
+  }
+
+  PlaylistsCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? name,
+      Value<String>? description,
+      Value<String>? art}) {
+    return PlaylistsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      art: art ?? this.art,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (art.present) {
+      map['art'] = Variable<String>(art.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlaylistsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('art: $art')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PlaylistsTable extends Playlists
+    with TableInfo<$PlaylistsTable, PlaylistDataDB> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PlaylistsTable(this.attachedDatabase, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
+      'id', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      defaultConstraints: 'PRIMARY KEY AUTOINCREMENT');
+  final VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String?> name = GeneratedColumn<String?>(
+      'name', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 0, maxTextLength: 128),
+      type: const StringType(),
+      requiredDuringInsert: true);
+  final VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String?> description = GeneratedColumn<String?>(
+      'description', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 0, maxTextLength: 256),
+      type: const StringType(),
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  final VerificationMeta _artMeta = const VerificationMeta('art');
+  @override
+  late final GeneratedColumn<String?> art = GeneratedColumn<String?>(
+      'art', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 0, maxTextLength: 512),
+      type: const StringType(),
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  @override
+  List<GeneratedColumn> get $columns => [id, name, description, art];
+  @override
+  String get aliasedName => _alias ?? 'playlists';
+  @override
+  String get actualTableName => 'playlists';
+  @override
+  VerificationContext validateIntegrity(Insertable<PlaylistDataDB> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
+    if (data.containsKey('art')) {
+      context.handle(
+          _artMeta, art.isAcceptableOrUnknown(data['art']!, _artMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PlaylistDataDB map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return PlaylistDataDB.fromData(data,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $PlaylistsTable createAlias(String alias) {
+    return $PlaylistsTable(attachedDatabase, alias);
+  }
+}
+
+class PlaylistSongDataDB extends DataClass
+    implements Insertable<PlaylistSongDataDB> {
+  final int id;
+  final int playlist;
+  final int song;
+  PlaylistSongDataDB(
+      {required this.id, required this.playlist, required this.song});
+  factory PlaylistSongDataDB.fromData(Map<String, dynamic> data,
+      {String? prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return PlaylistSongDataDB(
+      id: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      playlist: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}playlist'])!,
+      song: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}song'])!,
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['playlist'] = Variable<int>(playlist);
+    map['song'] = Variable<int>(song);
+    return map;
+  }
+
+  PlaylistSongsCompanion toCompanion(bool nullToAbsent) {
+    return PlaylistSongsCompanion(
+      id: Value(id),
+      playlist: Value(playlist),
+      song: Value(song),
+    );
+  }
+
+  factory PlaylistSongDataDB.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PlaylistSongDataDB(
+      id: serializer.fromJson<int>(json['id']),
+      playlist: serializer.fromJson<int>(json['playlist']),
+      song: serializer.fromJson<int>(json['song']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'playlist': serializer.toJson<int>(playlist),
+      'song': serializer.toJson<int>(song),
+    };
+  }
+
+  PlaylistSongDataDB copyWith({int? id, int? playlist, int? song}) =>
+      PlaylistSongDataDB(
+        id: id ?? this.id,
+        playlist: playlist ?? this.playlist,
+        song: song ?? this.song,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('PlaylistSongDataDB(')
+          ..write('id: $id, ')
+          ..write('playlist: $playlist, ')
+          ..write('song: $song')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, playlist, song);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PlaylistSongDataDB &&
+          other.id == this.id &&
+          other.playlist == this.playlist &&
+          other.song == this.song);
+}
+
+class PlaylistSongsCompanion extends UpdateCompanion<PlaylistSongDataDB> {
+  final Value<int> id;
+  final Value<int> playlist;
+  final Value<int> song;
+  const PlaylistSongsCompanion({
+    this.id = const Value.absent(),
+    this.playlist = const Value.absent(),
+    this.song = const Value.absent(),
+  });
+  PlaylistSongsCompanion.insert({
+    this.id = const Value.absent(),
+    required int playlist,
+    required int song,
+  })  : playlist = Value(playlist),
+        song = Value(song);
+  static Insertable<PlaylistSongDataDB> custom({
+    Expression<int>? id,
+    Expression<int>? playlist,
+    Expression<int>? song,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (playlist != null) 'playlist': playlist,
+      if (song != null) 'song': song,
+    });
+  }
+
+  PlaylistSongsCompanion copyWith(
+      {Value<int>? id, Value<int>? playlist, Value<int>? song}) {
+    return PlaylistSongsCompanion(
+      id: id ?? this.id,
+      playlist: playlist ?? this.playlist,
+      song: song ?? this.song,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (playlist.present) {
+      map['playlist'] = Variable<int>(playlist.value);
+    }
+    if (song.present) {
+      map['song'] = Variable<int>(song.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlaylistSongsCompanion(')
+          ..write('id: $id, ')
+          ..write('playlist: $playlist, ')
+          ..write('song: $song')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PlaylistSongsTable extends PlaylistSongs
+    with TableInfo<$PlaylistSongsTable, PlaylistSongDataDB> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PlaylistSongsTable(this.attachedDatabase, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
+      'id', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      defaultConstraints: 'PRIMARY KEY AUTOINCREMENT');
+  final VerificationMeta _playlistMeta = const VerificationMeta('playlist');
+  @override
+  late final GeneratedColumn<int?> playlist = GeneratedColumn<int?>(
+      'playlist', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: true,
+      defaultConstraints: 'REFERENCES playlists (id)');
+  final VerificationMeta _songMeta = const VerificationMeta('song');
+  @override
+  late final GeneratedColumn<int?> song = GeneratedColumn<int?>(
+      'song', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: true,
+      defaultConstraints: 'REFERENCES songs (id)');
+  @override
+  List<GeneratedColumn> get $columns => [id, playlist, song];
+  @override
+  String get aliasedName => _alias ?? 'playlist_songs';
+  @override
+  String get actualTableName => 'playlist_songs';
+  @override
+  VerificationContext validateIntegrity(Insertable<PlaylistSongDataDB> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('playlist')) {
+      context.handle(_playlistMeta,
+          playlist.isAcceptableOrUnknown(data['playlist']!, _playlistMeta));
+    } else if (isInserting) {
+      context.missing(_playlistMeta);
+    }
+    if (data.containsKey('song')) {
+      context.handle(
+          _songMeta, song.isAcceptableOrUnknown(data['song']!, _songMeta));
+    } else if (isInserting) {
+      context.missing(_songMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PlaylistSongDataDB map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return PlaylistSongDataDB.fromData(data,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $PlaylistSongsTable createAlias(String alias) {
+    return $PlaylistSongsTable(attachedDatabase, alias);
+  }
+}
+
 class AlbumDataDB extends DataClass implements Insertable<AlbumDataDB> {
   final int id;
   final String name;
@@ -1016,11 +1485,13 @@ abstract class _$SharedDatabase extends GeneratedDatabase {
   _$SharedDatabase(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
   late final $HomePageStateTable homePageState = $HomePageStateTable(this);
   late final $SongsTable songs = $SongsTable(this);
+  late final $PlaylistsTable playlists = $PlaylistsTable(this);
+  late final $PlaylistSongsTable playlistSongs = $PlaylistSongsTable(this);
   late final $AlbumsTable albums = $AlbumsTable(this);
   late final $AlbumSongsTable albumSongs = $AlbumSongsTable(this);
   @override
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [homePageState, songs, albums, albumSongs];
+      [homePageState, songs, playlists, playlistSongs, albums, albumSongs];
 }

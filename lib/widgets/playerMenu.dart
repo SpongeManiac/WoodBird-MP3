@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:marquee/marquee.dart';
 import 'package:test_project/models/AudioInterface.dart';
-import 'package:test_project/screens/songPage.dart';
+import 'package:test_project/screens/songsPage.dart';
 import '../globals.dart' show app;
 import 'package:test_project/widgets/PlayPauseButton.dart';
 
-import '../models/states/song/SongData.dart';
+import '../models/states/song/songData.dart';
 import 'contextPopupButton.dart';
 
 class PlayerMenu extends StatefulWidget {

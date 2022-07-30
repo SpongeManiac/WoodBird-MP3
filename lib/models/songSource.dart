@@ -1,9 +1,8 @@
 import 'dart:math';
 
-import 'package:flutter/rendering.dart';
 import 'package:just_audio/just_audio.dart';
 
-import 'states/song/SongData.dart';
+import 'states/song/songData.dart';
 
 class SongSource extends AudioSource {
   SongSource() : super();
