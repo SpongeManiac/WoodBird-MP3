@@ -1,15 +1,18 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:test_project/database/database.dart';
 import 'package:test_project/models/states/playlist/playlistData.dart';
 import 'package:test_project/models/states/song/songData.dart';
+import 'package:test_project/screens/CRUDPage.dart';
 import 'package:test_project/screens/songsPage.dart';
 import 'package:test_project/screens/themedPage.dart';
+import 'package:test_project/widgets/actionButtonLayout.dart';
 import 'package:test_project/widgets/contextPopupButton.dart';
 
-class PlaylistsPage extends ThemedPage {
+import '../models/contextItemTuple.dart';
+import '../widgets/appBar.dart';
+
+class PlaylistsPage extends CRUDPage {
   PlaylistsPage({super.key, required super.title}) {
     editingNotifier = ValueNotifier<PlaylistData?>(null);
   }
@@ -37,7 +40,7 @@ class PlaylistsPage extends ThemedPage {
   set playlists(playlists) => app.playlistsNotifier.value = playlists;
 
   Future<void> setPlaylistSongs() async {
-    if (playlistToEdit == null) return;
+    if (state != ViewState.update) return;
 
     songs.clear();
     List<SongDataDB> songsDB = await db.getPlaylistSongs(playlistToEdit!);
@@ -96,7 +99,256 @@ class PlaylistsPage extends ThemedPage {
     return popup;
   }
 
-  Widget editPlaylist(BuildContext context) {
+  Future<void> createPlaylist() async {
+    print('switching to create');
+    state = ViewState.create;
+  }
+
+  Future<void> editPlaylist(PlaylistData playlist) async {
+    playlist.name = newName.text;
+    playlist.description = newDescription.text;
+    playlist.art = newArt.text;
+    var tmp = List.of(playlists);
+    print('saving playlist changes to db');
+    await playlist.saveData();
+    tmp.add(playlist);
+    playlists = tmp;
+    editingNotifier.value = null;
+    state = ViewState.read;
+  }
+
+  Future<void> delPlaylist(PlaylistData playlist) async {
+    var tmp = List.of(playlists);
+    if (playlists.contains(playlist)) {
+      await db.delPlaylistData(playlist.getEntry());
+      tmp.remove(playlist);
+      playlists = tmp;
+    } else {
+      print('playlist not in list, delete failed');
+    }
+  }
+
+  Future<void> playlistTapped(PlaylistData playlist) async {
+    editingNotifier.value = playlist;
+    state = ViewState.update;
+  }
+
+  @override
+  AppBarData getDefaultAppBar() {
+    print('getting def app bar');
+    return AppBarData(title, <Widget>[
+      PopupMenuButton<String>(
+          //key: _key?,
+          icon: const Icon(Icons.more_vert),
+          itemBuilder: (context) {
+            Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
+              'Add Playlist': ContextItemTuple(
+                Icons.folder,
+                () async {
+                  await createPlaylist();
+                },
+              ),
+              'Test 2': ContextItemTuple(Icons.bug_report),
+            };
+
+            List<PopupMenuItem<String>> list = [];
+
+            for (String val in choices.keys) {
+              list.add(
+                PopupMenuItem(
+                    onTap: choices[val]!.onPress,
+                    child: Row(
+                      children: [
+                        Icon(
+                          choices[val]!.icon,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        Expanded(
+                          child: Text(
+                            val,
+                            textAlign: TextAlign.right,
+                          ),
+                        )
+                      ],
+                    )),
+              );
+            }
+
+            return list;
+          }),
+    ]);
+  }
+
+  @override
+  Widget create(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(10),
+        child: Column(
+          children: [
+            Container(
+              height: Theme.of(context).textTheme.headlineMedium!.fontSize,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Create a playlist',
+                        style: Theme.of(context).textTheme.headline6,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  newName.text = '';
+                  newDescription.text = '';
+                  newArt.text = '';
+                },
+                child: ScrollConfiguration(
+                  behavior: ScrollConfiguration.of(context).copyWith(
+                    dragDevices: {
+                      PointerDeviceKind.touch,
+                      PointerDeviceKind.mouse,
+                    },
+                  ),
+                  child: ListView.builder(
+                      itemCount: 3 + songs.length,
+                      itemBuilder: (context, index) {
+                        newName.text = '';
+                        newDescription.text = '';
+                        newArt.text = '';
+                        switch (index) {
+                          case 0:
+                            return ListTile(
+                              leading: Container(
+                                width: 80,
+                                child: const Text('Name:'),
+                              ),
+                              title: TextFormField(
+                                controller: newName,
+                              ),
+                            );
+                          case 1:
+                            return ListTile(
+                              leading: Container(
+                                width: 80,
+                                child: const Text('Description:'),
+                              ),
+                              title: TextFormField(
+                                controller: newDescription,
+                              ),
+                            );
+                          case 2:
+                            return ListTile(
+                              leading: Container(
+                                width: 80,
+                                child: const Text('Cover Art:'),
+                              ),
+                              title: TextFormField(
+                                controller: newArt,
+                              ),
+                            );
+                          default:
+                            return ListTile(
+                              title: Text(songs[index].name),
+                              subtitle: Text(songs[index].artist),
+                            );
+                        }
+                      }),
+                ),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    var playlist = PlaylistData(
+                        name: newName.text,
+                        description: newDescription.text,
+                        art: newArt.text);
+                    editPlaylist(playlist);
+                  },
+                  child: Text('Save'),
+                  // style: ButtonStyle(
+                  //   backgroundColor: Theme.of(context).,
+                  // ),
+                ),
+                Container(
+                  width: 10,
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    editingNotifier.value = null;
+                  },
+                  child: Text(
+                    'cancel',
+                    style: TextStyle(
+                      backgroundColor: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget read(BuildContext context) {
+    return ValueListenableBuilder<List<PlaylistData>>(
+      valueListenable: app.playlistsNotifier,
+      builder: ((context, newPlaylists, _) {
+        print('got playlists: ${newPlaylists.toList()}');
+        return RefreshIndicator(
+            onRefresh: () async => () {},
+            child: ScrollConfiguration(
+                behavior: ScrollConfiguration.of(context).copyWith(
+                  dragDevices: {
+                    PointerDeviceKind.touch,
+                    PointerDeviceKind.mouse,
+                  },
+                ),
+                child: ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: newPlaylists.length,
+                  itemBuilder: (context, index) {
+                    PlaylistData playlist = newPlaylists[index];
+
+                    var playlistContextBtn =
+                        getPlaylistContext(context, playlist);
+                    return ListTile(
+                      enabled: true,
+                      onTap: () {
+                        //print('tap');
+                        playlistTapped(playlist);
+                      },
+                      onLongPress: () {
+                        //print('long press');
+                        //print(widget.songContexts[song]);
+                        playlistContexts[playlist]!.showDialog();
+                      },
+                      title: Text(playlist.name),
+                      subtitle: Text(playlist.description),
+                      trailing: playlistContextBtn,
+                    );
+                  },
+                )));
+      }),
+    );
+  }
+
+  @override
+  Widget update(BuildContext context) {
     if (playlistToEdit == null) {
       return Text('Invalid Playlist');
     }
@@ -197,7 +449,7 @@ class PlaylistsPage extends ThemedPage {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    updatePlaylist(playlist);
+                    editPlaylist(playlist);
                   },
                   child: Text('Save'),
                   // style: ButtonStyle(
@@ -210,6 +462,7 @@ class PlaylistsPage extends ThemedPage {
                 ElevatedButton(
                   onPressed: () {
                     editingNotifier.value = null;
+                    state = ViewState.read;
                   },
                   child: Text(
                     'cancel',
@@ -226,77 +479,39 @@ class PlaylistsPage extends ThemedPage {
     );
   }
 
-  Future<void> updatePlaylist(PlaylistData playlist) async {
-    playlist.name = newName.text;
-    playlist.description = newDescription.text;
-    playlist.art = newArt.text;
-
-    print('saving playlist changes to db');
-    playlist.saveData();
-    editingNotifier.value = null;
-  }
-
-  Future<void> delPlaylist(PlaylistData playlist) async {
-    var tmp = List.of(playlists);
-    if (playlists.contains(playlist)) {
-      await db.delPlaylistData(playlist.getEntry());
-      tmp.remove(playlist);
-      playlists = tmp;
-    } else {
-      print('playlist not in list, delete failed');
-    }
+  @override
+  Widget delete(BuildContext context) {
+    // TODO: implement delete
+    throw UnimplementedError();
   }
 }
 
 class _PlaylistsPageState extends State<PlaylistsPage> {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     widget.initState(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<PlaylistData?>(
-        valueListenable: widget.editingNotifier,
-        builder: (context, playlistToEdit, _) {
-          if (playlistToEdit == null) {
-            return ValueListenableBuilder<List<PlaylistData>>(
-                valueListenable: widget.app.playlistsNotifier,
-                builder: (context, newPlaylists, _) {
-                  return RefreshIndicator(
-                    onRefresh: () async => setState(() {}),
-                    child: ScrollConfiguration(
-                        behavior: ScrollConfiguration.of(context).copyWith(
-                          dragDevices: {
-                            PointerDeviceKind.touch,
-                            PointerDeviceKind.mouse,
-                          },
-                        ),
-                        child: ListView.builder(
-                            scrollDirection: Axis.vertical,
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            itemCount: newPlaylists.length,
-                            itemBuilder: (context, index) {
-                              PlaylistData playlist = newPlaylists[index];
-
-                              var playlistContextBtn =
-                                  widget.getPlaylistContext(context, playlist);
-                              return ListTile(
-                                enabled: true,
-                                onTap: () {},
-                                onLongPress: () {},
-                                title: Text(playlist.name),
-                                subtitle: Text(playlist.description),
-                                trailing: playlistContextBtn,
-                              );
-                            })),
-                  );
-                });
-          } else {
-            return widget.editPlaylist(context);
-          }
-        });
+    return ValueListenableBuilder<ViewState>(
+      valueListenable: widget.stateNotifier,
+      builder: (context, state, _) {
+        print('current state: $state');
+        switch (state) {
+          case ViewState.create:
+            return widget.create(context);
+          case ViewState.read:
+            return widget.read(context);
+          case ViewState.update:
+            return widget.update(context);
+          case ViewState.delete:
+            return widget.delete(context);
+          default:
+            return Center(child: Text('Invalid State'));
+        }
+      },
+    );
   }
 }

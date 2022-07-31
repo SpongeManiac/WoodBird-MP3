@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:test_project/models/states/song/songData.dart';
 import 'package:test_project/widgets/contextPopupButton.dart';
+import '../models/contextItemTuple.dart';
 import '../widgets/contextPopupButton.dart';
 import '../models/AudioInterface.dart';
 import '../widgets/appBar.dart';
@@ -29,6 +30,9 @@ class SongsPage extends ThemedPage {
   set songs(songs) => app.songsNotifier.value = songs;
   List<SongData> get queue => interface.queueNotifier.value;
 
+  ValueNotifier<bool> loadingSongsNotifier = ValueNotifier<bool>(false);
+  ValueNotifier<double?> loadingProgressNotifier = ValueNotifier<double?>(0);
+
   late ValueNotifier<SongData?> editingNotifier;
 
   SongData? get songToEdit {
@@ -48,16 +52,27 @@ class SongsPage extends ThemedPage {
   }
 
   Future<void> addSong() async {
+    loadingProgressNotifier.value = null;
+    loadingSongsNotifier.value = true;
     print('going to add song');
     final FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom, allowMultiple: true, allowedExtensions: ['mp3']);
-    if (result != null) {
+      type: FileType.custom,
+      allowMultiple: true,
+      allowedExtensions: ['mp3'],
+      withData: false,
+      withReadStream: true,
+    );
+    if (result != null && result.count > 0) {
       print('got ${result.count} file(s)');
       List<SongData> list = List.from(songs);
-      for (String? path in result.paths) {
+      double fraction = (1.0 / result.count);
+      print('songs: ${result.count}, fraction: $fraction');
+      loadingProgressNotifier.value = fraction;
+      for (var i = 0; i < result.count; i++) {
+        String? path = result.paths[i];
         path ??= '-1';
         if (path == '-1') continue;
-        File file = File(path);
+        print('path: ${result.files[i].path}');
         String base = basename(path);
         var split = base.split('.');
         var name = split.first;
@@ -70,13 +85,18 @@ class SongsPage extends ThemedPage {
           name: name,
           localPath: path,
         );
-        song.saveData();
+        await song.saveData();
         list.add(song);
-        songs = list;
+        print('updating progress: ${loadingProgressNotifier.value}');
+        loadingProgressNotifier.value = (i + 1) * fraction;
+        await Future.delayed(Duration(milliseconds: 10));
       }
+      songs = list;
     } else {
       print('null result');
     }
+    loadingSongsNotifier.value = false;
+    loadingProgressNotifier.value = 0;
   }
 
   Widget editSong(BuildContext context) {
@@ -206,44 +226,6 @@ class SongsPage extends ThemedPage {
     song.name = newName.text;
     song.artist = newArtist.text;
     song.art = newArt.text;
-    //song.saveData();
-    //List<SongData> tmp = List.from(songs);
-    //List<SongData> q = List.from(app.audioInterface.queueNotifier.value);
-    //ValueNotifier<SongData> currentPlaying = app.audioInterface.currentNotifier!;
-    // if (tmp.contains(song)) {
-    //   print('found match in songs, updating song');
-    // } else {
-    //   print('checking songs by path');
-    //   for (var i = 0; i < tmp.length; i++) {
-    //     var idx = tmp[i];
-    //     if (idx.localPath == song.localPath) {
-    //       print('found match in songs, updating song');
-
-    //     } else {
-    //       print('no matches found, save failed.');
-    //       return;
-    //     }
-    //   }
-    // }
-
-    // if (q.contains(song)) {
-    //   print('found match in q, updating song');
-    //   q[q.indexOf(song)] = song.copy();
-    // } else {
-    //   print('checking q by path/id');
-    //   for (var i = 0; i < q.length; i++) {
-    //     var idx = q[i];
-    //     if (idx.localPath == song.localPath) {
-    //       print('found match by path in q, updating song');
-    //       idx = song;
-    //     } else if (idx.id != null && idx.id! > -1 && idx.id == song.id) {
-    //       print('found match by id in q, updating song');
-    //       idx = song;
-    //     } else {
-    //       print('no matches found, q update failed.');
-    //     }
-    //   }
-    // }
     //update song in db if it exists
     print('saving song changes to db');
     song.saveData();
@@ -287,7 +269,38 @@ class SongsPage extends ThemedPage {
           'Add to playlist...': ContextItemTuple(
             Icons.playlist_add_rounded,
             () async {
-              await addSong();
+              Navigator.of(context).pop();
+              showDialog(
+                context: context,
+                builder: (context) {
+                  print('showing dialog');
+                  return AlertDialog(
+                    title: Text('Hello!'),
+                    content: Text('More hellos!'),
+                  );
+                  // return Container(
+                  //   height: 100,
+                  //   width: 100,
+                  //   padding: EdgeInsets.all(10),
+                  //   child: Column(
+                  //     children: [
+                  //       Text('This is an alert. Select a choice.'),
+                  //       ListView(
+                  //         children: [
+                  //           ListTile(
+                  //             title: Text('Hello!'),
+                  //           ),
+                  //           ListTile(
+                  //             title: Text('Goodbye!'),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ],
+                  //   ),
+                  // );
+                },
+              );
+              print('alerted');
             },
           ),
           'Add to album...': ContextItemTuple(Icons.album),
@@ -403,46 +416,68 @@ class _SongsPageState extends State<SongsPage> {
       valueListenable: widget.editingNotifier,
       builder: ((context, songToEdit, _) {
         if (songToEdit == null) {
-          return ValueListenableBuilder<List<SongData>>(
-            valueListenable: widget.app.songsNotifier,
-            builder: (context, newSongs, _) {
-              print('got songs: ${newSongs.toList()}');
-              return RefreshIndicator(
-                  onRefresh: () async => setState(() {}),
-                  child: ScrollConfiguration(
-                      behavior: ScrollConfiguration.of(context).copyWith(
-                        dragDevices: {
-                          PointerDeviceKind.touch,
-                          PointerDeviceKind.mouse,
-                        },
-                      ),
-                      child: ListView.builder(
-                        scrollDirection: Axis.vertical,
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: newSongs.length,
-                        itemBuilder: (context, index) {
-                          SongData song = newSongs[index];
+          return Stack(
+            children: [
+              ValueListenableBuilder<List<SongData>>(
+                valueListenable: widget.app.songsNotifier,
+                builder: (context, newSongs, _) {
+                  print('got songs: ${newSongs.toList()}');
+                  return RefreshIndicator(
+                      onRefresh: () async => setState(() {}),
+                      child: ScrollConfiguration(
+                          behavior: ScrollConfiguration.of(context).copyWith(
+                            dragDevices: {
+                              PointerDeviceKind.touch,
+                              PointerDeviceKind.mouse,
+                            },
+                          ),
+                          child: ListView.builder(
+                            scrollDirection: Axis.vertical,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            itemCount: newSongs.length,
+                            itemBuilder: (context, index) {
+                              SongData song = newSongs[index];
 
-                          var songContextBtn =
-                              widget.getSongContext(context, song);
-                          return ListTile(
-                            enabled: true,
-                            onTap: () {
-                              //print('tap');
-                              widget.songTapped(song);
+                              var songContextBtn =
+                                  widget.getSongContext(context, song);
+                              return ListTile(
+                                enabled: true,
+                                onTap: () {
+                                  //print('tap');
+                                  widget.songTapped(song);
+                                },
+                                onLongPress: () {
+                                  //print('long press');
+                                  //print(widget.songContexts[song]);
+                                  widget.songContexts[song]!.showDialog();
+                                },
+                                title: Text(song.name),
+                                subtitle: Text(song.artist),
+                                trailing: songContextBtn,
+                              );
                             },
-                            onLongPress: () {
-                              //print('long press');
-                              //print(widget.songContexts[song]);
-                              widget.songContexts[song]!.showDialog();
-                            },
-                            title: Text(song.name),
-                            subtitle: Text(song.artist),
-                            trailing: songContextBtn,
-                          );
-                        },
-                      )));
-            },
+                          )));
+                },
+              ),
+              ValueListenableBuilder<bool>(
+                valueListenable: widget.loadingSongsNotifier,
+                builder: (context, loadingSongs, _) {
+                  print('loading songs: $loadingSongs');
+                  return Visibility(
+                    visible: loadingSongs,
+                    child: ValueListenableBuilder<double?>(
+                      valueListenable: widget.loadingProgressNotifier,
+                      builder: (context, progress, _) {
+                        print('progres: $progress');
+                        return Center(
+                          child: CircularProgressIndicator(value: progress),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ],
           );
         } else {
           return widget.editSong(context);
@@ -450,11 +485,4 @@ class _SongsPageState extends State<SongsPage> {
       }),
     );
   }
-}
-
-class ContextItemTuple {
-  ContextItemTuple(this.icon, [this.onPress, this.onLongPress]);
-  IconData icon;
-  Future<void> Function()? onPress;
-  Future<void> Function()? onLongPress;
 }

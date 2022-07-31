@@ -173,23 +173,30 @@ class SharedDatabase extends _$SharedDatabase {
     return (delete(playlists)..where((p) => p.id.equals(playlist.id))).go();
   }
 
-  Future<List<SongDataDB>> getPlaylistSongs(PlaylistData playlist) {
+  Future<List<SongDataDB>> getPlaylistSongs(PlaylistData playlist) async {
     // var playlistQuery = select(playlists)
     //   ..where((tbl) => tbl.id.equals(playlist.id));
     //get songs from playlist
-    final songsQuery = (select(playlistSongs).join(
+    final songsQuery = await (select(playlistSongs).join(
       [
         innerJoin(
           songs,
           songs.id.equalsExp(playlistSongs.song),
         ),
       ],
-    )..where(playlistSongs.playlist.equals(playlist.id)));
+    )..where(playlistSongs.playlist.equals(playlist.id)))
+        .get();
 
-    final songList = songsQuery.get() as Future<List<SongDataDB>>;
-    print(songList);
+    var songsList = songsQuery.map((result) {
+      return result.readTable(songs);
+    }).toList();
 
-    //combine queries into one
-    return songList;
+    return songsList;
+  }
+
+  Future<List<PlaylistDataDB>> getAllPlaylists() async {
+    return await (select(playlists)
+          ..orderBy([(t) => OrderingTerm(expression: t.name)]))
+        .get();
   }
 }

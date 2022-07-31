@@ -10,6 +10,7 @@ import '../models/states/pages/homePageData.dart';
 import '../models/states/playlist/playlistData.dart';
 import '../models/states/song/songData.dart';
 import '../screens/homePage.dart';
+import '../screens/settingsPage.dart';
 import '../screens/pageNav.dart';
 import '../screens/playlistsPage.dart';
 import '../screens/songsPage.dart';
@@ -65,8 +66,9 @@ class BaseApp extends StatefulWidget {
 
   final Map<String, ThemedPage Function(BuildContext)> routes = {
     '/': (context) => HomePage(title: 'Home'),
-    '/songs': (context) => SongsPage(title: 'Songs'),
     '/playlists': (context) => PlaylistsPage(title: 'Playlists'),
+    '/settings': (context) => SettingsPage(title: 'Settings'),
+    '/songs': (context) => SongsPage(title: 'Songs'),
   };
 
   AppBarTitleListener appBar = AppBarTitleListener();
@@ -94,6 +96,7 @@ class BaseApp extends StatefulWidget {
 
     //load songs
     await loadSongs();
+    await loadPlaylists();
   }
 
   Future<void> savePageStates() async {
@@ -123,7 +126,7 @@ class BaseApp extends StatefulWidget {
         homePageStateNotifier.value.fromEntry(homeStateDB);
     var theme = ColorMaterializer.getMaterial(Color(homeStateDB.color));
     //set theme custom color
-    print('custom color: ${theme}');
+    print('custom color: $theme');
     globals.themes['Custom'] = theme;
     themeNotifier.value =
         globals.themes[globals.themes.keys.toList()[homeStateDB.theme]]!;
@@ -139,12 +142,26 @@ class BaseApp extends StatefulWidget {
     List<SongDataDB> songsDB = await globals.db.getAllSongs();
     for (var song in songsDB) {
       songs.add(SongData(
-          artist: song.artist,
-          name: song.name,
-          localPath: song.localPath,
-          id: song.id));
+        artist: song.artist,
+        name: song.name,
+        localPath: song.localPath,
+        id: song.id,
+      ));
     }
     songsNotifier.value = songs;
+  }
+
+  Future<void> loadPlaylists() async {
+    List<PlaylistData> playlists = <PlaylistData>[];
+    List<PlaylistDataDB> playlistsDB = await globals.db.getAllPlaylists();
+    for (var list in playlistsDB) {
+      playlists.add(PlaylistData(
+        name: list.name,
+        description: list.description,
+        art: list.art,
+        id: list.id,
+      ));
+    }
   }
 
   @override
