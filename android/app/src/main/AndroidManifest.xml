@@ -1,12 +1,13 @@
 <manifest 
 xmlns:android="http://schemas.android.com/apk/res/android"
 xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.woodbirdmp3">
+    package="com.example.woodbirdmp3"
+    tools:ignore="Instantiatable">
      <uses-permission android:name="android.permission.WAKE_LOCK"/>
      <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-     <uses-permission android:name="android.permission.BLUETOOTH" />  
+     <!-- <uses-permission android:name="android.permission.BLUETOOTH" />  
 	 <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />  
-	 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>  
+	 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>   -->
    <application
         android:label="woodbirdmp3"
         android:name="${applicationName}"
@@ -34,18 +35,17 @@ xmlns:tools="http://schemas.android.com/tools"
         </activity>
 
         <service
-        android:name="com.ryanheise.audioservice.AudioService"
-        android:foregroundServiceType="mediaPlayback"
-        android:exported="true" tools:ignore="Instantiatable">
+            android:name="com.ryanheise.audioservice.AudioService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
 
         <receiver
-        android:name="com.ryanheise.audioservice.MediaButtonReceiver"
-        android:exported="true"
-        tools:ignore="Instantiatable">
+            android:name="com.ryanheise.audioservice.MediaButtonReceiver"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>

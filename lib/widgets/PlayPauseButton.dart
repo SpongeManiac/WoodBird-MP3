@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
 import '../globals.dart' show app;
 
 class PlayPauseButton extends StatelessWidget {

@@ -5,9 +5,7 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:test_project/screens/themedPage.dart';
 import 'package:test_project/widgets/playerMenu.dart';
 
-import '../database/database.dart';
 import '../globals.dart' show app;
-import '../models/states/pages/homePageData.dart';
 import '../widgets/hideableFloatingAction.dart';
 
 class PageNav extends StatefulWidget {

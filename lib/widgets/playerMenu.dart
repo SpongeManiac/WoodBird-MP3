@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'package:marquee/marquee.dart';
-import 'package:test_project/models/AudioInterface.dart';
+//import 'package:test_project/models/AudioInterface_old.bak';
 import 'package:test_project/screens/songsPage.dart';
 import '../globals.dart' show app;
 import 'package:test_project/widgets/PlayPauseButton.dart';
 
+import '../models/AudioInterface.dart';
 import '../models/contextItemTuple.dart';
 import '../models/states/song/songData.dart';
 import 'contextPopupButton.dart';
@@ -14,35 +17,35 @@ class PlayerMenu extends StatefulWidget {
 
   AudioInterface get interface => app.audioInterface;
 
-  Map<SongData, ContextPopupButton> songContexts =
-      <SongData, ContextPopupButton>{};
+  Map<AudioSource, ContextPopupButton> songContexts =
+      <AudioSource, ContextPopupButton>{};
 
-  ContextPopupButton getSongContext(BuildContext context, SongData song) {
+  ContextPopupButton getSongContext(BuildContext context, AudioSource song) {
     var popup = ContextPopupButton(
       icon: Icon(Icons.more_vert, color: Theme.of(context).primaryColor),
       itemBuilder: (context) {
         Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
           'Remove from queue':
               ContextItemTuple(Icons.playlist_remove_rounded, () async {
-            await interface.removeFromQueue(song);
+            //await interface.removeFromQueue(song);
           }),
           'Play': ContextItemTuple(Icons.play_arrow_rounded, () async {
-            await interface.setCurrent(song);
-            await interface.playQueue();
+            //await interface.setCurrent(song);
+            //await interface.playQueue();
           }),
           'Move Up': ContextItemTuple(Icons.move_up_rounded, () async {
-            await interface.moveUp(song);
+            //await interface.moveUp(song);
           }),
           'Move Down': ContextItemTuple(Icons.move_down_rounded, () async {
-            await interface.moveDown(song);
+            //await interface.moveDown(song);
           }),
           'Move to top':
               ContextItemTuple(Icons.format_list_numbered_rounded, () async {
-            interface.moveToTop(song);
+            //interface.moveToTop(song);
           }),
           'Move to bottom':
               ContextItemTuple(Icons.low_priority_rounded, () async {
-            await interface.moveToEnd(song);
+            //await interface.moveToEnd(song);
           }),
         };
 
@@ -82,7 +85,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<List<SongData>>(
+    return ValueListenableBuilder<int>(
       valueListenable: widget.interface.queueNotifier,
       builder: (context, newQueue, _) {
         return Center(
@@ -98,14 +101,16 @@ class _PlayerMenuState extends State<PlayerMenu> {
                       Expanded(
                         child: Padding(
                           padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                          child: ValueListenableBuilder<SongData>(
-                            valueListenable:
-                                widget.interface.currentNotifier ??=
-                                    ValueNotifier(widget.interface.emptyQueue),
-                            builder: (context, newSong, _) {
+                          child: StreamBuilder<int?>(
+                            stream: widget.interface.player.currentIndexStream,
+                            builder: (context, newSong) {
+                              var idx = newSong.data ?? -1;
+                              AudioSource source = idx < 0
+                                  ? widget.interface.emptyQueue.source
+                                  : widget.interface.playlist[idx];
+                              MediaItem tag = AudioInterface.getTag(source);
                               return Marquee(
-                                  text:
-                                      '${newSong.name} - ${newSong.artist} | ',
+                                  text: '${tag.title} - ${tag.artist} | ',
                                   style: TextStyle(
                                       color:
                                           Theme.of(context).primaryColorDark));
@@ -130,7 +135,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                 color: Theme.of(context).primaryColorDark,
                               ),
                               onPressed: () async {
-                                await widget.interface.playPrev();
+                                await widget.interface.player.seekToPrevious();
                               },
                             ),
                             PlayPauseButton(),
@@ -140,7 +145,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                 color: Theme.of(context).primaryColor,
                               ),
                               onPressed: () async {
-                                await widget.interface.playNext();
+                                await widget.interface.player.seekToNext();
                               },
                             ),
                           ],
@@ -174,29 +179,34 @@ class _PlayerMenuState extends State<PlayerMenu> {
                       // ),
                       ReorderableListView.builder(
                           onReorder: (int oldIndex, int newIndex) {
-                            widget.interface.move(oldIndex, newIndex);
+                            // widget.interface.move(oldIndex, newIndex);
                           },
-                          itemCount: newQueue.length,
+                          itemCount: newQueue,
                           itemBuilder: (((context, index) {
-                            SongData song = newQueue[index];
+                            if (index ==
+                                (widget.interface.player.currentIndex ?? -1)) {
+                              //this item is currently playing
+                            }
+                            AudioSource song = widget.interface.playlist[index];
+                            MediaItem tag = AudioInterface.getTag(song);
                             var songContextBtn =
                                 widget.getSongContext(context, song);
                             return ListTile(
                               key: ValueKey(index),
                               enabled: true,
                               onTap: () async {
-                                await widget.interface.setCurrentCont(song);
+                                //await widget.interface.setCurrentCont(song);
                               },
                               // onLongPress: () async {
                               //   widget.songContexts[song]!.showDialog();
                               // },
                               title: Text(
-                                song.name,
+                                tag.title,
                                 style: TextStyle(
                                     color: Theme.of(context).primaryColor),
                               ),
                               subtitle: Text(
-                                song.artist,
+                                tag.artist ?? '',
                                 style: TextStyle(
                                     color: Theme.of(context).primaryColor),
                               ),

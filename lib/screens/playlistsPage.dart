@@ -4,15 +4,12 @@ import 'package:test_project/database/database.dart';
 import 'package:test_project/models/states/playlist/playlistData.dart';
 import 'package:test_project/models/states/song/songData.dart';
 import 'package:test_project/screens/CRUDPage.dart';
-import 'package:test_project/screens/songsPage.dart';
-import 'package:test_project/screens/themedPage.dart';
-import 'package:test_project/widgets/actionButtonLayout.dart';
 import 'package:test_project/widgets/contextPopupButton.dart';
 
 import '../models/contextItemTuple.dart';
 import '../widgets/appBar.dart';
 
-class PlaylistsPage extends CRUDPage {
+class PlaylistsPage extends CRUDPage<PlaylistData> {
   PlaylistsPage({super.key, required super.title}) {
     editingNotifier = ValueNotifier<PlaylistData?>(null);
   }
@@ -26,12 +23,6 @@ class PlaylistsPage extends CRUDPage {
   TextEditingController newName = TextEditingController(text: '');
   TextEditingController newDescription = TextEditingController(text: '');
   TextEditingController newArt = TextEditingController(text: '');
-
-  @override
-  State<StatefulWidget> createState() => _PlaylistsPageState();
-
-  @override
-  Future<void> saveState() async {}
 
   Map<PlaylistData, ContextPopupButton> playlistContexts =
       <PlaylistData, ContextPopupButton>{};
@@ -62,8 +53,12 @@ class PlaylistsPage extends CRUDPage {
           'Set queue': ContextItemTuple(Icons.queue_music_rounded, () async {}),
           'Add to queue':
               ContextItemTuple(Icons.playlist_add_rounded, () async {}),
-          'Edit': ContextItemTuple(Icons.edit_rounded, () async {}),
-          'Delete': ContextItemTuple(Icons.delete_rounded, () async {}),
+          'Edit': ContextItemTuple(Icons.edit_rounded, () async {
+            await setUpdate(playlist);
+          }),
+          'Delete': ContextItemTuple(Icons.delete_rounded, () async {
+            await delete(playlist);
+          }),
         };
 
         List<PopupMenuItem<String>> list = [];
@@ -99,56 +94,21 @@ class PlaylistsPage extends CRUDPage {
     return popup;
   }
 
-  Future<void> createPlaylist() async {
-    print('switching to create');
-    state = ViewState.create;
-  }
-
-  Future<void> editPlaylist(PlaylistData playlist) async {
-    playlist.name = newName.text;
-    playlist.description = newDescription.text;
-    playlist.art = newArt.text;
-    var tmp = List.of(playlists);
-    print('saving playlist changes to db');
-    await playlist.saveData();
-    tmp.add(playlist);
-    playlists = tmp;
-    editingNotifier.value = null;
-    state = ViewState.read;
-  }
-
-  Future<void> delPlaylist(PlaylistData playlist) async {
-    var tmp = List.of(playlists);
-    if (playlists.contains(playlist)) {
-      await db.delPlaylistData(playlist.getEntry());
-      tmp.remove(playlist);
-      playlists = tmp;
-    } else {
-      print('playlist not in list, delete failed');
-    }
-  }
-
-  Future<void> playlistTapped(PlaylistData playlist) async {
-    editingNotifier.value = playlist;
-    state = ViewState.update;
-  }
-
   @override
   AppBarData getDefaultAppBar() {
-    print('getting def app bar');
-    return AppBarData(title, <Widget>[
-      PopupMenuButton<String>(
-          //key: _key?,
+    return AppBarData(
+      title,
+      <Widget>[
+        PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
           itemBuilder: (context) {
-            Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
-              'Add Playlist': ContextItemTuple(
-                Icons.folder,
+            Map<String, ContextItemTuple> choices = {
+              'Create Playlist': ContextItemTuple(
+                Icons.queue_rounded,
                 () async {
-                  await createPlaylist();
+                  await setCreate();
                 },
               ),
-              'Test 2': ContextItemTuple(Icons.bug_report),
             };
 
             List<PopupMenuItem<String>> list = [];
@@ -156,31 +116,109 @@ class PlaylistsPage extends CRUDPage {
             for (String val in choices.keys) {
               list.add(
                 PopupMenuItem(
-                    onTap: choices[val]!.onPress,
-                    child: Row(
-                      children: [
-                        Icon(
-                          choices[val]!.icon,
-                          color: Theme.of(context).primaryColor,
+                  onTap: choices[val]!.onPress,
+                  child: Row(
+                    children: [
+                      Icon(
+                        choices[val]!.icon,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      Expanded(
+                        child: Text(
+                          val,
+                          textAlign: TextAlign.right,
                         ),
-                        Expanded(
-                          child: Text(
-                            val,
-                            textAlign: TextAlign.right,
-                          ),
-                        )
-                      ],
-                    )),
+                      )
+                    ],
+                  ),
+                ),
               );
             }
 
             return list;
-          }),
-    ]);
+          },
+        )
+      ],
+    );
   }
 
   @override
-  Widget create(BuildContext context) {
+  State<StatefulWidget> createState() => _PlaylistsPageState();
+
+  //set states
+  @override
+  Future<void> setCreate() async {
+    print('switching to create');
+    state = ViewState.create;
+  }
+
+  @override
+  Future<void> setRead() async {
+    print('switching to read');
+    state = ViewState.read;
+  }
+
+  @override
+  Future<void> setUpdate(PlaylistData item) async {
+    print('switching to update');
+    if (item.id != null) {
+      print('editing ${item.name} - ${item.id}');
+    }
+    editingNotifier.value = item;
+    state = ViewState.update;
+  }
+
+  @override
+  Future<void> setDelete(PlaylistData item) async {
+    print('switching to delete');
+    editingNotifier.value = item;
+    state = ViewState.delete;
+  }
+
+  @override
+  Future<void> cancel() async {
+    print('cancelling');
+    editingNotifier.value = null;
+    state = ViewState.read;
+  }
+
+  //crud ops
+  @override
+  Future<PlaylistData> create() async {
+    var data = PlaylistData(name: '');
+    await update(data);
+    return data;
+  }
+
+  @override
+  Future<void> update(PlaylistData item) async {
+    item.name = newName.text;
+    item.description = newDescription.text;
+    item.art = newArt.text;
+    var tmp = List.of(playlists);
+    var exists = false;
+    print('saving playlist changes to db');
+    exists = (item.id != null && await db.playlistExists(item.id!));
+    await item.saveData();
+    if (!exists) tmp.add(item);
+    playlists = tmp;
+  }
+
+  @override
+  Future<void> delete(PlaylistData item) async {
+    var tmp = List.of(playlists);
+    if (playlists.contains(item)) {
+      await db.delPlaylistData(item.getEntry());
+      tmp.remove(item);
+      playlists = tmp;
+    } else {
+      print('playlist not in list, delete failed');
+    }
+  }
+
+  //views
+  @override
+  Widget createView(BuildContext context) {
     return Center(
       child: Padding(
         padding: EdgeInsets.all(10),
@@ -268,12 +306,9 @@ class PlaylistsPage extends CRUDPage {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  onPressed: () {
-                    var playlist = PlaylistData(
-                        name: newName.text,
-                        description: newDescription.text,
-                        art: newArt.text);
-                    editPlaylist(playlist);
+                  onPressed: () async {
+                    await create();
+                    await setRead();
                   },
                   child: Text('Save'),
                   // style: ButtonStyle(
@@ -284,15 +319,10 @@ class PlaylistsPage extends CRUDPage {
                   width: 10,
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    editingNotifier.value = null;
+                  onPressed: () async {
+                    await cancel();
                   },
-                  child: Text(
-                    'cancel',
-                    style: TextStyle(
-                      backgroundColor: Theme.of(context).primaryColor,
-                    ),
-                  ),
+                  child: Text('cancel'),
                 ),
               ],
             ),
@@ -303,7 +333,7 @@ class PlaylistsPage extends CRUDPage {
   }
 
   @override
-  Widget read(BuildContext context) {
+  Widget readView(BuildContext context) {
     return ValueListenableBuilder<List<PlaylistData>>(
       valueListenable: app.playlistsNotifier,
       builder: ((context, newPlaylists, _) {
@@ -328,9 +358,9 @@ class PlaylistsPage extends CRUDPage {
                         getPlaylistContext(context, playlist);
                     return ListTile(
                       enabled: true,
-                      onTap: () {
+                      onTap: () async {
                         //print('tap');
-                        playlistTapped(playlist);
+                        await setUpdate(playlist);
                       },
                       onLongPress: () {
                         //print('long press');
@@ -348,7 +378,7 @@ class PlaylistsPage extends CRUDPage {
   }
 
   @override
-  Widget update(BuildContext context) {
+  Widget updateView(BuildContext context) {
     if (playlistToEdit == null) {
       return Text('Invalid Playlist');
     }
@@ -448,21 +478,17 @@ class PlaylistsPage extends CRUDPage {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  onPressed: () {
-                    editPlaylist(playlist);
+                  onPressed: () async {
+                    await update(playlist);
                   },
                   child: Text('Save'),
-                  // style: ButtonStyle(
-                  //   backgroundColor: Theme.of(context).,
-                  // ),
                 ),
                 Container(
                   width: 10,
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    editingNotifier.value = null;
-                    state = ViewState.read;
+                  onPressed: () async {
+                    await cancel();
                   },
                   child: Text(
                     'cancel',
@@ -480,9 +506,8 @@ class PlaylistsPage extends CRUDPage {
   }
 
   @override
-  Widget delete(BuildContext context) {
-    // TODO: implement delete
-    throw UnimplementedError();
+  Widget deleteView(BuildContext context) {
+    return readView(context);
   }
 }
 
@@ -501,13 +526,13 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
         print('current state: $state');
         switch (state) {
           case ViewState.create:
-            return widget.create(context);
+            return widget.createView(context);
           case ViewState.read:
-            return widget.read(context);
+            return widget.readView(context);
           case ViewState.update:
-            return widget.update(context);
+            return widget.updateView(context);
           case ViewState.delete:
-            return widget.delete(context);
+            return widget.deleteView(context);
           default:
             return Center(child: Text('Invalid State'));
         }

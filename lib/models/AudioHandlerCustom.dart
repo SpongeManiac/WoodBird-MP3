@@ -10,22 +10,22 @@ class AudioHandlerCustom extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> play() async {
-    await _player.play();
+    //await _player.play();
   }
 
   @override
   Future<void> pause() async {
-    await _player.pause();
+    //await _player.pause();
   }
 
   @override
   Future<void> seek(Duration position) async {
-    await _player.seek(position);
+    //await _player.seek(position);
   }
 
   @override
   Future<void> stop() async {
-    await _player.stop();
+    //await _player.stop();
   }
 
   @override
@@ -34,15 +34,15 @@ class AudioHandlerCustom extends BaseAudioHandler with SeekHandler {
       case MediaButton.media:
         // TODO: Handle this case.
         print('media button');
-        await _player.togglePlay();
+        //await _player.togglePlay();
         break;
       case MediaButton.next:
         print('next pressed');
-        await _player.playNext();
+        //await _player.playNext();
         break;
       case MediaButton.previous:
         print('back pressed');
-        await _player.playPrev();
+        //await _player.playPrev();
         break;
       case null:
         print('null button');

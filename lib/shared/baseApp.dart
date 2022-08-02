@@ -1,10 +1,12 @@
+import 'package:audio_service/audio_service.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:test_project/models/AudioInterface.dart';
 import 'package:test_project/widgets/appBar.dart';
 
 import '../database/database.dart';
 import '../globals.dart' as globals;
+import '../models/AudioInterface.dart';
 import '../models/colorMaterializer.dart';
 import '../models/states/pages/homePageData.dart';
 import '../models/states/playlist/playlistData.dart';
@@ -22,14 +24,12 @@ class BaseApp extends StatefulWidget {
   BaseApp(
       {super.key,
       this.appTitle = 'WoodBird MP3',
-      this.navTitle = 'WoodBird MP3'})
-      : super();
+      this.navTitle = 'WoodBird MP3'});
 
-  AudioPlayer? _player;
-  AudioPlayer get player => _player ??= AudioPlayer();
+  // AudioPlayer? _player;
+  // AudioPlayer get player => _player ??= AudioPlayer();
   AudioInterface? _audioInterface;
-  AudioInterface get audioInterface =>
-      _audioInterface ??= AudioInterface(player);
+  AudioInterface get audioInterface => _audioInterface ??= AudioInterface();
   String appTitle;
 
   ValueNotifier<AppBarData> appBarNotifier =
@@ -52,13 +52,16 @@ class BaseApp extends StatefulWidget {
   final ValueNotifier<HideableFloatingActionData> floatingActionNotifier =
       ValueNotifier(HideableFloatingActionData(false));
 
+  late AudioHandler handler;
+  late AudioSession session;
+
   //homepage
   final ValueNotifier<HomePageData> homePageStateNotifier =
       ValueNotifier(HomePageData(0, 0, 0));
 
   //songs list
-  final ValueNotifier<List<SongData>> songsNotifier =
-      ValueNotifier(<SongData>[]);
+  final ValueNotifier<List<AudioSource>> songsNotifier =
+      ValueNotifier(<AudioSource>[]);
 
   //playlists
   final ValueNotifier<List<PlaylistData>> playlistsNotifier =
@@ -138,20 +141,23 @@ class BaseApp extends StatefulWidget {
   }
 
   Future<void> loadSongs() async {
-    List<SongData> songs = <SongData>[];
+    List<AudioSource> songs = <AudioSource>[];
     List<SongDataDB> songsDB = await globals.db.getAllSongs();
     for (var song in songsDB) {
-      songs.add(SongData(
-        artist: song.artist,
-        name: song.name,
-        localPath: song.localPath,
-        id: song.id,
+      songs.add(AudioSource.uri(
+        Uri.parse(song.localPath),
+        tag: MediaItem(
+          id: '$song.id',
+          title: song.name,
+          artist: song.artist,
+        ),
       ));
     }
     songsNotifier.value = songs;
   }
 
   Future<void> loadPlaylists() async {
+    print('loading playlists');
     List<PlaylistData> playlists = <PlaylistData>[];
     List<PlaylistDataDB> playlistsDB = await globals.db.getAllPlaylists();
     for (var list in playlistsDB) {
@@ -162,6 +168,7 @@ class BaseApp extends StatefulWidget {
         id: list.id,
       ));
     }
+    playlistsNotifier.value = playlists;
   }
 
   @override

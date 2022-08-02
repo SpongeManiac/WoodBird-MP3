@@ -2,14 +2,17 @@ import 'dart:io';
 import 'dart:ui';
 //import 'package:badges/badges.dart';
 //import 'package:marquee/marquee.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'package:path/path.dart' show basename;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:test_project/database/database.dart';
 import 'package:test_project/models/states/song/songData.dart';
 import 'package:test_project/widgets/contextPopupButton.dart';
+import '../models/AudioInterface.dart';
 import '../models/contextItemTuple.dart';
 import '../widgets/contextPopupButton.dart';
-import '../models/AudioInterface.dart';
 import '../widgets/appBar.dart';
 import 'themedPage.dart';
 
@@ -18,25 +21,30 @@ class SongsPage extends ThemedPage {
     super.key,
     required super.title,
   }) {
-    editingNotifier = ValueNotifier<SongData?>(null);
+    editingNotifier = ValueNotifier<AudioSource?>(null);
   }
 
-  Map<SongData, ContextPopupButton> songContexts =
-      <SongData, ContextPopupButton>{};
+  Map<AudioSource, ContextPopupButton> songContexts =
+      <AudioSource, ContextPopupButton>{};
 
   AudioInterface get interface => app.audioInterface;
 
-  List<SongData> get songs => app.songsNotifier.value;
+  List<AudioSource> get songs => app.songsNotifier.value;
   set songs(songs) => app.songsNotifier.value = songs;
-  List<SongData> get queue => interface.queueNotifier.value;
+  //List<AudioSource> get queue => interface.queueNotifier.value.children;
+  set queue(queue) => interface.queueNotifier.value = queue;
 
   ValueNotifier<bool> loadingSongsNotifier = ValueNotifier<bool>(false);
   ValueNotifier<double?> loadingProgressNotifier = ValueNotifier<double?>(0);
 
-  late ValueNotifier<SongData?> editingNotifier;
+  late ValueNotifier<AudioSource?> editingNotifier;
 
-  SongData? get songToEdit {
+  AudioSource? get songToEdit {
     return editingNotifier.value;
+  }
+
+  MediaItem get source {
+    return AudioInterface.getTag(songToEdit!);
   }
 
   TextEditingController newName = TextEditingController(text: '');
@@ -64,7 +72,7 @@ class SongsPage extends ThemedPage {
     );
     if (result != null && result.count > 0) {
       print('got ${result.count} file(s)');
-      List<SongData> list = List.from(songs);
+      List<AudioSource> list = List.from(songs);
       double fraction = (1.0 / result.count);
       print('songs: ${result.count}, fraction: $fraction');
       loadingProgressNotifier.value = fraction;
@@ -86,10 +94,15 @@ class SongsPage extends ThemedPage {
           localPath: path,
         );
         await song.saveData();
-        list.add(song);
+        var tag = AudioInterface.getTag(song.source);
+        print(tag.title);
+        print(tag.artist);
+        print(tag.album);
+        print(tag.id);
+        list.add(song.source);
         print('updating progress: ${loadingProgressNotifier.value}');
         loadingProgressNotifier.value = (i + 1) * fraction;
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future.delayed(const Duration(milliseconds: 10));
       }
       songs = list;
     } else {
@@ -103,7 +116,8 @@ class SongsPage extends ThemedPage {
     if (songToEdit == null) {
       return Text('Invalid song');
     }
-    var song = songToEdit!;
+    //var song = songToEdit!;
+
     return Center(
       child: Padding(
         padding: EdgeInsets.all(10),
@@ -118,7 +132,7 @@ class SongsPage extends ThemedPage {
                     const Text('Editing:'),
                     Expanded(
                       child: Text(
-                        song.name,
+                        source.title,
                         style: Theme.of(context).textTheme.headline6,
                         textAlign: TextAlign.center,
                       ),
@@ -134,9 +148,10 @@ class SongsPage extends ThemedPage {
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {
-                  newName.text = song.name;
-                  newArtist.text = song.artist;
-                  newArt.text = song.art;
+                  newName.text = source.title;
+                  newArtist.text = source.artist ?? '';
+                  newArt.text =
+                      source.artUri == null ? '' : source.artUri!.path;
                 },
                 child: ScrollConfiguration(
                   behavior: ScrollConfiguration.of(context).copyWith(
@@ -148,9 +163,10 @@ class SongsPage extends ThemedPage {
                   child: ListView.builder(
                       itemCount: 3,
                       itemBuilder: (context, index) {
-                        newName.text = song.name;
-                        newArtist.text = song.artist;
-                        newArt.text = song.art;
+                        newName.text = source.title;
+                        newArtist.text = source.artist ?? '';
+                        newArt.text =
+                            source.artUri == null ? '' : source.artUri!.path;
                         switch (index) {
                           case 0:
                             return ListTile(
@@ -193,7 +209,7 @@ class SongsPage extends ThemedPage {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    updateSong(song);
+                    updateSong(songToEdit!);
                   },
                   child: Text('Save'),
                   // style: ButtonStyle(
@@ -222,25 +238,37 @@ class SongsPage extends ThemedPage {
     );
   }
 
-  Future<void> updateSong(SongData song) async {
-    song.name = newName.text;
-    song.artist = newArtist.text;
-    song.art = newArt.text;
+  Future<void> updateSong(AudioSource song) async {
+    MediaItem tag = AudioInterface.getTag(song);
+    var newSong = AudioSource.uri(
+      (song as UriAudioSource).uri,
+      tag: MediaItem(id: tag.id, title: newName.text, artist: newArtist.text),
+    );
     //update song in db if it exists
     print('saving song changes to db');
-    song.saveData();
-    //songs = tmp;
-    if (app.audioInterface.current == song) {
-      app.audioInterface.currentNotifier!.value = song.copy();
-    }
+    SongData.fromSource(newSong).saveData();
+    List<AudioSource> tmp = List.from(songs);
+    tmp[tmp.indexOf(song)] = newSong;
+    songs = tmp;
+    // if (interface.getCurrent() == song) {
+    //   interface.playlist.add(audioSource) = newSong;
+    // }
     editingNotifier.value = null;
   }
 
-  Future<void> delSong(SongData song) async {
+  Future<void> delSong(AudioSource song) async {
+    MediaItem source = (song as UriAudioSource).tag as MediaItem;
     var tmp = List.of(songs);
     if (tmp.contains(song)) {
-      print('song in song list, removing song ${song.id}');
-      await db.delSongData(song.getEntry());
+      print('song in song list, removing song ${source.id}');
+      await db.delSongData(
+        SongDataDB(
+            id: int.parse(source.id),
+            artist: source.artist ?? '',
+            name: source.title,
+            localPath: song.uri.path,
+            art: source.artUri == null ? '' : source.artUri!.path),
+      );
       tmp.remove(song);
       songs = tmp;
     } else {
@@ -248,7 +276,7 @@ class SongsPage extends ThemedPage {
     }
   }
 
-  ContextPopupButton getSongContext(BuildContext context, SongData song) {
+  ContextPopupButton getSongContext(BuildContext context, AudioSource song) {
     var popup = ContextPopupButton(
       icon:
           //Badge(
@@ -263,21 +291,27 @@ class SongsPage extends ThemedPage {
           'Add to queue': ContextItemTuple(
             Icons.queue_music_rounded,
             () async {
-              await app.audioInterface.addToQueue(song);
+              //await app.audioInterface.addToQueue(song);
             },
           ),
           'Add to playlist...': ContextItemTuple(
             Icons.playlist_add_rounded,
             () async {
-              Navigator.of(context).pop();
-              showDialog(
-                context: context,
-                builder: (context) {
-                  print('showing dialog');
-                  return AlertDialog(
-                    title: Text('Hello!'),
-                    content: Text('More hellos!'),
+              //avoid dialog being closed after choosing option
+              await Future.delayed(
+                Duration(seconds: 0),
+                () async {
+                  await showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text('Hello!'),
+                        content: Text('More hellos!'),
+                      );
+                    },
                   );
+                  //Navigator.of(context).pop();
+
                   // return Container(
                   //   height: 100,
                   //   width: 100,
@@ -307,7 +341,7 @@ class SongsPage extends ThemedPage {
           'Play single': ContextItemTuple(
             Icons.play_arrow,
             () async {
-              app.audioInterface.playSingle(song);
+              //app.audioInterface.playSingle(song);
             },
           ),
           'Edit': ContextItemTuple(Icons.edit_rounded, () async {
@@ -354,8 +388,10 @@ class SongsPage extends ThemedPage {
   @override
   AppBarData getDefaultAppBar() {
     print('getting def app bar');
-    return AppBarData(title, <Widget>[
-      PopupMenuButton<String>(
+    return AppBarData(
+      title,
+      <Widget>[
+        PopupMenuButton<String>(
           //key: _key?,
           icon: const Icon(Icons.more_vert),
           itemBuilder: (context) {
@@ -374,32 +410,36 @@ class SongsPage extends ThemedPage {
             for (String val in choices.keys) {
               list.add(
                 PopupMenuItem(
-                    onTap: choices[val]!.onPress,
-                    child: Row(
-                      children: [
-                        Icon(
-                          choices[val]!.icon,
-                          color: Theme.of(context).primaryColor,
+                  onTap: choices[val]!.onPress,
+                  child: Row(
+                    children: [
+                      Icon(
+                        choices[val]!.icon,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      Expanded(
+                        child: Text(
+                          val,
+                          textAlign: TextAlign.right,
                         ),
-                        Expanded(
-                          child: Text(
-                            val,
-                            textAlign: TextAlign.right,
-                          ),
-                        )
-                      ],
-                    )),
+                      )
+                    ],
+                  ),
+                ),
               );
             }
 
             return list;
-          }),
-    ]);
+          },
+        ),
+      ],
+    );
   }
 
-  Future<void> songTapped(SongData song) async {
+  Future<void> songTapped(AudioSource song) async {
     await app.audioInterface.addToQueue(song);
-    print('tapped ${song.name}');
+    var tag = AudioInterface.getTag(song);
+    print('tapped ${tag.title}');
   }
 }
 
@@ -412,13 +452,13 @@ class _SongsPageState extends State<SongsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<SongData?>(
+    return ValueListenableBuilder<AudioSource?>(
       valueListenable: widget.editingNotifier,
       builder: ((context, songToEdit, _) {
         if (songToEdit == null) {
           return Stack(
             children: [
-              ValueListenableBuilder<List<SongData>>(
+              ValueListenableBuilder<List<AudioSource>>(
                 valueListenable: widget.app.songsNotifier,
                 builder: (context, newSongs, _) {
                   print('got songs: ${newSongs.toList()}');
@@ -436,8 +476,8 @@ class _SongsPageState extends State<SongsPage> {
                             physics: const AlwaysScrollableScrollPhysics(),
                             itemCount: newSongs.length,
                             itemBuilder: (context, index) {
-                              SongData song = newSongs[index];
-
+                              AudioSource song = newSongs[index];
+                              MediaItem tag = AudioInterface.getTag(song);
                               var songContextBtn =
                                   widget.getSongContext(context, song);
                               return ListTile(
@@ -451,8 +491,8 @@ class _SongsPageState extends State<SongsPage> {
                                   //print(widget.songContexts[song]);
                                   widget.songContexts[song]!.showDialog();
                                 },
-                                title: Text(song.name),
-                                subtitle: Text(song.artist),
+                                title: Text(tag.title),
+                                subtitle: Text(tag.artist ?? 'empty'),
                                 trailing: songContextBtn,
                               );
                             },

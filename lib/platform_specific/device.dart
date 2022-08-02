@@ -64,7 +64,7 @@ class _DesktopAppState extends State<DesktopApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    
+
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -91,7 +91,7 @@ class _DesktopAppState extends State<DesktopApp> with WidgetsBindingObserver {
       case AppLifecycleState.resumed:
         {
           print('App is resumed');
-          setState(() {});
+          //setState(() {});
         }
         break;
     }
@@ -128,6 +128,7 @@ class _DesktopAppState extends State<DesktopApp> with WidgetsBindingObserver {
               primarySwatch: themeColor,
             ),
             home: widget.appScaffold(),
+            //navigatorKey: widget.navKey,
           );
         });
   }

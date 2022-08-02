@@ -1,5 +1,7 @@
 import 'package:drift/src/runtime/data_class.dart' show DataClass, Value;
-import 'package:just_audio/just_audio.dart';
+import 'package:just_audio/just_audio.dart' show AudioSource, UriAudioSource;
+import 'package:just_audio_background/just_audio_background.dart'
+    show MediaItem;
 
 import '../../../globals.dart' show app, db;
 import '../baseState.dart';
@@ -19,7 +21,14 @@ class SongData extends BaseDataDB {
   String name;
   String localPath;
 
-  AudioSource get source => AudioSource.uri(Uri.file(localPath));
+  AudioSource get source => AudioSource.uri(
+        Uri.file(localPath),
+        tag: MediaItem(
+          id: '$id',
+          artist: artist,
+          title: name,
+        ),
+      );
 
   @override
   SongData copy() {
@@ -38,6 +47,16 @@ class SongData extends BaseDataDB {
         name: data.name,
         localPath: data.localPath,
         art: data.art);
+  }
+
+  static SongData fromSource(AudioSource source) {
+    MediaItem tag = (source as UriAudioSource).tag as MediaItem;
+    return SongData(
+      id: int.tryParse(tag.id),
+      name: tag.title,
+      artist: tag.artist ?? '',
+      localPath: source.uri.path,
+    );
   }
 
   @override
