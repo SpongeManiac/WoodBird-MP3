@@ -1,6 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:test_project/database/database.dart';
+import 'package:test_project/models/AudioInterface.dart';
 import 'package:test_project/models/states/playlist/playlistData.dart';
 import 'package:test_project/models/states/song/songData.dart';
 import 'package:test_project/screens/CRUDPage.dart';
@@ -16,7 +18,7 @@ class PlaylistsPage extends CRUDPage<PlaylistData> {
 
   late ValueNotifier<PlaylistData?> editingNotifier;
 
-  List<SongData> songs = [];
+  List<AudioSource> songs = [];
 
   PlaylistData? get playlistToEdit => editingNotifier.value;
 
@@ -37,7 +39,7 @@ class PlaylistsPage extends CRUDPage<PlaylistData> {
     List<SongDataDB> songsDB = await db.getPlaylistSongs(playlistToEdit!);
 
     for (var song in songsDB) {
-      songs.add(SongData.fromDB(song));
+      songs.add(SongData.fromDB(song).source);
     }
   }
 
@@ -293,9 +295,10 @@ class PlaylistsPage extends CRUDPage<PlaylistData> {
                               ),
                             );
                           default:
+                            var tag = AudioInterface.getTag(songs[index]);
                             return ListTile(
-                              title: Text(songs[index].name),
-                              subtitle: Text(songs[index].artist),
+                              title: Text(tag.title),
+                              subtitle: Text(tag.artist ?? ''),
                             );
                         }
                       }),
@@ -465,9 +468,10 @@ class PlaylistsPage extends CRUDPage<PlaylistData> {
                               ),
                             );
                           default:
+                            var tag = AudioInterface.getTag(songs[index]);
                             return ListTile(
-                              title: Text(songs[index].name),
-                              subtitle: Text(songs[index].artist),
+                              title: Text(tag.title),
+                              subtitle: Text(tag.artist ?? ''),
                             );
                         }
                       }),

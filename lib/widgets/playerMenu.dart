@@ -20,6 +20,13 @@ class PlayerMenu extends StatefulWidget {
   Map<AudioSource, ContextPopupButton> songContexts =
       <AudioSource, ContextPopupButton>{};
 
+  @override
+  State<StatefulWidget> createState() => _PlayerMenuState();
+}
+
+class _PlayerMenuState extends State<PlayerMenu> {
+  _PlayerMenuState();
+
   ContextPopupButton getSongContext(BuildContext context, AudioSource song) {
     var popup = ContextPopupButton(
       icon: Icon(Icons.more_vert, color: Theme.of(context).primaryColor),
@@ -27,25 +34,29 @@ class PlayerMenu extends StatefulWidget {
         Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
           'Remove from queue':
               ContextItemTuple(Icons.playlist_remove_rounded, () async {
-            //await interface.removeFromQueue(song);
+            await widget.interface.remove(song);
           }),
           'Play': ContextItemTuple(Icons.play_arrow_rounded, () async {
-            //await interface.setCurrent(song);
-            //await interface.playQueue();
+            await widget.interface.setCurrent(song);
+            setState(() {});
           }),
           'Move Up': ContextItemTuple(Icons.move_up_rounded, () async {
-            //await interface.moveUp(song);
+            await widget.interface.moveUp(song);
+            setState(() {});
           }),
           'Move Down': ContextItemTuple(Icons.move_down_rounded, () async {
-            //await interface.moveDown(song);
+            await widget.interface.moveDown(song);
+            setState(() {});
           }),
           'Move to top':
               ContextItemTuple(Icons.format_list_numbered_rounded, () async {
-            //interface.moveToTop(song);
+            await widget.interface.moveTop(song);
+            setState(() {});
           }),
           'Move to bottom':
               ContextItemTuple(Icons.low_priority_rounded, () async {
-            //await interface.moveToEnd(song);
+            await widget.interface.moveEnd(song);
+            setState(() {});
           }),
         };
 
@@ -72,16 +83,9 @@ class PlayerMenu extends StatefulWidget {
         return list;
       },
     );
-    songContexts[song] = popup;
+    widget.songContexts[song] = popup;
     return popup;
   }
-
-  @override
-  State<StatefulWidget> createState() => _PlayerMenuState();
-}
-
-class _PlayerMenuState extends State<PlayerMenu> {
-  _PlayerMenuState();
 
   @override
   Widget build(BuildContext context) {
@@ -105,15 +109,20 @@ class _PlayerMenuState extends State<PlayerMenu> {
                             stream: widget.interface.player.currentIndexStream,
                             builder: (context, newSong) {
                               var idx = newSong.data ?? -1;
-                              AudioSource source = idx < 0
-                                  ? widget.interface.emptyQueue.source
-                                  : widget.interface.playlist[idx];
+                              //print('idx is $idx');
+                              AudioSource source;
+                              if (newQueue == 0) {
+                                source = widget.interface.emptyQueue.source;
+                              } else {
+                                source = widget.interface.playlist[idx];
+                              }
                               MediaItem tag = AudioInterface.getTag(source);
+
                               return Marquee(
-                                  text: '${tag.title} - ${tag.artist} | ',
-                                  style: TextStyle(
-                                      color:
-                                          Theme.of(context).primaryColorDark));
+                                text: '${tag.title} - ${tag.artist} | ',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark),
+                              );
                             },
                           ),
                         ),
@@ -179,7 +188,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
                       // ),
                       ReorderableListView.builder(
                           onReorder: (int oldIndex, int newIndex) {
-                            // widget.interface.move(oldIndex, newIndex);
+                            widget.interface.move(oldIndex, newIndex);
                           },
                           itemCount: newQueue,
                           itemBuilder: (((context, index) {
@@ -189,13 +198,12 @@ class _PlayerMenuState extends State<PlayerMenu> {
                             }
                             AudioSource song = widget.interface.playlist[index];
                             MediaItem tag = AudioInterface.getTag(song);
-                            var songContextBtn =
-                                widget.getSongContext(context, song);
+                            var songContextBtn = getSongContext(context, song);
                             return ListTile(
                               key: ValueKey(index),
                               enabled: true,
                               onTap: () async {
-                                //await widget.interface.setCurrentCont(song);
+                                await widget.interface.setCurrent(song);
                               },
                               // onLongPress: () async {
                               //   widget.songContexts[song]!.showDialog();

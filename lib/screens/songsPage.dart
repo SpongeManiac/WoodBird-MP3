@@ -7,6 +7,7 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:path/path.dart' show basename;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:select_dialog/select_dialog.dart';
 import 'package:test_project/database/database.dart';
 import 'package:test_project/models/states/song/songData.dart';
 import 'package:test_project/widgets/contextPopupButton.dart';
@@ -30,7 +31,7 @@ class SongsPage extends ThemedPage {
   AudioInterface get interface => app.audioInterface;
 
   List<AudioSource> get songs => app.songsNotifier.value;
-  set songs(songs) => app.songsNotifier.value = songs;
+  set songs(List<AudioSource> songs) => app.songsNotifier.value = songs;
   //List<AudioSource> get queue => interface.queueNotifier.value.children;
   set queue(queue) => interface.queueNotifier.value = queue;
 
@@ -43,7 +44,7 @@ class SongsPage extends ThemedPage {
     return editingNotifier.value;
   }
 
-  MediaItem get source {
+  MediaItem get toEditTag {
     return AudioInterface.getTag(songToEdit!);
   }
 
@@ -69,6 +70,17 @@ class SongsPage extends ThemedPage {
       allowedExtensions: ['mp3'],
       withData: false,
       withReadStream: true,
+      onFileLoading: (FilePickerStatus status) {
+        print(status);
+        switch (status) {
+          case FilePickerStatus.picking:
+            print('Picking stuff.');
+            break;
+          case FilePickerStatus.done:
+            print('Finished something.');
+            break;
+        }
+      },
     );
     if (result != null && result.count > 0) {
       print('got ${result.count} file(s)');
@@ -132,7 +144,7 @@ class SongsPage extends ThemedPage {
                     const Text('Editing:'),
                     Expanded(
                       child: Text(
-                        source.title,
+                        toEditTag.title,
                         style: Theme.of(context).textTheme.headline6,
                         textAlign: TextAlign.center,
                       ),
@@ -148,10 +160,10 @@ class SongsPage extends ThemedPage {
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {
-                  newName.text = source.title;
-                  newArtist.text = source.artist ?? '';
+                  newName.text = toEditTag.title;
+                  newArtist.text = toEditTag.artist ?? '';
                   newArt.text =
-                      source.artUri == null ? '' : source.artUri!.path;
+                      toEditTag.artUri == null ? '' : toEditTag.artUri!.path;
                 },
                 child: ScrollConfiguration(
                   behavior: ScrollConfiguration.of(context).copyWith(
@@ -163,10 +175,11 @@ class SongsPage extends ThemedPage {
                   child: ListView.builder(
                       itemCount: 3,
                       itemBuilder: (context, index) {
-                        newName.text = source.title;
-                        newArtist.text = source.artist ?? '';
-                        newArt.text =
-                            source.artUri == null ? '' : source.artUri!.path;
+                        newName.text = toEditTag.title;
+                        newArtist.text = toEditTag.artist ?? '';
+                        newArt.text = toEditTag.artUri == null
+                            ? ''
+                            : toEditTag.artUri!.path;
                         switch (index) {
                           case 0:
                             return ListTile(
@@ -221,6 +234,9 @@ class SongsPage extends ThemedPage {
                 ),
                 ElevatedButton(
                   onPressed: () {
+                    print('Cancel tapped');
+                    print(newName.text);
+                    print(toEditTag.id);
                     editingNotifier.value = null;
                   },
                   child: Text(
@@ -240,15 +256,24 @@ class SongsPage extends ThemedPage {
 
   Future<void> updateSong(AudioSource song) async {
     MediaItem tag = AudioInterface.getTag(song);
+    print('updating ${tag.title} with id ${tag.id}');
+    var newTag = MediaItem(
+      id: tag.id,
+      title: newName.text,
+      artist: newArtist.text,
+    );
     var newSong = AudioSource.uri(
       (song as UriAudioSource).uri,
-      tag: MediaItem(id: tag.id, title: newName.text, artist: newArtist.text),
+      tag: newTag,
     );
+    print('updated song: ${newTag.title}, ${newTag.id}');
     //update song in db if it exists
     print('saving song changes to db');
     SongData.fromSource(newSong).saveData();
     List<AudioSource> tmp = List.from(songs);
-    tmp[tmp.indexOf(song)] = newSong;
+    var idx = tmp.indexOf(song);
+    print('updating: $idx');
+    tmp[idx] = newSong;
     songs = tmp;
     // if (interface.getCurrent() == song) {
     //   interface.playlist.add(audioSource) = newSong;
@@ -257,132 +282,30 @@ class SongsPage extends ThemedPage {
   }
 
   Future<void> delSong(AudioSource song) async {
-    MediaItem source = (song as UriAudioSource).tag as MediaItem;
+    MediaItem tag = (song as UriAudioSource).tag as MediaItem;
+    print('tag: ${tag.id}');
     var tmp = List.of(songs);
     if (tmp.contains(song)) {
-      print('song in song list, removing song ${source.id}');
+      print('song in song list, removing song ${tag.id}');
+      var idx = int.tryParse(tag.id) ?? -1;
+      if (idx < 0) {
+        print('idx was nat valid for ${tag.title} with id: ${tag.id}');
+        print('delete cancelled');
+        return;
+      }
       await db.delSongData(
         SongDataDB(
-            id: int.parse(source.id),
-            artist: source.artist ?? '',
-            name: source.title,
+            id: idx,
+            artist: tag.artist ?? '',
+            name: tag.title,
             localPath: song.uri.path,
-            art: source.artUri == null ? '' : source.artUri!.path),
+            art: tag.artUri == null ? '' : tag.artUri!.path),
       );
       tmp.remove(song);
       songs = tmp;
     } else {
       print('song not in list, delete failed');
     }
-  }
-
-  ContextPopupButton getSongContext(BuildContext context, AudioSource song) {
-    var popup = ContextPopupButton(
-      icon:
-          //Badge(
-          //badgeContent: Text('${song.id}'), child:
-          Icon(
-        Icons.more_vert,
-        color: Theme.of(context).primaryColor,
-      ),
-      //),
-      itemBuilder: (context) {
-        Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
-          'Add to queue': ContextItemTuple(
-            Icons.queue_music_rounded,
-            () async {
-              //await app.audioInterface.addToQueue(song);
-            },
-          ),
-          'Add to playlist...': ContextItemTuple(
-            Icons.playlist_add_rounded,
-            () async {
-              //avoid dialog being closed after choosing option
-              await Future.delayed(
-                Duration(seconds: 0),
-                () async {
-                  await showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: Text('Hello!'),
-                        content: Text('More hellos!'),
-                      );
-                    },
-                  );
-                  //Navigator.of(context).pop();
-
-                  // return Container(
-                  //   height: 100,
-                  //   width: 100,
-                  //   padding: EdgeInsets.all(10),
-                  //   child: Column(
-                  //     children: [
-                  //       Text('This is an alert. Select a choice.'),
-                  //       ListView(
-                  //         children: [
-                  //           ListTile(
-                  //             title: Text('Hello!'),
-                  //           ),
-                  //           ListTile(
-                  //             title: Text('Goodbye!'),
-                  //           ),
-                  //         ],
-                  //       ),
-                  //     ],
-                  //   ),
-                  // );
-                },
-              );
-              print('alerted');
-            },
-          ),
-          'Add to album...': ContextItemTuple(Icons.album),
-          'Play single': ContextItemTuple(
-            Icons.play_arrow,
-            () async {
-              //app.audioInterface.playSingle(song);
-            },
-          ),
-          'Edit': ContextItemTuple(Icons.edit_rounded, () async {
-            editingNotifier.value = song;
-          }),
-          'Delete': ContextItemTuple(Icons.delete_rounded, () async {
-            await delSong(song);
-          }),
-        };
-
-        List<PopupMenuItem<String>> list = [];
-
-        for (String val in choices.keys) {
-          var choice = choices[val];
-          list.add(
-            PopupMenuItem(
-              onTap: choice!.onPress,
-              child: Row(
-                children: [
-                  Icon(
-                    choice.icon,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  Expanded(
-                    child: Text(
-                      val,
-                      textAlign: TextAlign.right,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        return list;
-      },
-    );
-
-    songContexts[song] = popup;
-    return popup;
   }
 
   @override
@@ -437,7 +360,7 @@ class SongsPage extends ThemedPage {
   }
 
   Future<void> songTapped(AudioSource song) async {
-    await app.audioInterface.addToQueue(song);
+    await app.audioInterface.add(song);
     var tag = AudioInterface.getTag(song);
     print('tapped ${tag.title}');
   }
@@ -448,6 +371,100 @@ class _SongsPageState extends State<SongsPage> {
   void initState() {
     super.initState();
     widget.initState(context);
+  }
+
+  ContextPopupButton getSongContext(AudioSource song) {
+    var popup = ContextPopupButton(
+      icon:
+          //Badge(
+          //badgeContent: Text('${song.id}'), child:
+          Icon(
+        Icons.more_vert,
+        color: Theme.of(context).primaryColor,
+      ),
+      //),
+      itemBuilder: (context) {
+        Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
+          'Add to queue': ContextItemTuple(
+            Icons.queue_music_rounded,
+            () async {
+              //await app.audioInterface.addToQueue(song);
+            },
+          ),
+          'Add to playlist...': ContextItemTuple(
+            Icons.playlist_add_rounded,
+            () async {
+              //avoid dialog being closed after choosing option
+              List<MediaItem> selected = [];
+              //List<MediaItem> selected = [];
+              await Future.delayed(Duration(seconds: 0), () async {
+                await SelectDialog.showModal<MediaItem>(context,
+                    label: 'Select playlists to add song to.',
+                    multipleSelectedValues: selected,
+                    items: widget.app.songsNotifier.value
+                        .map(AudioInterface.getTag)
+                        .toList(), itemBuilder: (context, item, isSelected) {
+                  return ListTile(
+                    title: Text(item.title),
+                    subtitle: Text(item.artist ?? ''),
+                    trailing: (isSelected ? Icon(Icons.check_rounded) : null),
+                  );
+                }, onMultipleItemsChange: (List<MediaItem> selectedSong) {
+                  setState(() {
+                    selected = selectedSong;
+                  });
+                });
+              }).then((value) {
+                print('selected: ${selected.length}');
+              });
+            },
+          ),
+          'Add to album...': ContextItemTuple(Icons.album),
+          'Play single': ContextItemTuple(
+            Icons.play_arrow,
+            () async {
+              //app.audioInterface.playSingle(song);
+            },
+          ),
+          'Edit': ContextItemTuple(Icons.edit_rounded, () async {
+            widget.editingNotifier.value = song;
+          }),
+          'Delete': ContextItemTuple(Icons.delete_rounded, () async {
+            await widget.delSong(song);
+          }),
+        };
+
+        List<PopupMenuItem<String>> list = [];
+
+        for (String val in choices.keys) {
+          var choice = choices[val];
+          list.add(
+            PopupMenuItem(
+              onTap: choice!.onPress,
+              child: Row(
+                children: [
+                  Icon(
+                    choice.icon,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  Expanded(
+                    child: Text(
+                      val,
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return list;
+      },
+    );
+
+    widget.songContexts[song] = popup;
+    return popup;
   }
 
   @override
@@ -478,8 +495,7 @@ class _SongsPageState extends State<SongsPage> {
                             itemBuilder: (context, index) {
                               AudioSource song = newSongs[index];
                               MediaItem tag = AudioInterface.getTag(song);
-                              var songContextBtn =
-                                  widget.getSongContext(context, song);
+                              var songContextBtn = getSongContext(song);
                               return ListTile(
                                 enabled: true,
                                 onTap: () {

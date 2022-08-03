@@ -48,11 +48,11 @@ dependencies:
   just_audio_windows: ^0.1.0
   sliding_up_panel: ^2.0.0+1
   marquee: ^2.2.3
-  audio_service: ^0.18.7
-  audio_session: ^0.1.10
+  #audio_session: ^0.1.10
   badges: ^2.0.3
   flutter_colorpicker: ^1.0.3
   just_audio_background: ^0.0.1-beta.7
+  select_dialog: ^2.0.0
 
 dev_dependencies:
   flutter_test:

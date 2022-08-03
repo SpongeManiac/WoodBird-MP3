@@ -81,7 +81,7 @@ class AudioInterface {
   ValueNotifier<int> queueNotifier = ValueNotifier(0);
 
   static MediaItem getTag(AudioSource source) {
-    return (source as UriAudioSource).tag as MediaItem;
+    return ((source as UriAudioSource).tag) as MediaItem;
   }
 
   //MediaItem get source => getTag();
@@ -258,24 +258,6 @@ class AudioInterface {
   //   }
   // }
 
-  Future<void> togglePlay() async {
-    print('playing: $playing');
-    AudioSource current = player.currentIndex == null
-        ? emptyQueue.source
-        : playlist[player.currentIndex!];
-    if (playlist.children.isNotEmpty && current != emptyQueue.source) {
-      if (playing) {
-        await player.pause();
-      } else {
-        print('playing');
-        player.play();
-      }
-    } else {
-      await player.pause();
-    }
-    playingNotifier.value = playing;
-  }
-
   // Future<void> insert(int index, SongData song) async {
   //   print('begin insert');
   //   var tmp = copy;
@@ -378,30 +360,6 @@ class AudioInterface {
   //   if (copy.length == 1) {
   //     await setCurrentCont(song);
   //   }
-  // }
-
-  // Future<void> removeFromQueue(SongData song) async {
-  //   var tmp = copy;
-  //   var idx = tmp.indexOf(song);
-  //   //print('idx: $idx');
-  //   if (current == song) {
-  //     SongData newSong;
-  //     if (tmp.length == 1) {
-  //       //last item
-  //       newSong = emptyQueue;
-  //       await pause();
-  //     } else if (idx == tmp.length - 1) {
-  //       //current is song above current
-  //       //print('using above song');
-  //       newSong = tmp[idx - 1];
-  //     } else {
-  //       //print('using below song: ${idx - 1}');
-  //       newSong = tmp[idx + 1];
-  //     }
-  //     await setCurrentCont(newSong);
-  //   }
-  //   tmp.remove(song);
-  //   queueNotifier.value = tmp;
   // }
 
   // Future<void> playQueue() async {
@@ -539,7 +497,39 @@ class AudioInterface {
   //   print(result);
   // }
 
-  Future<void> addToQueue(AudioSource song) async {
+  AudioSource? getCurrent() {
+    int idx = player.currentIndex ?? -1;
+    if (idx < 0) {
+      return emptyQueue.source;
+    } else {
+      return playlist[idx];
+    }
+  }
+
+  Future<void> setCurrent(AudioSource song) async {
+    var tag = getTag(song);
+    player.seek(Duration(seconds: 0), index: playlist.children.indexOf(song));
+  }
+
+  Future<void> togglePlay() async {
+    print('playing: $playing');
+    AudioSource current = player.currentIndex == null
+        ? emptyQueue.source
+        : playlist[player.currentIndex!];
+    if (playlist.children.isNotEmpty && current != emptyQueue.source) {
+      if (playing) {
+        await player.pause();
+      } else {
+        print('playing');
+        player.play();
+      }
+    } else {
+      await player.pause();
+    }
+    playingNotifier.value = playing;
+  }
+
+  Future<void> add(AudioSource song) async {
     if (playlist.children.isEmpty) {
       player.setAudioSource(playlist);
       player.setLoopMode(LoopMode.all);
@@ -549,12 +539,53 @@ class AudioInterface {
     queueNotifier.value = playlist.length;
   }
 
-  AudioSource? getCurrent() {
-    int idx = player.currentIndex ?? -1;
-    if (idx < 0) {
-      return emptyQueue.source;
-    } else {
-      return playlist[idx];
+  Future<void> move(int currentIdx, int newIdx) async {
+    if (currentIdx < newIdx) {
+      newIdx--;
     }
+    print('moving $currentIdx to $newIdx');
+    playlist.move(currentIdx, newIdx);
+    queueNotifier.value = playlist.length;
+  }
+
+  Future<void> moveUp(AudioSource song) async {
+    var idx = playlist.children.indexOf(song);
+    if (idx > 0) {
+      move(idx, idx - 1);
+    }
+  }
+
+  Future<void> moveDown(AudioSource song) async {
+    var idx = playlist.children.indexOf(song);
+    var last = playlist.children.length - 1;
+    if (idx < last) {
+      move(idx, idx + 2);
+    }
+  }
+
+  Future<void> moveTop(AudioSource song) async {
+    var idx = playlist.children.indexOf(song);
+    if (idx != 0) {
+      move(idx, 0);
+    }
+  }
+
+  Future<void> moveEnd(AudioSource song) async {
+    var idx = playlist.children.indexOf(song);
+    var last = playlist.children.length - 1;
+    if (idx != last) {
+      move(idx, last + 1);
+    }
+  }
+
+  Future<void> remove(AudioSource song) async {
+    var tag = getTag(song);
+    var idx = playlist.children.indexOf(song);
+    print('removing ${tag.title} from queue with idx of $idx');
+    // if (player.currentIndex == playlist.children.indexOf(song)) {
+    //   await player.removeA;
+    playlist.removeAt(idx);
+    queueNotifier.value = playlist.length;
+    // }
   }
 }

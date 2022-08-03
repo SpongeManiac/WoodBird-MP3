@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class ColorMaterializer {
   static Map<int, Color> getMap(Color color) {
     return {
-      50: Color.fromRGBO(color.red, color.green, color.blue, .1),
+      50: Color.fromRGBO(color.red, color.green, color.blue, -.1),
       100: Color.fromRGBO(color.red, color.green, color.blue, .2),
       200: Color.fromRGBO(color.red, color.green, color.blue, .3),
       300: Color.fromRGBO(color.red, color.green, color.blue, .4),

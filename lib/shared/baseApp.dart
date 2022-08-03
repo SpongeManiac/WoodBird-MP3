@@ -147,7 +147,7 @@ class BaseApp extends StatefulWidget {
       songs.add(AudioSource.uri(
         Uri.parse(song.localPath),
         tag: MediaItem(
-          id: '$song.id',
+          id: '${song.id}',
           title: song.name,
           artist: song.artist,
         ),

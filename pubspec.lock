@@ -37,7 +37,7 @@ packages:
     source: hosted
     version: "2.9.0"
   audio_service:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: audio_service
       url: "https://pub.dartlang.org"
@@ -58,7 +58,7 @@ packages:
     source: hosted
     version: "0.1.1"
   audio_session:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: audio_session
       url: "https://pub.dartlang.org"
@@ -646,6 +646,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.26.0"
+  select_dialog:
+    dependency: "direct main"
+    description:
+      name: select_dialog
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0"
   shelf:
     dependency: transitive
     description:

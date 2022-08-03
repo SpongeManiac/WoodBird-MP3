@@ -2,6 +2,7 @@ import 'package:drift/src/runtime/data_class.dart' show DataClass, Value;
 import 'package:just_audio/just_audio.dart' show AudioSource, UriAudioSource;
 import 'package:just_audio_background/just_audio_background.dart'
     show MediaItem;
+import 'package:test_project/models/AudioInterface.dart';
 
 import '../../../globals.dart' show app, db;
 import '../baseState.dart';
@@ -50,12 +51,12 @@ class SongData extends BaseDataDB {
   }
 
   static SongData fromSource(AudioSource source) {
-    MediaItem tag = (source as UriAudioSource).tag as MediaItem;
+    MediaItem tag = AudioInterface.getTag(source);
     return SongData(
       id: int.tryParse(tag.id),
       name: tag.title,
       artist: tag.artist ?? '',
-      localPath: source.uri.path,
+      localPath: ((source as UriAudioSource).uri.path),
     );
   }
 
@@ -93,8 +94,8 @@ class SongData extends BaseDataDB {
 
   @override
   Future<void> saveData() async {
-    id ??= -1;
     print('id before: $id');
+    id ??= -1;
     //check if id exists already
     if (await db.songExists(id!)) {
       print('song exists, updating');
