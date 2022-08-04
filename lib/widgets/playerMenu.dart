@@ -11,6 +11,7 @@ import '../models/AudioInterface.dart';
 import '../models/contextItemTuple.dart';
 import '../models/states/song/songData.dart';
 import 'contextPopupButton.dart';
+import 'seekBar.dart';
 
 class PlayerMenu extends StatefulWidget {
   PlayerMenu({super.key});
@@ -99,67 +100,112 @@ class _PlayerMenuState extends State<PlayerMenu> {
               children: [
                 Container(
                   color: Theme.of(context).primaryColorDark.withOpacity(0.2),
-                  height: 60,
-                  child: Row(
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                          child: StreamBuilder<int?>(
-                            stream: widget.interface.player.currentIndexStream,
-                            builder: (context, newSong) {
-                              var idx = newSong.data ?? -1;
-                              //print('idx is $idx');
-                              AudioSource source;
-                              if (newQueue == 0) {
-                                source = widget.interface.emptyQueue.source;
-                              } else {
-                                source = widget.interface.playlist[idx];
-                              }
-                              MediaItem tag = AudioInterface.getTag(source);
-
-                              return Marquee(
-                                text: '${tag.title} - ${tag.artist} | ',
-                                style: TextStyle(
-                                    color: Theme.of(context).primaryColorDark),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                      Center(
-                        child: Icon(
-                          Icons.drag_handle_rounded,
-                          color: Theme.of(context).primaryColorDark,
-                          size: 40,
-                        ),
-                      ),
-                      Expanded(
+                      Container(
+                        height: 60,
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            IconButton(
-                              icon: Icon(
-                                Icons.skip_previous_rounded,
-                                color: Theme.of(context).primaryColorDark,
+                            Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                child: StreamBuilder<int?>(
+                                  stream: widget
+                                      .interface.player.currentIndexStream,
+                                  builder: (context, newSong) {
+                                    var idx = newSong.data ?? 0;
+                                    //print('idx is $idx');
+                                    AudioSource source;
+                                    if (newQueue == 0) {
+                                      source =
+                                          widget.interface.emptyQueue.source;
+                                    } else if (idx == newQueue) {
+                                      source =
+                                          widget.interface.playlist[idx - 1];
+                                    } else {
+                                      source = widget.interface.playlist[idx];
+                                    }
+                                    MediaItem tag =
+                                        AudioInterface.getTag(source);
+                                    print((source as UriAudioSource)
+                                        .uri
+                                        .toFilePath());
+                                    return Marquee(
+                                      text: '${tag.title} - ${tag.artist} | ',
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .primaryColorDark),
+                                    );
+                                  },
+                                ),
                               ),
-                              onPressed: () async {
-                                await widget.interface.player.seekToPrevious();
-                              },
                             ),
-                            PlayPauseButton(),
-                            IconButton(
-                              icon: Icon(
-                                Icons.skip_next_rounded,
-                                color: Theme.of(context).primaryColor,
+                            Center(
+                              child: Icon(
+                                Icons.drag_handle_rounded,
+                                color: Theme.of(context).primaryColorDark,
+                                size: 40,
                               ),
-                              onPressed: () async {
-                                await widget.interface.player.seekToNext();
-                              },
+                            ),
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.skip_previous_rounded,
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
+                                    onPressed: () async {
+                                      await widget.interface.player
+                                          .seekToPrevious();
+                                    },
+                                  ),
+                                  PlayPauseButton(
+                                      color:
+                                          Theme.of(context).primaryColorDark),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.skip_next_rounded,
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
+                                    onPressed: () async {
+                                      await widget.interface.player
+                                          .seekToNext();
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
+                      Container(
+                        height: 40,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: StreamBuilder<PositionData>(
+                                stream: widget.interface.positionDataStream,
+                                builder: (context, snapshot) {
+                                  final positionData = snapshot.data;
+                                  return SeekBar(
+                                    duration:
+                                        positionData?.duration ?? Duration.zero,
+                                    position:
+                                        positionData?.position ?? Duration.zero,
+                                    bufferedPosition:
+                                        positionData?.bufferedPosition ??
+                                            Duration.zero,
+                                    onChangeEnd: widget.interface.player.seek,
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
                     ],
                   ),
                 ),

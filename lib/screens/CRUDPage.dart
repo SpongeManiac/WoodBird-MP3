@@ -9,16 +9,16 @@ enum ViewState {
   delete,
 }
 
-abstract class CRUDPage<T> extends ThemedPage {
-  CRUDPage({super.key, required super.title});
+abstract class CRUDState<T> extends State<ThemedPage> {
+  //CRUDPage({super.key, required super.title});
 
   ValueNotifier<ViewState> stateNotifier =
       ValueNotifier<ViewState>(ViewState.read);
   ViewState get state => stateNotifier.value;
   set state(state) => stateNotifier.value = state;
 
-  //state switching
-  Future<void> setState(ViewState state, T? item) async {
+  //view switching
+  Future<void> setViewState(ViewState state, T? item) async {
     if ((state == ViewState.update || state == ViewState.delete)) {}
 
     switch (state) {

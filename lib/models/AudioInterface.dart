@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:rxdart/rxdart.dart';
 // import 'package:test_project/models/AudioHandlerCustom.dart';
 import 'package:test_project/models/states/song/songData.dart';
 
@@ -36,12 +37,22 @@ class AudioInterface {
     //       break;
     //   }
     // });
+    player.setAudioSource(playlist);
+    player.setLoopMode(LoopMode.all);
+    player.setShuffleModeEnabled(true);
     () async {};
   }
 
   AudioPlayer player = AudioPlayer();
-  final ConcatenatingAudioSource playlist =
-      ConcatenatingAudioSource(children: []);
+  ConcatenatingAudioSource playlist = ConcatenatingAudioSource(children: []);
+
+  Stream<PositionData> get positionDataStream =>
+      Rx.combineLatest3<Duration, Duration, Duration?, PositionData>(
+          player.positionStream,
+          player.bufferedPositionStream,
+          player.durationStream,
+          (position, bufferedPosition, duration) => PositionData(
+              position, bufferedPosition, duration ?? Duration.zero));
 
   // Future<AudioHandler> makeHandler() async {
   //   var handler = await AudioService.init(
@@ -82,6 +93,15 @@ class AudioInterface {
 
   static MediaItem getTag(AudioSource source) {
     return ((source as UriAudioSource).tag) as MediaItem;
+  }
+
+  Future<void> resetPlayer() async {
+    playlist.clear();
+    playlist = ConcatenatingAudioSource(children: []);
+    player.setAudioSource(playlist);
+    player.setLoopMode(LoopMode.all);
+    player.setShuffleModeEnabled(true);
+    queueNotifier.value = playlist.length;
   }
 
   //MediaItem get source => getTag();
@@ -530,11 +550,6 @@ class AudioInterface {
   }
 
   Future<void> add(AudioSource song) async {
-    if (playlist.children.isEmpty) {
-      player.setAudioSource(playlist);
-      player.setLoopMode(LoopMode.all);
-      player.setShuffleModeEnabled(true);
-    }
     playlist.add(song);
     queueNotifier.value = playlist.length;
   }
@@ -588,4 +603,22 @@ class AudioInterface {
     queueNotifier.value = playlist.length;
     // }
   }
+
+  Future<void> setQueue(List<AudioSource> songs) async {
+    playlist.clear();
+    addToQueue(songs);
+  }
+
+  Future<void> addToQueue(List<AudioSource> songs) async {
+    playlist.addAll(songs);
+    queueNotifier.value = playlist.length;
+  }
+}
+
+class PositionData {
+  final Duration position;
+  final Duration bufferedPosition;
+  final Duration duration;
+
+  PositionData(this.position, this.bufferedPosition, this.duration);
 }

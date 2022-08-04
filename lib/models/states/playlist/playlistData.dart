@@ -33,12 +33,11 @@ class PlaylistData extends BaseDataDB {
 
   @override
   PlaylistsCompanion getCompanion() {
-    // return PlaylistsCompanion(
-    //   name: Value(name),
-    //   description: Value(description),
-    //   art: Value(art),
-    // );
-    return getEntry().toCompanion(true);
+    return PlaylistsCompanion(
+      name: Value(name),
+      description: Value(description),
+      art: Value(art),
+    );
   }
 
   @override
@@ -53,8 +52,8 @@ class PlaylistData extends BaseDataDB {
 
   @override
   Future<void> saveData() async {
-    id ??= -1;
     print('id before: $id');
+    id ??= -1;
     //check if id exists already
     if (await db.playlistExists(id!)) {
       print('Playlist exists, updating');

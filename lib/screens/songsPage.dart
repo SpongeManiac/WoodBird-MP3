@@ -55,11 +55,6 @@ class SongsPage extends ThemedPage {
   @override
   State<SongsPage> createState() => _SongsPageState();
 
-  @override
-  Future<void> saveState() async {
-    return;
-  }
-
   Future<void> addSong() async {
     loadingProgressNotifier.value = null;
     loadingSongsNotifier.value = true;
@@ -129,7 +124,8 @@ class SongsPage extends ThemedPage {
       return Text('Invalid song');
     }
     //var song = songToEdit!;
-
+    print(
+        'editing ${toEditTag.title}, path: ${(songToEdit! as UriAudioSource).uri.toFilePath()}');
     return Center(
       child: Padding(
         padding: EdgeInsets.all(10),

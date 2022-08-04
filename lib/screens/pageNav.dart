@@ -143,7 +143,7 @@ class _PageNavState extends State<PageNav> {
         return Stack(
           children: [
             Padding(
-              padding: EdgeInsets.only(bottom: 60),
+              padding: EdgeInsets.only(bottom: 100),
               child: Container(
                 //height: newHeight,
                 //color: Colors.red,
@@ -153,7 +153,7 @@ class _PageNavState extends State<PageNav> {
             SlidingUpPanel(
               //margin: EdgeInsets.only(top: 60),
               //color: Theme.of(context),
-              minHeight: 60,
+              minHeight: 100,
               maxHeight: maxHeight.toDouble(),
               panel: PlayerMenu(),
             ),

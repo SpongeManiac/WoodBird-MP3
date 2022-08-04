@@ -56,7 +56,7 @@ class SongData extends BaseDataDB {
       id: int.tryParse(tag.id),
       name: tag.title,
       artist: tag.artist ?? '',
-      localPath: ((source as UriAudioSource).uri.path),
+      localPath: ((source as UriAudioSource).uri.toFilePath()),
     );
   }
 

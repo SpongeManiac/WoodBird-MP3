@@ -209,6 +209,23 @@ class _SettingsPageState extends State<SettingsPage> {
                     buttonWidth: 300,
                   ),
                 ),
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Restart AudioPlayer'),
+                      Container(
+                        width: 20,
+                      ),
+                      ElevatedButton(
+                        child: Icon(Icons.refresh_rounded),
+                        onPressed: () async {
+                          await widget.app.audioInterface.resetPlayer();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

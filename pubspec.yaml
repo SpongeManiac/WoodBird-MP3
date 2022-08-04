@@ -53,6 +53,8 @@ dependencies:
   flutter_colorpicker: ^1.0.3
   just_audio_background: ^0.0.1-beta.7
   select_dialog: ^2.0.0
+  expandable: ^5.0.1
+  rxdart: ^0.27.5
 
 dev_dependencies:
   flutter_test:

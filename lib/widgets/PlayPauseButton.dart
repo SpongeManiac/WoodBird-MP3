@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../globals.dart' show app;
 
 class PlayPauseButton extends StatelessWidget {
-  PlayPauseButton({super.key});
+  PlayPauseButton({super.key, this.color});
+
+  Color? color;
 
   Future<void> togglePlaying() async {
     await app.audioInterface.togglePlay();
@@ -14,7 +16,7 @@ class PlayPauseButton extends StatelessWidget {
       valueListenable: app.audioInterface.playingNotifier,
       builder: (context, value, _) {
         print('playing: $value');
-        var color = Theme.of(context).primaryColor;
+        color ??= Theme.of(context).primaryColor;
         return IconButton(
           icon: value
               ? Icon(

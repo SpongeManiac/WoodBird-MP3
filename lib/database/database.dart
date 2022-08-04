@@ -160,17 +160,36 @@ class SharedDatabase extends _$SharedDatabase {
     }
   }
 
-  Future<int> setPlaylistData(PlaylistsCompanion companion) {
-    return into(playlists).insertOnConflictUpdate(companion);
+  Future<int> setPlaylistData(PlaylistsCompanion companion) async {
+    int newId = await into(playlists).insertOnConflictUpdate(companion);
+    print('new id: $newId');
+    //PlaylistsCompanion.insert(name: )
+    return newId;
   }
 
-  Future<bool> updatePlaylistData(PlaylistDataDB playlist) {
-    return update(playlists).replace(playlist);
+  Future<bool> updatePlaylistData(PlaylistDataDB playlist) async {
+    return await update(playlists).replace(playlist);
   }
 
   Future<int> delPlaylistData(PlaylistDataDB playlist) async {
     print('deleting ${playlist.name}, index ${playlist.id}');
-    return (delete(playlists)..where((p) => p.id.equals(playlist.id))).go();
+    return await (delete(playlists)..where((p) => p.id.equals(playlist.id)))
+        .go();
+  }
+
+  Future<int> addPlaylistSong(PlaylistDataDB playlist, SongDataDB song) async {
+    PlaylistSongsCompanion entry = PlaylistSongsCompanion(
+      playlist: Value(playlist.id),
+      song: Value(song.id),
+    );
+    return await into(playlistSongs).insert(entry);
+  }
+
+  Future delPlaylistSong(PlaylistDataDB playlist, SongDataDB song) async {
+    return await (delete(playlistSongs)
+          ..where(
+              (e) => e.playlist.equals(playlist.id) & e.song.equals(song.id)))
+        .go();
   }
 
   Future<List<SongDataDB>> getPlaylistSongs(PlaylistData playlist) async {
@@ -190,7 +209,7 @@ class SharedDatabase extends _$SharedDatabase {
     var songsList = songsQuery.map((result) {
       return result.readTable(songs);
     }).toList();
-
+    print('got ${songsList.length} songs in playlist');
     return songsList;
   }
 
