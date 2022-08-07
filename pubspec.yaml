@@ -34,7 +34,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-  dropdown_button2: ^1.6.2
+  dropdown_button2: ^1.7.1
   drift: ^1.7.1
   provider: ^6.0.3
   path_provider: ^2.0.11
@@ -42,19 +42,21 @@ dependencies:
   flutter_window_close: ^0.2.2
   flutter_platform_alert: ^0.3.0
   sqlite3_flutter_libs: ^0.5.8
-  file_picker: ^4.6.1
+  file_picker: ^5.0.1
   receive_sharing_intent: ^1.4.5
   just_audio: ^0.9.28
+  just_audio_background: ^0.0.1-beta.7
   just_audio_windows: ^0.1.0
   sliding_up_panel: ^2.0.0+1
   marquee: ^2.2.3
   #audio_session: ^0.1.10
   badges: ^2.0.3
   flutter_colorpicker: ^1.0.3
-  just_audio_background: ^0.0.1-beta.7
   select_dialog: ^2.0.0
   expandable: ^5.0.1
   rxdart: ^0.27.5
+  path: ^1.8.1
+  file_saver: ^0.1.1
 
 dev_dependencies:
   flutter_test:

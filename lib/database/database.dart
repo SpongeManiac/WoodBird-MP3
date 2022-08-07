@@ -136,6 +136,7 @@ class SharedDatabase extends _$SharedDatabase {
   Future<int> delSongData(SongDataDB song) async {
     print('deleting ${song.name}, index ${song.id}');
     return (delete(songs)..where((s) => s.id.equals(song.id))).go();
+    //remove file?
   }
 
   Future<List<SongDataDB>> getAllSongs() async {

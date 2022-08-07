@@ -2,10 +2,12 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:test_project/widgets/appBar.dart';
 
 import '../database/database.dart';
 import '../globals.dart' as globals;
+import 'package:path/path.dart' as p;
 import '../models/AudioInterface.dart';
 import '../models/colorMaterializer.dart';
 import '../models/states/pages/homePageData.dart';
@@ -24,10 +26,28 @@ class BaseApp extends StatefulWidget {
   BaseApp(
       {super.key,
       this.appTitle = 'WoodBird MP3',
-      this.navTitle = 'WoodBird MP3'});
+      this.navTitle = 'WoodBird MP3'}) {
+    () async {
+      songsDir = await getSongsDir();
+    }();
+  }
 
-  // AudioPlayer? _player;
-  // AudioPlayer get player => _player ??= AudioPlayer();
+  late String songsDir;
+
+  Future<String> getSongsDir() async {
+    var docs = await getApplicationDocumentsDirectory();
+    var music = 'music';
+    return p.join(docs.path, music);
+  }
+
+  String getSongCachePath(String base) {
+    return p.join(songsDir, base);
+  }
+
+  Uri getSongUri(String songPath) {
+    return Uri.file(songPath);
+  }
+
   AudioInterface? _audioInterface;
   AudioInterface get audioInterface => _audioInterface ??= AudioInterface();
   String appTitle;
@@ -143,9 +163,13 @@ class BaseApp extends StatefulWidget {
   Future<void> loadSongs() async {
     List<AudioSource> songs = <AudioSource>[];
     List<SongDataDB> songsDB = await globals.db.getAllSongs();
+    print('got ${songsDB.length} songs from db');
     for (var song in songsDB) {
+      // var newUri = p.join(songsDir, song.localPath);
+      var songPath = getSongCachePath(song.localPath);
+      print('loading from path: $songPath');
       songs.add(AudioSource.uri(
-        Uri.parse(song.localPath),
+        getSongUri(songPath),
         tag: MediaItem(
           id: '${song.id}',
           title: song.name,

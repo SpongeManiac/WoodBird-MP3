@@ -7,6 +7,7 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:path/path.dart' show basename;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:select_dialog/select_dialog.dart';
 import 'package:test_project/database/database.dart';
 import 'package:test_project/models/states/song/songData.dart';
@@ -16,6 +17,7 @@ import '../models/contextItemTuple.dart';
 import '../widgets/contextPopupButton.dart';
 import '../widgets/appBar.dart';
 import 'themedPage.dart';
+import 'package:path/path.dart' as p;
 
 class SongsPage extends ThemedPage {
   SongsPage({
@@ -56,6 +58,11 @@ class SongsPage extends ThemedPage {
   State<SongsPage> createState() => _SongsPageState();
 
   Future<void> addSong() async {
+    var songs = app.songsDir;
+    var songsDir = Directory(songs);
+    if (!await songsDir.exists()) {
+      await songsDir.create();
+    }
     loadingProgressNotifier.value = null;
     loadingSongsNotifier.value = true;
     print('going to add song');
@@ -65,21 +72,9 @@ class SongsPage extends ThemedPage {
       allowedExtensions: ['mp3'],
       withData: false,
       withReadStream: true,
-      onFileLoading: (FilePickerStatus status) {
-        print(status);
-        switch (status) {
-          case FilePickerStatus.picking:
-            print('Picking stuff.');
-            break;
-          case FilePickerStatus.done:
-            print('Finished something.');
-            break;
-        }
-      },
     );
     if (result != null && result.count > 0) {
-      print('got ${result.count} file(s)');
-      List<AudioSource> list = List.from(songs);
+      List<AudioSource> list = List.from(this.songs);
       double fraction = (1.0 / result.count);
       print('songs: ${result.count}, fraction: $fraction');
       loadingProgressNotifier.value = fraction;
@@ -87,10 +82,31 @@ class SongsPage extends ThemedPage {
         String? path = result.paths[i];
         path ??= '-1';
         if (path == '-1') continue;
-        print('path: ${result.files[i].path}');
         String base = basename(path);
+        //var dir = p.join(songs, base);
+
+        String ogPath = result.paths[i]!;
+        var tempFile = File(ogPath);
+        var newPath = p.join(songs, base);
+        var preCacheFile = File(newPath);
+        if (!await preCacheFile.exists()) {
+          var cacheFile = await tempFile.rename(newPath);
+          print('cachedFile path: ${cacheFile.path}');
+        }
+        await tempFile.delete();
+        print('newPath: $newPath');
+        print('base: $base');
+
         var split = base.split('.');
-        var name = split.first;
+        String name = '';
+        for (String part in split) {
+          if (part != split.last) {
+            name = '$name$part.';
+          }
+        }
+        if (name.length > 1) {
+          name = name.substring(0, name.length - 1);
+        }
         var ext = split.last;
         print(name);
         print(ext);
@@ -98,10 +114,21 @@ class SongsPage extends ThemedPage {
         SongData song = SongData(
           artist: 'unknown',
           name: name,
-          localPath: path,
+          //cachePath.uri.toFilePath()
+          localPath: base,
         );
         await song.saveData();
-        var tag = AudioInterface.getTag(song.source);
+        UriAudioSource songSource = song.source;
+        // AudioSource.uri(app.getSongUri(app.getSongCachePath(base)),
+        //     tag: MediaItem(
+        //       id: '${song.id}',
+        //       artist: song.artist,
+        //       title: song.name,
+        //     ));
+        print(songSource);
+        print('Adding: ${songSource.uri}');
+
+        var tag = AudioInterface.getTag(songSource);
         print(tag.title);
         print(tag.artist);
         print(tag.album);
@@ -111,7 +138,7 @@ class SongsPage extends ThemedPage {
         loadingProgressNotifier.value = (i + 1) * fraction;
         await Future.delayed(const Duration(milliseconds: 10));
       }
-      songs = list;
+      this.songs = list;
     } else {
       print('null result');
     }
@@ -153,6 +180,7 @@ class SongsPage extends ThemedPage {
                 ),
               ),
             ),
+            Text('${(songToEdit! as UriAudioSource).uri}'),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {

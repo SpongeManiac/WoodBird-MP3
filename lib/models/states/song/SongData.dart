@@ -5,6 +5,8 @@ import 'package:just_audio_background/just_audio_background.dart'
 import 'package:test_project/models/AudioInterface.dart';
 
 import '../../../globals.dart' show app, db;
+import 'package:path/path.dart' as p;
+
 import '../baseState.dart';
 import '../../../database/database.dart';
 
@@ -22,8 +24,8 @@ class SongData extends BaseDataDB {
   String name;
   String localPath;
 
-  AudioSource get source => AudioSource.uri(
-        Uri.file(localPath),
+  UriAudioSource get source => AudioSource.uri(
+        app.getSongUri(app.getSongCachePath(localPath)),
         tag: MediaItem(
           id: '$id',
           artist: artist,
@@ -52,11 +54,14 @@ class SongData extends BaseDataDB {
 
   static SongData fromSource(AudioSource source) {
     MediaItem tag = AudioInterface.getTag(source);
+    var basename = ((source as UriAudioSource).uri.toFilePath());
     return SongData(
       id: int.tryParse(tag.id),
       name: tag.title,
       artist: tag.artist ?? '',
-      localPath: ((source as UriAudioSource).uri.toFilePath()),
+      localPath: p.join(
+        app.songsDir,
+      ),
     );
   }
 

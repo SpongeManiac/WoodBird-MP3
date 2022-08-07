@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  file_saver
   flutter_platform_alert
   flutter_window_close
   sqlite3_flutter_libs
