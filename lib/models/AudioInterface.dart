@@ -611,6 +611,7 @@ class AudioInterface {
 
   Future<void> addToQueue(List<AudioSource> songs) async {
     playlist.addAll(songs);
+    player.seek(Duration(seconds: 0), index: 0);
     queueNotifier.value = playlist.length;
   }
 }

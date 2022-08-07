@@ -86,6 +86,7 @@ class SongsPage extends ThemedPage {
         //var dir = p.join(songs, base);
 
         String ogPath = result.paths[i]!;
+        print('og path: $ogPath');
         var tempFile = File(ogPath);
         var newPath = p.join(songs, base);
         var preCacheFile = File(newPath);
@@ -93,7 +94,9 @@ class SongsPage extends ThemedPage {
           var cacheFile = await tempFile.rename(newPath);
           print('cachedFile path: ${cacheFile.path}');
         }
-        await tempFile.delete();
+        if (await tempFile.exists()) {
+          await tempFile.delete();
+        }
         print('newPath: $newPath');
         print('base: $base');
 
@@ -101,7 +104,7 @@ class SongsPage extends ThemedPage {
         String name = '';
         for (String part in split) {
           if (part != split.last) {
-            name = '$name$part.';
+            name = name + part + '.';
           }
         }
         if (name.length > 1) {
@@ -113,7 +116,7 @@ class SongsPage extends ThemedPage {
         //create song data
         SongData song = SongData(
           artist: 'unknown',
-          name: name,
+          name: base,
           //cachePath.uri.toFilePath()
           localPath: base,
         );
