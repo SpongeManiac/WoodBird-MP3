@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_window_close/flutter_window_close.dart';
 import 'package:test_project/widgets/flyout/flyoutItem.dart';
 import '../../globals.dart' show app;
 import '../../screens/themedPage.dart';
@@ -20,12 +19,26 @@ class Flyout extends StatelessWidget {
         child: Column(
           children: [
             Container(
-              color: Theme.of(context).primaryColorDark.withOpacity(0.8),
+              color: Theme.of(context).primaryColor,
               height: MediaQuery.of(context).padding.top + 100,
+              width: double.infinity,
+              child: Padding(
+                padding:
+                    EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+                child: const Center(
+                    child: Text(
+                  'Woodbird MP3',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                )),
+              ),
             ),
             Expanded(
-              child: Column(
-                //padding: EdgeInsets.zero,
+              child: ListView(
+                padding: EdgeInsets.zero,
                 children: [
                   FlyoutItem(
                     icon: Icons.home_rounded,
@@ -47,13 +60,13 @@ class Flyout extends StatelessWidget {
                     text: 'Settings',
                     onTapped: () => navigate(context, '/settings'),
                   ),
-                  Expanded(child: Container()),
-                  FlyoutItem(
-                      icon: Icons.close_rounded,
-                      text: 'Exit',
-                      onTapped: () => app.closeApp(context))
                 ], //drawer top
               ),
+            ),
+            FlyoutItem(
+              icon: Icons.close_rounded,
+              text: 'Exit',
+              onTapped: () => app.closeApp(context),
             ),
           ],
         ),

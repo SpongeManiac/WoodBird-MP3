@@ -37,14 +37,18 @@ class AudioInterface {
     //       break;
     //   }
     // });
-    player.setAudioSource(playlist);
     player.setLoopMode(LoopMode.all);
-    player.setShuffleModeEnabled(true);
+    player.setShuffleModeEnabled(false);
+    player.setAudioSource(playlist);
+    player.shuffle();
+
     () async {};
   }
 
   AudioPlayer player = AudioPlayer();
-  ConcatenatingAudioSource playlist = ConcatenatingAudioSource(children: []);
+  ConcatenatingAudioSource playlist = ConcatenatingAudioSource(
+    children: [],
+  );
 
   Stream<PositionData> get positionDataStream =>
       Rx.combineLatest3<Duration, Duration, Duration?, PositionData>(
@@ -100,7 +104,7 @@ class AudioInterface {
     playlist = ConcatenatingAudioSource(children: []);
     player.setAudioSource(playlist);
     player.setLoopMode(LoopMode.all);
-    player.setShuffleModeEnabled(true);
+    player.setShuffleModeEnabled(false);
     queueNotifier.value = playlist.length;
   }
 
@@ -551,6 +555,7 @@ class AudioInterface {
 
   Future<void> add(AudioSource song) async {
     playlist.add(song);
+    await player.shuffle();
     queueNotifier.value = playlist.length;
   }
 

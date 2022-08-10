@@ -15,6 +15,8 @@ void main() {
       androidNotificationOngoing: true,
     );
 
+    //print('${globals.db}');
+
     await globals.app.loadPageStates().then((value) async {
       runApp(globals.app);
     });

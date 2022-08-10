@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import '../globals.dart' show app;
 
 class PlayPauseButton extends StatelessWidget {
-  PlayPauseButton({super.key, this.color});
+  PlayPauseButton({super.key, this.color, this.size});
 
   Color? color;
+  double? size;
 
   Future<void> togglePlaying() async {
     await app.audioInterface.togglePlay();
@@ -27,6 +28,7 @@ class PlayPauseButton extends StatelessWidget {
                   Icons.play_arrow_rounded,
                   color: color,
                 ),
+          iconSize: size,
           onPressed: togglePlaying,
         );
         //return super.build(context);

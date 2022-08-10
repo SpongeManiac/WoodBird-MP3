@@ -37,23 +37,61 @@ class SeekBarState extends State<SeekBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: Stack(
-            children: [
-              SliderTheme(
-                data: _sliderThemeData.copyWith(
-                  thumbShape: HiddenThumbComponentShape(),
-                  activeTrackColor: Theme.of(context).hoverColor,
-                  inactiveTrackColor: Colors.grey.shade300,
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      child: Row(
+        children: [
+          Text(
+            RegExp(r'((^0*[1-9]\d*:)?\d{2}:\d{2})\.\d+$')
+                    .firstMatch('${widget.position}')
+                    ?.group(1) ??
+                '${widget.position}',
+            style: TextStyle(color: Theme.of(context).primaryColor),
+          ),
+          Expanded(
+            child: Stack(
+              children: [
+                SliderTheme(
+                  data: _sliderThemeData.copyWith(
+                    thumbShape: HiddenThumbComponentShape(),
+                    activeTrackColor: Theme.of(context).hoverColor,
+                    inactiveTrackColor: Colors.grey.shade300,
+                  ),
+                  child: ExcludeSemantics(
+                    child: Slider(
+                      min: 0.0,
+                      max: widget.duration.inMilliseconds.toDouble(),
+                      value: min(
+                          widget.bufferedPosition.inMilliseconds.toDouble(),
+                          widget.duration.inMilliseconds.toDouble()),
+                      onChanged: (value) {
+                        setState(() {
+                          _dragValue = value;
+                        });
+                        if (widget.onChanged != null) {
+                          widget.onChanged!(
+                              Duration(milliseconds: value.round()));
+                        }
+                      },
+                      onChangeEnd: (value) {
+                        if (widget.onChangeEnd != null) {
+                          widget.onChangeEnd!(
+                              Duration(milliseconds: value.round()));
+                        }
+                        _dragValue = null;
+                      },
+                    ),
+                  ),
                 ),
-                child: ExcludeSemantics(
+                SliderTheme(
+                  data: _sliderThemeData.copyWith(
+                    inactiveTrackColor: Colors.transparent,
+                  ),
                   child: Slider(
                     min: 0.0,
                     max: widget.duration.inMilliseconds.toDouble(),
                     value: min(
-                        widget.bufferedPosition.inMilliseconds.toDouble(),
+                        _dragValue ?? widget.position.inMilliseconds.toDouble(),
                         widget.duration.inMilliseconds.toDouble()),
                     onChanged: (value) {
                       setState(() {
@@ -73,46 +111,15 @@ class SeekBarState extends State<SeekBar> {
                     },
                   ),
                 ),
-              ),
-              SliderTheme(
-                data: _sliderThemeData.copyWith(
-                  inactiveTrackColor: Colors.transparent,
-                ),
-                child: Slider(
-                  min: 0.0,
-                  max: widget.duration.inMilliseconds.toDouble(),
-                  value: min(
-                      _dragValue ?? widget.position.inMilliseconds.toDouble(),
-                      widget.duration.inMilliseconds.toDouble()),
-                  onChanged: (value) {
-                    setState(() {
-                      _dragValue = value;
-                    });
-                    if (widget.onChanged != null) {
-                      widget.onChanged!(Duration(milliseconds: value.round()));
-                    }
-                  },
-                  onChangeEnd: (value) {
-                    if (widget.onChangeEnd != null) {
-                      widget
-                          .onChangeEnd!(Duration(milliseconds: value.round()));
-                    }
-                    _dragValue = null;
-                  },
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        Center(
-          child: Text(
-              RegExp(r'((^0*[1-9]\d*:)?\d{2}:\d{2})\.\d+$')
-                      .firstMatch("$_remaining")
-                      ?.group(1) ??
-                  '$_remaining',
-              style: Theme.of(context).textTheme.caption),
-        ),
-      ],
+          Text(
+            '-${RegExp(r'((^0*[1-9]\d*:)?\d{2}:\d{2})\.\d+$').firstMatch('$_remaining')?.group(1) ?? '$_remaining'}',
+            style: TextStyle(color: Theme.of(context).primaryColor),
+          ),
+        ],
+      ),
     );
   }
 

@@ -12,11 +12,13 @@ class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
   final int theme;
   final int count;
   final int color;
+  final String controls;
   HomePageStateDB(
       {required this.id,
       required this.theme,
       required this.count,
-      required this.color});
+      required this.color,
+      required this.controls});
   factory HomePageStateDB.fromData(Map<String, dynamic> data,
       {String? prefix}) {
     final effectivePrefix = prefix ?? '';
@@ -29,6 +31,8 @@ class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
           .mapFromDatabaseResponse(data['${effectivePrefix}count'])!,
       color: const IntType()
           .mapFromDatabaseResponse(data['${effectivePrefix}color'])!,
+      controls: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}controls'])!,
     );
   }
   @override
@@ -38,6 +42,7 @@ class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
     map['theme'] = Variable<int>(theme);
     map['count'] = Variable<int>(count);
     map['color'] = Variable<int>(color);
+    map['controls'] = Variable<String>(controls);
     return map;
   }
 
@@ -47,6 +52,7 @@ class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
       theme: Value(theme),
       count: Value(count),
       color: Value(color),
+      controls: Value(controls),
     );
   }
 
@@ -58,6 +64,7 @@ class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
       theme: serializer.fromJson<int>(json['theme']),
       count: serializer.fromJson<int>(json['count']),
       color: serializer.fromJson<int>(json['color']),
+      controls: serializer.fromJson<String>(json['controls']),
     );
   }
   @override
@@ -68,15 +75,18 @@ class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
       'theme': serializer.toJson<int>(theme),
       'count': serializer.toJson<int>(count),
       'color': serializer.toJson<int>(color),
+      'controls': serializer.toJson<String>(controls),
     };
   }
 
-  HomePageStateDB copyWith({int? id, int? theme, int? count, int? color}) =>
+  HomePageStateDB copyWith(
+          {int? id, int? theme, int? count, int? color, String? controls}) =>
       HomePageStateDB(
         id: id ?? this.id,
         theme: theme ?? this.theme,
         count: count ?? this.count,
         color: color ?? this.color,
+        controls: controls ?? this.controls,
       );
   @override
   String toString() {
@@ -84,13 +94,14 @@ class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
           ..write('id: $id, ')
           ..write('theme: $theme, ')
           ..write('count: $count, ')
-          ..write('color: $color')
+          ..write('color: $color, ')
+          ..write('controls: $controls')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, theme, count, color);
+  int get hashCode => Object.hash(id, theme, count, color, controls);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -98,7 +109,8 @@ class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
           other.id == this.id &&
           other.theme == this.theme &&
           other.count == this.count &&
-          other.color == this.color);
+          other.color == this.color &&
+          other.controls == this.controls);
 }
 
 class HomePageStateCompanion extends UpdateCompanion<HomePageStateDB> {
@@ -106,29 +118,34 @@ class HomePageStateCompanion extends UpdateCompanion<HomePageStateDB> {
   final Value<int> theme;
   final Value<int> count;
   final Value<int> color;
+  final Value<String> controls;
   const HomePageStateCompanion({
     this.id = const Value.absent(),
     this.theme = const Value.absent(),
     this.count = const Value.absent(),
     this.color = const Value.absent(),
+    this.controls = const Value.absent(),
   });
   HomePageStateCompanion.insert({
     this.id = const Value.absent(),
     this.theme = const Value.absent(),
     this.count = const Value.absent(),
     this.color = const Value.absent(),
+    this.controls = const Value.absent(),
   });
   static Insertable<HomePageStateDB> custom({
     Expression<int>? id,
     Expression<int>? theme,
     Expression<int>? count,
     Expression<int>? color,
+    Expression<String>? controls,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (theme != null) 'theme': theme,
       if (count != null) 'count': count,
       if (color != null) 'color': color,
+      if (controls != null) 'controls': controls,
     });
   }
 
@@ -136,12 +153,14 @@ class HomePageStateCompanion extends UpdateCompanion<HomePageStateDB> {
       {Value<int>? id,
       Value<int>? theme,
       Value<int>? count,
-      Value<int>? color}) {
+      Value<int>? color,
+      Value<String>? controls}) {
     return HomePageStateCompanion(
       id: id ?? this.id,
       theme: theme ?? this.theme,
       count: count ?? this.count,
       color: color ?? this.color,
+      controls: controls ?? this.controls,
     );
   }
 
@@ -160,6 +179,9 @@ class HomePageStateCompanion extends UpdateCompanion<HomePageStateDB> {
     if (color.present) {
       map['color'] = Variable<int>(color.value);
     }
+    if (controls.present) {
+      map['controls'] = Variable<String>(controls.value);
+    }
     return map;
   }
 
@@ -169,7 +191,8 @@ class HomePageStateCompanion extends UpdateCompanion<HomePageStateDB> {
           ..write('id: $id, ')
           ..write('theme: $theme, ')
           ..write('count: $count, ')
-          ..write('color: $color')
+          ..write('color: $color, ')
+          ..write('controls: $controls')
           ..write(')'))
         .toString();
   }
@@ -210,8 +233,15 @@ class $HomePageStateTable extends HomePageState
       type: const IntType(),
       requiredDuringInsert: false,
       defaultValue: const Constant(0xFF000000));
+  final VerificationMeta _controlsMeta = const VerificationMeta('controls');
   @override
-  List<GeneratedColumn> get $columns => [id, theme, count, color];
+  late final GeneratedColumn<String?> controls = GeneratedColumn<String?>(
+      'controls', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: false,
+      defaultValue: const Constant('[0, 1, 2, 3, 4]'));
+  @override
+  List<GeneratedColumn> get $columns => [id, theme, count, color, controls];
   @override
   String get aliasedName => _alias ?? 'home_page_state';
   @override
@@ -235,6 +265,10 @@ class $HomePageStateTable extends HomePageState
     if (data.containsKey('color')) {
       context.handle(
           _colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
+    }
+    if (data.containsKey('controls')) {
+      context.handle(_controlsMeta,
+          controls.isAcceptableOrUnknown(data['controls']!, _controlsMeta));
     }
     return context;
   }

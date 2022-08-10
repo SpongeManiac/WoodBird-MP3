@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
@@ -79,6 +81,9 @@ class BaseApp extends StatefulWidget {
   final ValueNotifier<HomePageData> homePageStateNotifier =
       ValueNotifier(HomePageData(0, 0, 0));
 
+  //controls list
+  ValueNotifier<List<int>> controls = ValueNotifier([]);
+
   //songs list
   final ValueNotifier<List<AudioSource>> songsNotifier =
       ValueNotifier(<AudioSource>[]);
@@ -136,14 +141,21 @@ class BaseApp extends StatefulWidget {
   Future<void> loadHomeState() async {
     //get homepagestate db object
     var homeStateDB = await globals.db.getHomeState();
-    homeStateDB ??=
-        HomePageStateDB(id: 1, theme: 0, count: 0, color: 0xFF000000);
+    print('after get homestate');
+    homeStateDB ??= HomePageStateDB(
+        id: 1, theme: 0, count: 0, color: 0xFF000000, controls: '[0,1,2,3,4]');
     if (homeStateDB.theme < 0 || homeStateDB.theme >= globals.themes.length) {
       homeStateDB = HomePageStateDB(
-          id: 1, theme: 0, count: homeStateDB.count, color: homeStateDB.color);
+        id: 1,
+        theme: 0,
+        count: homeStateDB.count,
+        color: homeStateDB.color,
+        controls: homeStateDB.controls,
+      );
     }
     //get homepagestate
     //print('getting & setting home state');
+    controls.value = json.decode(homeStateDB.controls).cast<int>();
     print('db theme: ${homeStateDB.theme}');
     homePageStateNotifier.value =
         homePageStateNotifier.value.fromEntry(homeStateDB);
@@ -152,7 +164,8 @@ class BaseApp extends StatefulWidget {
     print('custom color: $theme');
     globals.themes['Custom'] = theme;
     themeNotifier.value =
-        globals.themes[globals.themes.keys.toList()[homeStateDB.theme]]!;
+        globals.themes[globals.themes.keys.toList()[homeStateDB.theme]] ??
+            globals.themes['Blue']!;
   }
 
   Future<void> saveHomeState() async {

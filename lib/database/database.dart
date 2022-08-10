@@ -13,6 +13,9 @@ class HomePageState extends Table {
   IntColumn get theme => integer().withDefault(const Constant(0))();
   IntColumn get count => integer().withDefault(const Constant(0))();
   IntColumn get color => integer().withDefault(const Constant(0xFF000000))();
+  TextColumn get controls => text()
+      .withDefault(const Constant('[0,1,2,3,4]'))
+      .withLength(min: 10, max: 10)();
 }
 
 // @DataClassName('SongPageStateDB')
