@@ -13,12 +13,16 @@ class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
   final int count;
   final int color;
   final String controls;
+  final bool darkMode;
+  final bool swapTrack;
   HomePageStateDB(
       {required this.id,
       required this.theme,
       required this.count,
       required this.color,
-      required this.controls});
+      required this.controls,
+      required this.darkMode,
+      required this.swapTrack});
   factory HomePageStateDB.fromData(Map<String, dynamic> data,
       {String? prefix}) {
     final effectivePrefix = prefix ?? '';
@@ -33,6 +37,10 @@ class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
           .mapFromDatabaseResponse(data['${effectivePrefix}color'])!,
       controls: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}controls'])!,
+      darkMode: const BoolType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}dark_mode'])!,
+      swapTrack: const BoolType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}swap_track'])!,
     );
   }
   @override
@@ -43,6 +51,8 @@ class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
     map['count'] = Variable<int>(count);
     map['color'] = Variable<int>(color);
     map['controls'] = Variable<String>(controls);
+    map['dark_mode'] = Variable<bool>(darkMode);
+    map['swap_track'] = Variable<bool>(swapTrack);
     return map;
   }
 
@@ -53,6 +63,8 @@ class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
       count: Value(count),
       color: Value(color),
       controls: Value(controls),
+      darkMode: Value(darkMode),
+      swapTrack: Value(swapTrack),
     );
   }
 
@@ -65,6 +77,8 @@ class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
       count: serializer.fromJson<int>(json['count']),
       color: serializer.fromJson<int>(json['color']),
       controls: serializer.fromJson<String>(json['controls']),
+      darkMode: serializer.fromJson<bool>(json['darkMode']),
+      swapTrack: serializer.fromJson<bool>(json['swapTrack']),
     );
   }
   @override
@@ -76,17 +90,27 @@ class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
       'count': serializer.toJson<int>(count),
       'color': serializer.toJson<int>(color),
       'controls': serializer.toJson<String>(controls),
+      'darkMode': serializer.toJson<bool>(darkMode),
+      'swapTrack': serializer.toJson<bool>(swapTrack),
     };
   }
 
   HomePageStateDB copyWith(
-          {int? id, int? theme, int? count, int? color, String? controls}) =>
+          {int? id,
+          int? theme,
+          int? count,
+          int? color,
+          String? controls,
+          bool? darkMode,
+          bool? swapTrack}) =>
       HomePageStateDB(
         id: id ?? this.id,
         theme: theme ?? this.theme,
         count: count ?? this.count,
         color: color ?? this.color,
         controls: controls ?? this.controls,
+        darkMode: darkMode ?? this.darkMode,
+        swapTrack: swapTrack ?? this.swapTrack,
       );
   @override
   String toString() {
@@ -95,13 +119,16 @@ class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
           ..write('theme: $theme, ')
           ..write('count: $count, ')
           ..write('color: $color, ')
-          ..write('controls: $controls')
+          ..write('controls: $controls, ')
+          ..write('darkMode: $darkMode, ')
+          ..write('swapTrack: $swapTrack')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, theme, count, color, controls);
+  int get hashCode =>
+      Object.hash(id, theme, count, color, controls, darkMode, swapTrack);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -110,7 +137,9 @@ class HomePageStateDB extends DataClass implements Insertable<HomePageStateDB> {
           other.theme == this.theme &&
           other.count == this.count &&
           other.color == this.color &&
-          other.controls == this.controls);
+          other.controls == this.controls &&
+          other.darkMode == this.darkMode &&
+          other.swapTrack == this.swapTrack);
 }
 
 class HomePageStateCompanion extends UpdateCompanion<HomePageStateDB> {
@@ -119,12 +148,16 @@ class HomePageStateCompanion extends UpdateCompanion<HomePageStateDB> {
   final Value<int> count;
   final Value<int> color;
   final Value<String> controls;
+  final Value<bool> darkMode;
+  final Value<bool> swapTrack;
   const HomePageStateCompanion({
     this.id = const Value.absent(),
     this.theme = const Value.absent(),
     this.count = const Value.absent(),
     this.color = const Value.absent(),
     this.controls = const Value.absent(),
+    this.darkMode = const Value.absent(),
+    this.swapTrack = const Value.absent(),
   });
   HomePageStateCompanion.insert({
     this.id = const Value.absent(),
@@ -132,6 +165,8 @@ class HomePageStateCompanion extends UpdateCompanion<HomePageStateDB> {
     this.count = const Value.absent(),
     this.color = const Value.absent(),
     this.controls = const Value.absent(),
+    this.darkMode = const Value.absent(),
+    this.swapTrack = const Value.absent(),
   });
   static Insertable<HomePageStateDB> custom({
     Expression<int>? id,
@@ -139,6 +174,8 @@ class HomePageStateCompanion extends UpdateCompanion<HomePageStateDB> {
     Expression<int>? count,
     Expression<int>? color,
     Expression<String>? controls,
+    Expression<bool>? darkMode,
+    Expression<bool>? swapTrack,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -146,6 +183,8 @@ class HomePageStateCompanion extends UpdateCompanion<HomePageStateDB> {
       if (count != null) 'count': count,
       if (color != null) 'color': color,
       if (controls != null) 'controls': controls,
+      if (darkMode != null) 'dark_mode': darkMode,
+      if (swapTrack != null) 'swap_track': swapTrack,
     });
   }
 
@@ -154,13 +193,17 @@ class HomePageStateCompanion extends UpdateCompanion<HomePageStateDB> {
       Value<int>? theme,
       Value<int>? count,
       Value<int>? color,
-      Value<String>? controls}) {
+      Value<String>? controls,
+      Value<bool>? darkMode,
+      Value<bool>? swapTrack}) {
     return HomePageStateCompanion(
       id: id ?? this.id,
       theme: theme ?? this.theme,
       count: count ?? this.count,
       color: color ?? this.color,
       controls: controls ?? this.controls,
+      darkMode: darkMode ?? this.darkMode,
+      swapTrack: swapTrack ?? this.swapTrack,
     );
   }
 
@@ -182,6 +225,12 @@ class HomePageStateCompanion extends UpdateCompanion<HomePageStateDB> {
     if (controls.present) {
       map['controls'] = Variable<String>(controls.value);
     }
+    if (darkMode.present) {
+      map['dark_mode'] = Variable<bool>(darkMode.value);
+    }
+    if (swapTrack.present) {
+      map['swap_track'] = Variable<bool>(swapTrack.value);
+    }
     return map;
   }
 
@@ -192,7 +241,9 @@ class HomePageStateCompanion extends UpdateCompanion<HomePageStateDB> {
           ..write('theme: $theme, ')
           ..write('count: $count, ')
           ..write('color: $color, ')
-          ..write('controls: $controls')
+          ..write('controls: $controls, ')
+          ..write('darkMode: $darkMode, ')
+          ..write('swapTrack: $swapTrack')
           ..write(')'))
         .toString();
   }
@@ -237,11 +288,30 @@ class $HomePageStateTable extends HomePageState
   @override
   late final GeneratedColumn<String?> controls = GeneratedColumn<String?>(
       'controls', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 10, maxTextLength: 20),
       type: const StringType(),
       requiredDuringInsert: false,
       defaultValue: const Constant('[0, 1, 2, 3, 4]'));
+  final VerificationMeta _darkModeMeta = const VerificationMeta('darkMode');
   @override
-  List<GeneratedColumn> get $columns => [id, theme, count, color, controls];
+  late final GeneratedColumn<bool?> darkMode = GeneratedColumn<bool?>(
+      'dark_mode', aliasedName, false,
+      type: const BoolType(),
+      requiredDuringInsert: false,
+      defaultConstraints: 'CHECK (dark_mode IN (0, 1))',
+      defaultValue: const Constant(false));
+  final VerificationMeta _swapTrackMeta = const VerificationMeta('swapTrack');
+  @override
+  late final GeneratedColumn<bool?> swapTrack = GeneratedColumn<bool?>(
+      'swap_track', aliasedName, false,
+      type: const BoolType(),
+      requiredDuringInsert: false,
+      defaultConstraints: 'CHECK (swap_track IN (0, 1))',
+      defaultValue: const Constant(false));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, theme, count, color, controls, darkMode, swapTrack];
   @override
   String get aliasedName => _alias ?? 'home_page_state';
   @override
@@ -269,6 +339,14 @@ class $HomePageStateTable extends HomePageState
     if (data.containsKey('controls')) {
       context.handle(_controlsMeta,
           controls.isAcceptableOrUnknown(data['controls']!, _controlsMeta));
+    }
+    if (data.containsKey('dark_mode')) {
+      context.handle(_darkModeMeta,
+          darkMode.isAcceptableOrUnknown(data['dark_mode']!, _darkModeMeta));
+    }
+    if (data.containsKey('swap_track')) {
+      context.handle(_swapTrackMeta,
+          swapTrack.isAcceptableOrUnknown(data['swap_track']!, _swapTrackMeta));
     }
     return context;
   }

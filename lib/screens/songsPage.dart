@@ -162,7 +162,7 @@ class SongsPage extends ThemedPage {
         child: Column(
           children: [
             Container(
-              height: Theme.of(context).textTheme.headlineMedium!.fontSize,
+              //height: Theme.of(context).textTheme.headlineLar!.fontSize,
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 10),
                 child: Row(
@@ -183,7 +183,9 @@ class SongsPage extends ThemedPage {
                 ),
               ),
             ),
+            Divider(),
             Text('${(songToEdit! as UriAudioSource).uri}'),
+            Divider(),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {

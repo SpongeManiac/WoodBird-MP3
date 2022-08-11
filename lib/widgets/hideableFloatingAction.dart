@@ -18,6 +18,8 @@ class HideableFloatingAction extends StatelessWidget {
           return Visibility(
             visible: data.visible,
             child: FloatingActionButton(
+              backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Colors.grey,
               onPressed: data.action,
               child: data.child,
             ),

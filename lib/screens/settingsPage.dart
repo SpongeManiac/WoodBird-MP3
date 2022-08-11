@@ -16,11 +16,6 @@ class SettingsPage extends ThemedPage {
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
-
-  @override
-  Future<void> saveState() async {
-    await globals.app.saveHomeState();
-  }
 }
 
 class _SettingsPageState extends State<SettingsPage> {
@@ -28,7 +23,11 @@ class _SettingsPageState extends State<SettingsPage> {
 
   int _counter = 0;
   MaterialColor? _selectedItem = globals.themes['Blue'];
-  HomePageData get state => globals.app.homePageStateNotifier.value;
+
+  HomePageData get copy => globals.app.homePageStateNotifier.value.copy();
+  set copy(newVal) {
+    widget.app.homePageStateNotifier.value = newVal;
+  }
 
   Color pickerColor = Colors.black;
 
@@ -36,12 +35,17 @@ class _SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
     //init action button
-    widget.initFloatingAction(_incrementCounter, const Icon(Icons.add));
+    widget.initFloatingAction(
+        _incrementCounter,
+        const Icon(
+          Icons.add,
+          color: Colors.grey,
+        ));
     //init this state
     widget.initState(context);
 
     //build themedropdown
-    print('rebuilding dropdown list');
+    //print('rebuilding dropdown list');
     for (var theme in globals.themes.keys) {
       MaterialColor color = globals.themes[theme]!;
       print('adding theme: $theme, ${globals.themes[theme]!.value}');
@@ -64,7 +68,7 @@ class _SettingsPageState extends State<SettingsPage> {
       pickerColor = globals.themes['Custom']!;
     }
 
-    loadState(state);
+    loadState(copy);
   }
 
   void loadState(HomePageData state) {
@@ -76,12 +80,20 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _incrementCounter() {
     _counter++;
-    globals.app.homePageStateNotifier.value =
-        HomePageData(state.theme, _counter, state.color);
+    var tmp = HomePageData(
+      copy.theme,
+      _counter,
+      copy.color,
+      copy.controls,
+      copy.swapTrack,
+      copy.darkMode,
+    );
+    copy = tmp;
   }
 
   Future<void> _themeChanged(MaterialColor? color) async {
     _selectedItem = color;
+    var tmp = copy;
     if (color != null) {
       var idx = globals.themes.values.toList().indexOf(color);
       if (idx == 5) {
@@ -125,10 +137,10 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         );
                         Navigator.of(context).pop();
-                        state.color = pickerColor.value;
-                        state.theme = idx;
-                        state.saveData();
-                        widget.themeNotifier.value = mat;
+                        tmp.color = pickerColor.value;
+                        tmp.theme = idx;
+
+                        copy = tmp;
                       });
                     },
                   ),
@@ -136,9 +148,8 @@ class _SettingsPageState extends State<SettingsPage> {
               );
             });
       } else {
-        state.theme = idx;
-        state.saveData();
-        widget.themeNotifier.value = color;
+        tmp.theme = idx;
+        copy = tmp;
       }
     }
   }
@@ -179,13 +190,6 @@ class _SettingsPageState extends State<SettingsPage> {
               // horizontal).
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                const Text(
-                  'You have pushed the button this many times:',
-                ),
-                Text(
-                  '$_counter',
-                  style: Theme.of(context).textTheme.headline4,
-                ),
                 DropdownButtonHideUnderline(
                   child: DropdownButton2(
                     items: _themeDropdown,
@@ -206,25 +210,69 @@ class _SettingsPageState extends State<SettingsPage> {
                         color: Colors.grey,
                       ),
                     ),
-                    buttonWidth: 300,
+                    buttonWidth: 250,
                   ),
                 ),
                 Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  child: Column(
                     children: [
-                      Text('Restart AudioPlayer'),
-                      Container(
-                        width: 20,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Restart AudioPlayer'),
+                          Container(
+                            width: 20,
+                          ),
+                          ElevatedButton(
+                            child: Icon(
+                              Icons.refresh_rounded,
+                              color: Colors.grey,
+                            ),
+                            onPressed: () async {
+                              await widget.app.audioInterface.resetPlayer();
+                            },
+                          ),
+                        ],
                       ),
-                      ElevatedButton(
-                        child: Icon(Icons.refresh_rounded),
-                        onPressed: () async {
-                          await widget.app.audioInterface.resetPlayer();
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ListView(
+                    children: [
+                      SwitchListTile(
+                        title: Text('Swap SeekBar & Controls'),
+                        subtitle: Text('Swap the seekbar and player controls.'),
+                        value: widget.app.swapTrackBar.value,
+                        onChanged: (newVal) {
+                          var tmp = copy;
+                          widget.app.swapTrackBar.value = newVal;
+                          //update state
+                          tmp.swapTrack = newVal;
+                          copy = tmp;
+                        },
+                      ),
+                      SwitchListTile(
+                        title: Text('Dark Mode'),
+                        subtitle: Text('Nocturnal Friendly.'),
+                        value: widget.app.darkMode.value,
+                        onChanged: (newVal) {
+                          var tmp = copy;
+                          widget.app.darkMode.value = newVal;
+                          //update state
+                          tmp.darkMode = newVal;
+                          copy = tmp;
                         },
                       ),
                     ],
                   ),
+                ),
+                const Text(
+                  'You have pushed the button this many times:',
+                ),
+                Text(
+                  '$_counter',
+                  style: Theme.of(context).textTheme.headline4,
                 ),
               ],
             ),

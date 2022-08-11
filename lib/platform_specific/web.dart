@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_project/models/states/pages/homePageData.dart';
 
 import '../globals.dart' as globals;
 import '../shared/baseApp.dart';
@@ -19,11 +20,11 @@ class _WebAppState extends State<WebApp> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<MaterialColor>(
+    return ValueListenableBuilder<HomePageData>(
         //the listener
-        valueListenable: globals.app.themeNotifier,
+        valueListenable: globals.app.homePageStateNotifier,
         //underscores are used for unused variables. Give variable name for listener value.
-        builder: (context, themeColor, __) {
+        builder: (context, newState, __) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             title: widget.appTitle,
@@ -38,7 +39,7 @@ class _WebAppState extends State<WebApp> {
               // Notice that the counter didn't reset back to zero; the application
               // is not rest
               //use new themeColor
-              primarySwatch: themeColor,
+              primarySwatch: widget.theme,
             ),
             home: widget.appScaffold(),
           );

@@ -15,7 +15,8 @@ abstract class ThemedPage extends StatefulWidget {
   BaseApp get app => globals.app;
   SharedDatabase get db => globals.db;
 
-  ValueNotifier<MaterialColor> get themeNotifier => app.themeNotifier;
+  MaterialColor get theme => globals.app.theme;
+
   final String title;
   ValueNotifier<HideableFloatingActionData> get actionButtonNotifier =>
       app.floatingActionNotifier;

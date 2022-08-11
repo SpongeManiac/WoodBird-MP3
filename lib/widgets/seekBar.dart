@@ -46,7 +46,7 @@ class SeekBarState extends State<SeekBar> {
                     .firstMatch('${widget.position}')
                     ?.group(1) ??
                 '${widget.position}',
-            style: TextStyle(color: Theme.of(context).primaryColor),
+            style: TextStyle(color: Theme.of(context).primaryColorDark),
           ),
           Expanded(
             child: Stack(
@@ -54,8 +54,9 @@ class SeekBarState extends State<SeekBar> {
                 SliderTheme(
                   data: _sliderThemeData.copyWith(
                     thumbShape: HiddenThumbComponentShape(),
-                    activeTrackColor: Theme.of(context).hoverColor,
-                    inactiveTrackColor: Colors.grey.shade300,
+                    activeTrackColor:
+                        Theme.of(context).primaryColorDark.withOpacity(.3),
+                    inactiveTrackColor: Colors.grey.shade500,
                   ),
                   child: ExcludeSemantics(
                     child: Slider(
@@ -93,6 +94,7 @@ class SeekBarState extends State<SeekBar> {
                     value: min(
                         _dragValue ?? widget.position.inMilliseconds.toDouble(),
                         widget.duration.inMilliseconds.toDouble()),
+                    thumbColor: Theme.of(context).primaryColorDark,
                     onChanged: (value) {
                       setState(() {
                         _dragValue = value;
@@ -116,7 +118,7 @@ class SeekBarState extends State<SeekBar> {
           ),
           Text(
             '-${RegExp(r'((^0*[1-9]\d*:)?\d{2}:\d{2})\.\d+$').firstMatch('$_remaining')?.group(1) ?? '$_remaining'}',
-            style: TextStyle(color: Theme.of(context).primaryColor),
+            style: TextStyle(color: Theme.of(context).primaryColorDark),
           ),
         ],
       ),

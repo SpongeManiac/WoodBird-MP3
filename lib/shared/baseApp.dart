@@ -69,7 +69,7 @@ class BaseApp extends StatefulWidget {
   }
 
   //global app variables
-  final ValueNotifier<MaterialColor> themeNotifier = ValueNotifier(Colors.blue);
+  //final ValueNotifier<MaterialColor> themeNotifier = ValueNotifier(Colors.blue);
   final ValueNotifier<String> routeNotifier = ValueNotifier('/');
   final ValueNotifier<HideableFloatingActionData> floatingActionNotifier =
       ValueNotifier(HideableFloatingActionData(false));
@@ -81,8 +81,17 @@ class BaseApp extends StatefulWidget {
   final ValueNotifier<HomePageData> homePageStateNotifier =
       ValueNotifier(HomePageData(0, 0, 0));
 
+  //theme
+  MaterialColor get theme =>
+      globals.themes[
+          globals.themes.keys.toList()[homePageStateNotifier.value.theme]] ??
+      globals.themes['Blue']!;
+
   //controls list
   ValueNotifier<List<int>> controls = ValueNotifier([]);
+  //vals
+  ValueNotifier<bool> swapTrackBar = ValueNotifier(false);
+  ValueNotifier<bool> darkMode = ValueNotifier(false);
 
   //songs list
   final ValueNotifier<List<AudioSource>> songsNotifier =
@@ -141,9 +150,19 @@ class BaseApp extends StatefulWidget {
   Future<void> loadHomeState() async {
     //get homepagestate db object
     var homeStateDB = await globals.db.getHomeState();
-    print('after get homestate');
+
+    //give default value if null
     homeStateDB ??= HomePageStateDB(
-        id: 1, theme: 0, count: 0, color: 0xFF000000, controls: '[0,1,2,3,4]');
+      id: 1,
+      theme: 0,
+      count: 0,
+      color: 0xFF000000,
+      controls: '[0,1,2,3,4]',
+      swapTrack: false,
+      darkMode: false,
+    );
+
+    //make sure data is valid
     if (homeStateDB.theme < 0 || homeStateDB.theme >= globals.themes.length) {
       homeStateDB = HomePageStateDB(
         id: 1,
@@ -151,21 +170,27 @@ class BaseApp extends StatefulWidget {
         count: homeStateDB.count,
         color: homeStateDB.color,
         controls: homeStateDB.controls,
+        swapTrack: homeStateDB.swapTrack,
+        darkMode: homeStateDB.darkMode,
       );
     }
-    //get homepagestate
-    //print('getting & setting home state');
+
+    //settings vals
     controls.value = json.decode(homeStateDB.controls).cast<int>();
-    print('db theme: ${homeStateDB.theme}');
+    swapTrackBar.value = homeStateDB.swapTrack;
+    darkMode.value = homeStateDB.darkMode;
+    print('darkMode: ${darkMode.value}');
+
+    //theme vals
+    globals.themes['Custom'] =
+        ColorMaterializer.getMaterial(Color(homeStateDB.color));
+    // themeNotifier.value =
+    //     globals.themes[globals.themes.keys.toList()[homeStateDB.theme]] ??
+    //         globals.themes['Blue']!;
+
+    //home page state
     homePageStateNotifier.value =
         homePageStateNotifier.value.fromEntry(homeStateDB);
-    var theme = ColorMaterializer.getMaterial(Color(homeStateDB.color));
-    //set theme custom color
-    print('custom color: $theme');
-    globals.themes['Custom'] = theme;
-    themeNotifier.value =
-        globals.themes[globals.themes.keys.toList()[homeStateDB.theme]] ??
-            globals.themes['Blue']!;
   }
 
   Future<void> saveHomeState() async {
