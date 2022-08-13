@@ -31,11 +31,7 @@ class PlaylistsPage extends ThemedPage {
 }
 
 class _PlaylistsPageState extends CRUDState<PlaylistData> {
-  late ValueNotifier<PlaylistData?> editingNotifier = ValueNotifier(null);
-
   ValueNotifier<List<MediaItem>> songs = ValueNotifier(<MediaItem>[]);
-
-  PlaylistData? get playlistToEdit => editingNotifier.value;
 
   TextEditingController newName = TextEditingController(text: '');
   TextEditingController newDescription = TextEditingController(text: '');
@@ -54,10 +50,9 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   }
 
   Future<void> setPlaylistSongs() async {
-    if (playlistToEdit == null) return;
+    if (itemToEdit == null) return;
     List<MediaItem> tmp = [];
-    List<SongDataDB> songsDB =
-        await widget.db.getPlaylistSongs(playlistToEdit!);
+    List<SongDataDB> songsDB = await widget.db.getPlaylistSongs(itemToEdit!);
 
     for (var song in songsDB) {
       tmp.add(AudioInterface.getTag(SongData.fromDB(song).source));
@@ -136,28 +131,17 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   }
 
   //set states
-  @override
-  Future<void> setCreate() async {
-    print('switching to create');
-    state = ViewState.create;
-  }
-
-  @override
-  Future<void> setRead() async {
-    print('switching to read');
-    state = ViewState.read;
-  }
 
   @override
   Future<void> setUpdate(PlaylistData item) async {
     print('switching to update');
-    if (item.id != null) {
-      print('editing ${item.name} - ${item.id}');
-    }
+    // if (item.id != null) {
+    //   print('editing ${item.name} - ${item.id}');
+    // }
     editingNotifier.value = item;
-    newName.text = playlistToEdit!.name;
-    newDescription.text = playlistToEdit!.description;
-    newArt.text = playlistToEdit!.art;
+    newName.text = itemToEdit!.name;
+    newDescription.text = itemToEdit!.description;
+    newArt.text = itemToEdit!.art;
     await setPlaylistSongs();
     state = ViewState.update;
   }
@@ -165,23 +149,15 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   @override
   Future<void> setDelete(PlaylistData item) async {
     print('switching to delete');
-    editingNotifier.value = item;
     state = ViewState.delete;
-  }
-
-  @override
-  Future<void> cancel() async {
-    print('cancelling');
-    editingNotifier.value = null;
-    state = ViewState.read;
   }
 
   //crud ops
   @override
-  Future<PlaylistData> create() async {
+  Future<List<PlaylistData?>> create() async {
     var data = PlaylistData(name: '');
     await update(data);
-    return data;
+    return [data];
   }
 
   @override
@@ -191,10 +167,9 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     item.art = newArt.text;
     var tmp = List.of(playlists);
     print('saving playlist changes to db');
-    var newItem =
-        (item.id == null || !await widget.db.playlistExists(item.id!));
+    bool isNew = (item.id == null || !await widget.db.playlistExists(item.id!));
     await item.saveData();
-    if (newItem) tmp.add(item);
+    if (isNew) tmp.add(item);
     playlists = tmp;
   }
 
@@ -215,7 +190,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     if (tmp.contains(song)) {
       print('Removing song from playlist');
       tmp.remove(song);
-      await widget.db.delPlaylistSong(playlistToEdit!.getEntry(),
+      await widget.db.delPlaylistSong(itemToEdit!.getEntry(),
           (await widget.db.getSongData(int.parse(song.id)))!);
       songs.value = tmp;
     }
@@ -406,10 +381,10 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
 
   @override
   Widget updateView(BuildContext context) {
-    if (playlistToEdit == null) {
+    if (itemToEdit == null) {
       return Text('Invalid Playlist');
     }
-    var playlist = playlistToEdit!;
+    var playlist = itemToEdit!;
     //setPlaylistSongs();
     print('${songs.value.length} songs gotten');
     return Center(
@@ -619,28 +594,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
 
   @override
   Widget deleteView(BuildContext context) {
+    setRead();
     return readView(context);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<ViewState>(
-      valueListenable: stateNotifier,
-      builder: (context, state, _) {
-        print('current state: $state');
-        switch (state) {
-          case ViewState.create:
-            return createView(context);
-          case ViewState.read:
-            return readView(context);
-          case ViewState.update:
-            return updateView(context);
-          case ViewState.delete:
-            return deleteView(context);
-          default:
-            return Center(child: Text('Invalid State'));
-        }
-      },
-    );
   }
 }
