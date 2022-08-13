@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_window_close/flutter_window_close.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:test_project/screens/themedPage.dart';
@@ -15,9 +16,17 @@ class PageNav extends StatefulWidget {
 
   bool _alertShowing = false;
 
+  Future<bool> Function() androidOnBack = () async {
+    print('default back');
+    return true;
+  };
+
   Future<bool> exitDialog(BuildContext context) async {
-    //print('running alert');
-    if (_alertShowing) return false;
+    print('running alert');
+    if (_alertShowing) {
+      print('alert is showing: $_alertShowing');
+      return false;
+    }
     _alertShowing = true;
     //print('awaiting show dialog');
     bool? result = await showDialog(
@@ -28,19 +37,18 @@ class PageNav extends StatefulWidget {
               title: const Text('Do you really want to quit?'),
               actions: [
                 ElevatedButton(
-                    // style: ButtonStyle(
-                    //   backgroundColor:
-                    //       MaterialStateProperty.all<Color>(Colors.red),
-                    // ),
                     onPressed: () {
                       Navigator.of(context).pop(true);
                       _alertShowing = false;
                     },
-                    child: const Text('Yes')),
+                    child: Text(
+                      'Yes',
+                      style: TextStyle(
+                          color:
+                              Theme.of(context).primaryTextTheme.button!.color),
+                    )),
                 ElevatedButton(
                     style: ButtonStyle(
-                      foregroundColor:
-                          MaterialStateProperty.all<Color>(Colors.black),
                       backgroundColor: MaterialStateProperty.all<Color>(
                           const Color.fromARGB(255, 202, 202, 202)),
                     ),
@@ -76,9 +84,14 @@ class PageNav extends StatefulWidget {
     FlutterWindowClose.setWindowShouldCloseHandler(result);
   }
 
-  void goto(BuildContext context, String route) {
+  void goto(BuildContext context, String route, [bool popNav = false]) {
     if (app.routes.containsKey(route)) {
       if (route != app.currentRoute) {
+        print('resetting back button');
+        androidOnBack = () async {
+          goto(context, '/');
+          return false;
+        };
         app.currentRoute = route;
         app.floatingActionNotifier.value = HideableFloatingActionData(false);
         app.routeNotifier.value = route;
@@ -88,11 +101,9 @@ class PageNav extends StatefulWidget {
     } else {
       //when route doesn't exist
     }
-    Navigator.pop(context);
-  }
-
-  void refresh(BuildContext context) {
-    goto(context, app.currentRoute);
+    if (popNav) {
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -134,6 +145,7 @@ class _PageNavState extends State<PageNav> {
           builder = app.routes['/'];
           app.currentRoute = '/';
         } else {
+          //reset back button function
           app.currentRoute = newRoute;
         }
         var size = MediaQuery.of(context).size;
@@ -144,9 +156,8 @@ class _PageNavState extends State<PageNav> {
           children: [
             Padding(
               padding: EdgeInsets.only(bottom: 100),
-              child: Container(
-                //height: newHeight,
-                //color: Colors.red,
+              child: WillPopScope(
+                onWillPop: () => widget.androidOnBack(),
                 child: builder!(context),
               ),
             ),

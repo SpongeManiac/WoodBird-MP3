@@ -54,14 +54,13 @@ class SongData extends BaseDataDB {
 
   static SongData fromSource(AudioSource source) {
     MediaItem tag = AudioInterface.getTag(source);
+    print('got tag: \n${tag.id}\n${tag.title}\n${tag.artist}');
     var basename = ((source as UriAudioSource).uri.toFilePath());
     return SongData(
       id: int.tryParse(tag.id),
       name: tag.title,
       artist: tag.artist ?? '',
-      localPath: p.join(
-        app.songsDir,
-      ),
+      localPath: p.join(app.songsDir, basename),
     );
   }
 

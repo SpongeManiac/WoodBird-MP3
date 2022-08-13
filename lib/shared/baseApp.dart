@@ -206,14 +206,17 @@ class BaseApp extends StatefulWidget {
       // var newUri = p.join(songsDir, song.localPath);
       var songPath = getSongCachePath(song.localPath);
       print('loading from path: $songPath');
-      songs.add(AudioSource.uri(
+
+      var loadedSong = AudioSource.uri(
         getSongUri(songPath),
         tag: MediaItem(
           id: '${song.id}',
           title: song.name,
           artist: song.artist,
         ),
-      ));
+      );
+      print('loaded song info:\n${song.name}\n${song.localPath}');
+      songs.add(loadedSong);
     }
     songsNotifier.value = songs;
   }

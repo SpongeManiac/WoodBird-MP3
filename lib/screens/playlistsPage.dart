@@ -138,7 +138,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     // if (item.id != null) {
     //   print('editing ${item.name} - ${item.id}');
     // }
-    editingNotifier.value = item;
+    itemToEdit = item;
     newName.text = itemToEdit!.name;
     newDescription.text = itemToEdit!.description;
     newArt.text = itemToEdit!.art;
@@ -169,7 +169,11 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     print('saving playlist changes to db');
     bool isNew = (item.id == null || !await widget.db.playlistExists(item.id!));
     await item.saveData();
-    if (isNew) tmp.add(item);
+    if (isNew) {
+      tmp.add(item);
+    } else {
+      tmp[tmp.indexOf(item)] = item;
+    }
     playlists = tmp;
   }
 
@@ -320,7 +324,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
       builder: ((context, newPlaylists, _) {
         print('got playlists: ${newPlaylists.toList()}');
         return RefreshIndicator(
-          onRefresh: () async => () {},
+          onRefresh: () async => setState(() {}),
           child: ScrollConfiguration(
             behavior: ScrollConfiguration.of(context).copyWith(
               dragDevices: {

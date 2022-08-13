@@ -56,6 +56,14 @@ class HomePage extends ThemedPage {
           }),
     ]);
   }
+
+  @override
+  void initState(BuildContext context) {
+    super.initState(context);
+    setAndroidBack(() async {
+      return await app.navigation.exitDialog(context);
+    });
+  }
 }
 
 class _HomePageState extends State<HomePage> {

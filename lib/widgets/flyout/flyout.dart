@@ -9,7 +9,7 @@ class Flyout extends StatelessWidget {
   Map<String, ThemedPage Function(BuildContext)> get routes => app.routes;
 
   void navigate(BuildContext context, String route) {
-    app.navigation.goto(context, route);
+    app.navigation.goto(context, route, true);
   }
 
   @override

@@ -56,6 +56,10 @@ abstract class ThemedPage extends StatefulWidget {
     setAppBarData(tmp);
   }
 
+  void setAndroidBack(Future<bool> Function() callback) {
+    app.navigation.androidOnBack = callback;
+  }
+
   void initState(BuildContext context) {
     setAppBarData(getDefaultAppBar());
   }

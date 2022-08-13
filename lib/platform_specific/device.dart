@@ -38,12 +38,18 @@ class DesktopApp extends BaseApp {
     return path;
   }
 
+  Future<bool> closeDialog(BuildContext context) async {
+    bool result = await navigation.exitDialog(context);
+    print('closeDialog result: $result');
+    return result;
+  }
+
   @override
   Future<void> closeApp(BuildContext context) async {
     if (kIsWeb) return;
     if (isMobile) {
-      bool result = false;
-      result = await navigation.exitDialog(context);
+      bool result = await closeDialog(context);
+      print('got dialog result');
       if (result) {
         if (Platform.isAndroid) {
           //Android
