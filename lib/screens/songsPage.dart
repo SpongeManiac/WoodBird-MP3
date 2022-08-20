@@ -1,10 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 //import 'package:badges/badges.dart';
 //import 'package:marquee/marquee.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
-import 'package:path/path.dart' show basename;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -12,6 +12,7 @@ import 'package:select_dialog/select_dialog.dart';
 import 'package:test_project/database/database.dart';
 import 'package:test_project/models/states/song/songData.dart';
 import 'package:test_project/screens/CRUDPage.dart';
+import 'package:test_project/widgets/artUri.dart';
 import 'package:test_project/widgets/contextPopupButton.dart';
 import '../models/AudioInterface.dart';
 import '../models/contextItemTuple.dart';
@@ -55,17 +56,19 @@ class _SongsPageState extends CRUDState<AudioSource> {
   set songs(List<AudioSource> newSongs) =>
       widget.app.songsNotifier.value = newSongs;
   //List<AudioSource> get queue => interface.queueNotifier.value.children;
-  set queue(queue) => interface.queueNotifier.value = queue;
+  //set queue(queue) => interface.queueNotifier.value = queue;
 
   ValueNotifier<bool> loadingSongsNotifier = ValueNotifier<bool>(false);
   ValueNotifier<double?> loadingProgressNotifier = ValueNotifier<double?>(0);
+  ValueNotifier<String> artUriNotifier = ValueNotifier<String>('');
 
   MediaItem get toEditTag {
     return AudioInterface.getTag(itemToEdit!);
   }
 
-  TextEditingController newName = TextEditingController(text: '');
   TextEditingController newArtist = TextEditingController(text: '');
+  TextEditingController newAlbum = TextEditingController(text: '');
+  TextEditingController newName = TextEditingController(text: '');
   TextEditingController newArt = TextEditingController(text: '');
 
   ContextPopupButton getSongContext(AudioSource song) {
@@ -172,6 +175,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
   @override
   Future<void> setRead() async {
     super.setRead();
+    artUriNotifier.value = '';
     widget.setAndroidBack(() async {
       widget.app.navigation.goto(context, '/');
       return false;
@@ -192,13 +196,58 @@ class _SongsPageState extends CRUDState<AudioSource> {
     itemToEdit = item;
     newName.text = tag.title;
     newArtist.text = tag.artist ?? '';
-    newArt.text = tag.artUri == null ? '' : tag.artUri!.path;
+    var tagArtUri = tag.artUri.toString();
+    print('tag arturi: $tagArtUri');
+    newArt.text = tag.artUri == null ? '' : tagArtUri;
+    artUriNotifier.value = newArt.text;
+    //print('newArt: ${newArt.text}');
     state = ViewState.update;
   }
 
   @override
   Future<void> setDelete(AudioSource item) async {
     await cancel();
+  }
+
+  Future<String> getArt() async {
+    var artDir = Directory(widget.app.artDir);
+    if (!await artDir.exists()) {
+      await artDir.create();
+    }
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowMultiple: false,
+      allowedExtensions: ['png', 'jpg'],
+      withData: false,
+      withReadStream: true,
+    );
+
+    if (result != null && result.count == 1) {
+      String? path = result.paths[0];
+      if (path == null) return '';
+      String base = p.basename(path);
+      //var dir = p.join(songs, base);
+
+      String ogPath = path;
+      print('og path: $ogPath');
+      File tempFile = File(ogPath);
+      String newPath = p.join(artDir.path, base);
+      File preCachedFile = File(newPath);
+      //check if file already exists
+      if (!await preCachedFile.exists()) {
+        var cacheFile = await tempFile.rename(newPath);
+        print('cachedFile path: ${cacheFile.path}');
+      }
+      //remove temp cache file
+      if (await tempFile.exists()) {
+        await tempFile.delete();
+      }
+
+      return preCachedFile.path;
+    } else {
+      print('No result or cancelled');
+      return '';
+    }
   }
 
   //crud ops
@@ -227,7 +276,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
         String? path = result.paths[i];
         path ??= '-1';
         if (path == '-1') continue;
-        String base = basename(path);
+        String base = p.basename(path);
         //var dir = p.join(songs, base);
 
         String ogPath = result.paths[i]!;
@@ -263,15 +312,17 @@ class _SongsPageState extends CRUDState<AudioSource> {
         UriAudioSource songSource = AudioSource.uri(
             widget.app.getSongUri(widget.app.getSongCachePath(base)),
             tag: MediaItem(
-              id: '',
-              artist: 'unknown',
+              id: '-1',
               title: name,
-              artUri: Uri.file(''),
+              artist: '',
+              album: '',
             ));
         newName.text = name;
         newArtist.text = 'unknown';
+        newAlbum.text = '';
         newArt.text = '';
         await update(songSource);
+        print('updated artist: ${(songSource.tag as MediaItem).artist}');
         //print(songSource);
         print('Adding: ${songSource.uri}');
         newSongs.add(songSource);
@@ -288,14 +339,15 @@ class _SongsPageState extends CRUDState<AudioSource> {
   }
 
   @override
-  Future<void> update(AudioSource item) async {
+  Future<AudioSource> update(AudioSource item) async {
     MediaItem tag = AudioInterface.getTag(item);
     print('updating ${tag.title} with id ${tag.id}');
     var newTag = MediaItem(
       id: tag.id,
       title: newName.text,
       artist: newArtist.text,
-      artUri: Uri.file(newArt.text),
+      album: newAlbum.text,
+      artUri: Uri.parse(newArt.text),
     );
 
     var newSong = AudioSource.uri(
@@ -307,16 +359,19 @@ class _SongsPageState extends CRUDState<AudioSource> {
     var newItem = SongData.fromSource(newSong);
     bool isNew =
         (newItem.id == null || !await widget.db.songExists(newItem.id!));
-    print('updated song: ${newTag.title}, ${newTag.id}');
+    print('updated song: ${newTag.title}, ${newTag.id}, ${newTag.artist}');
     //update song in db if it exists
     print('saving song changes to db');
     await newItem.saveData();
+    //update newSong's ID
+    newSong = newItem.source;
     if (isNew) {
-      tmp.add(item);
+      tmp.add(newSong);
     } else {
       tmp[tmp.indexOf(item)] = newSong;
     }
     songs = tmp;
+    return newSong;
   }
 
   @override
@@ -336,7 +391,8 @@ class _SongsPageState extends CRUDState<AudioSource> {
         SongDataDB(
             id: idx,
             artist: tag.artist ?? '',
-            name: tag.title,
+            album: tag.album ?? '',
+            title: tag.title,
             localPath: item.uri.path,
             art: tag.artUri == null ? '' : tag.artUri!.path),
       );
@@ -368,8 +424,9 @@ class _SongsPageState extends CRUDState<AudioSource> {
                   Icons.add_rounded,
                   color: Theme.of(context).primaryColorDark,
                 ),
-                onTap: () {
-                  create();
+                onTap: () async {
+                  await create();
+                  setState(() {});
                 },
               ),
             ];
@@ -387,9 +444,10 @@ class _SongsPageState extends CRUDState<AudioSource> {
             }
             children.add(Expanded(
               child: RefreshIndicator(
-                onRefresh: () async => setState(() async {
+                onRefresh: () async {
                   await widget.app.loadSongs();
-                }),
+                  setState(() {});
+                },
                 child: ScrollConfiguration(
                   behavior: ScrollConfiguration.of(context).copyWith(
                     dragDevices: {
@@ -405,7 +463,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
                       AudioSource song = newSongs[index];
                       MediaItem tag = AudioInterface.getTag(song);
                       var songContextBtn = getSongContext(song);
-
+                      print('song art: ${tag.artUri}');
                       return ListTile(
                         enabled: true,
                         onTap: () {
@@ -417,6 +475,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
                           //print(widget.songContexts[song]);
                           songContexts[song]!.showDialog();
                         },
+                        leading: ArtUri(tag.artUri ?? Uri.parse('')),
                         title: Text(tag.title),
                         subtitle: Text(tag.artist ?? 'empty'),
                         trailing: songContextBtn,
@@ -507,48 +566,68 @@ class _SongsPageState extends CRUDState<AudioSource> {
                       PointerDeviceKind.mouse,
                     },
                   ),
-                  child: ListView.builder(
-                      itemCount: 3,
-                      itemBuilder: (context, index) {
-                        newName.text = toEditTag.title;
-                        newArtist.text = toEditTag.artist ?? '';
-                        newArt.text = toEditTag.artUri == null
-                            ? ''
-                            : toEditTag.artUri!.path;
-                        switch (index) {
-                          case 0:
-                            return ListTile(
-                              leading: Container(
-                                width: 80,
-                                child: const Text('Name:'),
-                              ),
-                              title: TextFormField(
-                                controller: newName,
-                              ),
-                            );
-                          case 1:
-                            return ListTile(
-                              leading: Container(
-                                width: 80,
-                                child: const Text('Artist:'),
-                              ),
-                              title: TextFormField(
-                                controller: newArtist,
-                              ),
-                            );
-                          case 2:
-                            return ListTile(
-                              leading: Container(
-                                width: 80,
-                                child: const Text('Cover Art:'),
-                              ),
-                              title: TextFormField(
-                                controller: newArt,
-                              ),
-                            );
-                        }
-                        return ListTile(title: Text('invalid index'));
-                      }),
+                  child: ListView(
+                    children: [
+                      ListTile(
+                        title: const Text('Name'),
+                        subtitle: TextFormField(
+                          controller: newName,
+                        ),
+                      ),
+                      ListTile(
+                        title: Text('Artist'),
+                        subtitle: TextFormField(
+                          controller: newAlbum,
+                        ),
+                      ),
+                      ListTile(
+                        title: Text('Album'),
+                        subtitle: TextFormField(
+                          controller: newAlbum,
+                        ),
+                      ),
+                      ListTile(
+                        title: const Text('Song Art'),
+                        subtitle: TextFormField(
+                          controller: newArt,
+                          onChanged: (text) async {
+                            artUriNotifier.value = text;
+                          },
+                          onFieldSubmitted: (text) async {
+                            //print('Text changed: $text');
+                            artUriNotifier.value = text;
+                            //newArt.text;
+                          },
+                        ),
+                        trailing: IconButton(
+                          icon: Icon(
+                            Icons.folder_open_rounded,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                          onPressed: () async {
+                            String artPath = await getArt();
+                            print('Art path: $artPath');
+                            newArt.text = artPath;
+                          },
+                        ),
+                      ),
+                      Container(
+                        width: 200,
+                        height: 200,
+                        constraints: BoxConstraints(
+                          maxHeight: 200,
+                          maxWidth: 200,
+                        ),
+                        child: ValueListenableBuilder<String>(
+                          valueListenable: artUriNotifier,
+                          builder: ((context, newUri, child) {
+                            print('Notifier updated: $newUri');
+                            return ArtUri(Uri.parse(newUri));
+                          }),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

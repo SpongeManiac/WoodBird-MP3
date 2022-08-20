@@ -3,8 +3,10 @@ import 'package:flutter/scheduler.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:marquee/marquee.dart';
+import 'package:path/path.dart';
 //import 'package:test_project/models/AudioInterface_old.bak';
 import 'package:test_project/screens/songsPage.dart';
+import 'package:test_project/widgets/artUri.dart';
 import 'package:test_project/widgets/loopModeButton.dart';
 import 'package:test_project/widgets/shuffleModeButton.dart';
 import '../globals.dart' show app;
@@ -110,6 +112,10 @@ class _PlayerMenuState extends State<PlayerMenu> {
             await widget.interface.moveEnd(song);
             setState(() {});
           }),
+          'Remove All': ContextItemTuple(Icons.low_priority_rounded, () async {
+            await widget.interface.removeAll();
+            setState(() {});
+          }),
         };
 
         List<PopupMenuItem<String>> list = [];
@@ -152,6 +158,9 @@ class _PlayerMenuState extends State<PlayerMenu> {
     return ValueListenableBuilder<int>(
       valueListenable: widget.interface.queueNotifier,
       builder: (context, newQueue, _) {
+        if (widget.interface.playlist.length == 0) {
+          newQueue = 0;
+        }
         return Center(
           child: Container(
             color: Theme.of(context).backgroundColor,
@@ -200,18 +209,28 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                     stream: widget
                                         .interface.player.currentIndexStream,
                                     builder: (context, newSong) {
-                                      var idx = newSong.data ?? 0;
+                                      var idx = newSong.data ?? -1;
                                       //print('idx is $idx');
                                       AudioSource source;
-                                      if (newQueue == 0) {
+                                      if (idx == -1) {
+                                        if (newQueue > 0) {
+                                          source = widget.interface.playlist[0];
+                                        } else {
+                                          source = widget
+                                              .interface.emptyQueue.source;
+                                        }
+                                      } else if (newQueue == 0) {
                                         source =
                                             widget.interface.emptyQueue.source;
-                                      } else if (idx == newQueue) {
-                                        source =
-                                            widget.interface.playlist[idx - 1];
                                       } else {
                                         source = widget.interface.playlist[idx];
                                       }
+                                      // } else if (idx == newQueue) {
+                                      //   source =
+                                      //       widget.interface.playlist[idx - 1];
+                                      // } else {
+                                      //   source = widget.interface.playlist[idx];
+                                      // }
                                       MediaItem tag =
                                           AudioInterface.getTag(source);
                                       // print((source as UriAudioSource)
@@ -362,74 +381,54 @@ class _PlayerMenuState extends State<PlayerMenu> {
                       })),
                 ),
                 Expanded(
-                  child: Stack(
-                    children: [
-                      //Expanded(
-                      //child:
-                      Center(
-                        child: Container(
-                          width: double.infinity,
-                          height: double.infinity,
-                          //mainAxisAlignment: MainAxisAlignment.center,
-                          color: Theme.of(context)
-                              .primaryColorLight
-                              .withOpacity(0.2),
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: Icon(
-                              Icons.music_note_rounded,
+                  child: StreamBuilder(
+                    stream: widget.interface.player.currentIndexStream,
+                    builder: (context, AsyncSnapshot<int?> snapshot) {
+                      int currentPlaying = snapshot.data ?? -1;
+                      var noSongUri = Uri.parse('');
+                      AudioSource? currentSong;
+                      MediaItem? currentSongTag;
+                      if (currentPlaying != -1 && newQueue != 0) {
+                        currentSong = widget.interface.playlist[currentPlaying];
+                        currentSongTag = AudioInterface.getTag(currentSong);
+                      }
+                      print('loading song queu in media menu');
+                      return Stack(
+                        children: [
+                          //Expanded(
+                          //child:
+                          Center(
+                            child: Container(
+                              width: double.infinity,
+                              height: double.infinity,
+                              //mainAxisAlignment: MainAxisAlignment.center,
                               color: Theme.of(context)
                                   .primaryColorLight
                                   .withOpacity(0.2),
+                              child: ArtUri(
+                                  newQueue > 0 && currentPlaying > -1
+                                      ? currentSongTag!.artUri ?? noSongUri
+                                      : noSongUri,
+                                  20),
                             ),
                           ),
-                        ),
-                      ),
-                      StreamBuilder(
-                          stream: widget.interface.player.currentIndexStream,
-                          builder: ((context, AsyncSnapshot<int?> snapshot) {
-                            int currentPlaying = snapshot.data ?? -1;
-                            return ReorderableListView.builder(
-                                onReorder: (int oldIndex, int newIndex) {
-                                  widget.interface.move(oldIndex, newIndex);
-                                },
-                                itemCount: newQueue,
-                                itemBuilder: (((context, index) {
-                                  bool isCurrent = index == currentPlaying;
-                                  AudioSource song =
-                                      widget.interface.playlist[index];
-                                  MediaItem tag = AudioInterface.getTag(song);
-                                  var songContextBtn =
-                                      getSongContext(context, song);
-                                  if (isCurrent) {
-                                    return Container(
-                                        key: ValueKey(index),
-                                        child: ListTile(
-                                          onTap: () async {
-                                            await widget.interface
-                                                .setCurrent(song);
-                                          },
-                                          title: Text(
-                                            tag.title,
-                                            style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .primaryColorLight,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          subtitle: Text(
-                                            tag.artist ?? '',
-                                            style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .primaryColorLight,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          trailing: songContextBtn,
-                                        ));
-                                  } else {
-                                    return ListTile(
-                                      key: ValueKey(index),
+
+                          ReorderableListView.builder(
+                            onReorder: (int oldIndex, int newIndex) {
+                              widget.interface.move(oldIndex, newIndex);
+                            },
+                            itemCount: newQueue,
+                            itemBuilder: (context, index) {
+                              var isCurrent = index == currentPlaying;
+                              AudioSource song =
+                                  widget.interface.playlist[index];
+                              MediaItem tag = AudioInterface.getTag(song);
+                              var songContextBtn =
+                                  getSongContext(context, song);
+                              if (isCurrent) {
+                                return Container(
+                                    key: ValueKey(index),
+                                    child: ListTile(
                                       onTap: () async {
                                         await widget.interface.setCurrent(song);
                                       },
@@ -438,6 +437,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                         style: TextStyle(
                                           color: Theme.of(context)
                                               .primaryColorLight,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                       subtitle: Text(
@@ -445,14 +445,39 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                         style: TextStyle(
                                           color: Theme.of(context)
                                               .primaryColorLight,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                       trailing: songContextBtn,
-                                    );
-                                  }
-                                })));
-                          })),
-                    ],
+                                    ));
+                              } else {
+                                return ListTile(
+                                  key: ValueKey(index),
+                                  onTap: () async {
+                                    await widget.interface.setCurrent(song);
+                                  },
+                                  title: Text(
+                                    tag.title,
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(context).primaryColorLight,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    tag.artist ?? '',
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(context).primaryColorLight,
+                                    ),
+                                  ),
+                                  trailing: songContextBtn,
+                                );
+                              }
+                            },
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],

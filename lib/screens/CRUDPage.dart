@@ -83,11 +83,13 @@ abstract class CRUDState<T> extends State<ThemedPage> {
   Future<List<T?>> create();
   //Future<List<T>> createAll();
   //Future<void> read();
-  Future<void> update(T item);
-  Future<void> updateAll(List<T> items) async {
+  Future<T> update(T item);
+  Future<List<T>> updateAll(List<T> items) async {
+    List<T> updated = [];
     for (T item in items) {
-      await update(item);
+      updated.add(await update(item));
     }
+    return updated;
   }
 
   Future<void> delete(T item);

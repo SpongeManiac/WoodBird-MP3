@@ -31,7 +31,6 @@ class HomePageData extends BaseDataDB {
     HomePageStateDB data = dataclass as HomePageStateDB;
     var copy = this.copy();
     copy.theme = data.theme;
-    copy.count = data.count;
     copy.color = data.color;
     copy.controls = json.decode(data.controls).cast<int>();
     copy.swapTrack = data.swapTrack;
@@ -44,7 +43,6 @@ class HomePageData extends BaseDataDB {
     return HomePageStateDB(
       id: 1,
       theme: theme,
-      count: count,
       color: color,
       controls: controls.toString(),
       swapTrack: swapTrack,

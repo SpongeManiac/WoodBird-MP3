@@ -13,15 +13,17 @@ import '../../../database/database.dart';
 class SongData extends BaseDataDB {
   SongData({
     required this.artist,
-    required this.name,
+    required this.title,
     required this.localPath,
+    this.album = '',
     this.art = '',
     this.id,
   });
   int? id;
   String art;
   String artist;
-  String name;
+  String album;
+  String title;
   String localPath;
 
   UriAudioSource get source => AudioSource.uri(
@@ -29,17 +31,21 @@ class SongData extends BaseDataDB {
         tag: MediaItem(
           id: '$id',
           artist: artist,
-          title: name,
+          album: album,
+          title: title,
+          artUri: Uri.parse(art),
         ),
       );
 
   @override
   SongData copy() {
     return SongData(
-      artist: artist,
-      name: name,
-      localPath: localPath,
       id: id,
+      artist: artist,
+      album: album,
+      title: title,
+      localPath: localPath,
+      art: art,
     );
   }
 
@@ -47,7 +53,8 @@ class SongData extends BaseDataDB {
     return SongData(
         id: data.id,
         artist: data.artist,
-        name: data.name,
+        album: data.album,
+        title: data.title,
         localPath: data.localPath,
         art: data.art);
   }
@@ -58,9 +65,11 @@ class SongData extends BaseDataDB {
     var basename = ((source as UriAudioSource).uri.toFilePath());
     return SongData(
       id: int.tryParse(tag.id),
-      name: tag.title,
       artist: tag.artist ?? '',
+      album: tag.album ?? '',
+      title: tag.title,
       localPath: p.join(app.songsDir, basename),
+      art: tag.artUri == null ? '' : tag.artUri!.toString(),
     );
   }
 
@@ -70,9 +79,10 @@ class SongData extends BaseDataDB {
     var copy = this.copy();
     copy.id = data.id;
     copy.artist = data.artist;
-    copy.name = data.name;
+    copy.album = data.album;
+    copy.title = data.title;
     copy.localPath = data.localPath;
-    copy.art = art;
+    copy.art = data.art;
     return copy;
   }
 
@@ -80,8 +90,10 @@ class SongData extends BaseDataDB {
   SongsCompanion getCompanion() {
     return SongsCompanion(
       artist: Value(artist),
-      name: Value(name),
+      album: Value(album),
+      title: Value(title),
       localPath: Value(localPath),
+      art: Value(art),
     );
   }
 
@@ -90,7 +102,8 @@ class SongData extends BaseDataDB {
     return SongDataDB(
       id: id!,
       artist: artist,
-      name: name,
+      album: album,
+      title: title,
       localPath: localPath,
       art: art,
     );

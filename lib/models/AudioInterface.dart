@@ -92,7 +92,12 @@ class AudioInterface {
   //bool get && ;
   ValueNotifier<bool> playingNotifier = ValueNotifier(false);
   SongData get emptyQueue => SongData(
-      name: 'Select a song', artist: 'to start jamming!', localPath: '');
+        artist: 'to start jamming!',
+        title: 'Select a song',
+        localPath: '',
+        album: '',
+        art: '',
+      );
   ValueNotifier<int> queueNotifier = ValueNotifier(0);
 
   static MediaItem getTag(AudioSource source) {
@@ -607,6 +612,12 @@ class AudioInterface {
     playlist.removeAt(idx);
     queueNotifier.value = playlist.length;
     // }
+  }
+
+  Future<void> removeAll() async {
+    while (playlist.children.isNotEmpty) {
+      remove(playlist.children[0]);
+    }
   }
 
   Future<void> setQueue(List<AudioSource> songs) async {

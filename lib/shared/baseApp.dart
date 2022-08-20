@@ -31,10 +31,12 @@ class BaseApp extends StatefulWidget {
       this.navTitle = 'WoodBird MP3'}) {
     () async {
       songsDir = await getSongsDir();
+      artDir = await getArtDir();
     }();
   }
 
   late String songsDir;
+  late String artDir;
 
   Future<String> getSongsDir() async {
     var docs = await getApplicationDocumentsDirectory();
@@ -48,6 +50,16 @@ class BaseApp extends StatefulWidget {
 
   Uri getSongUri(String songPath) {
     return Uri.file(songPath);
+  }
+
+  Future<String> getArtDir() async {
+    var docs = await getApplicationDocumentsDirectory();
+    var art = 'art';
+    return p.join(docs.path, art);
+  }
+
+  String getArtCachePath(String base) {
+    return p.join(artDir, base);
   }
 
   AudioInterface? _audioInterface;
@@ -117,6 +129,7 @@ class BaseApp extends StatefulWidget {
       appBar: appBar,
       drawer: flyout,
       body: navigation,
+      resizeToAvoidBottomInset: false,
     );
   }
 
@@ -155,7 +168,6 @@ class BaseApp extends StatefulWidget {
     homeStateDB ??= HomePageStateDB(
       id: 1,
       theme: 0,
-      count: 0,
       color: 0xFF000000,
       controls: '[0,1,2,3,4]',
       swapTrack: false,
@@ -167,7 +179,6 @@ class BaseApp extends StatefulWidget {
       homeStateDB = HomePageStateDB(
         id: 1,
         theme: 0,
-        count: homeStateDB.count,
         color: homeStateDB.color,
         controls: homeStateDB.controls,
         swapTrack: homeStateDB.swapTrack,
@@ -211,11 +222,13 @@ class BaseApp extends StatefulWidget {
         getSongUri(songPath),
         tag: MediaItem(
           id: '${song.id}',
-          title: song.name,
           artist: song.artist,
+          album: song.album,
+          title: song.title,
+          artUri: Uri.parse(song.art),
         ),
       );
-      print('loaded song info:\n${song.name}\n${song.localPath}');
+      print('loaded song info:\n${song.title}\n${song.localPath}\n${song.art}');
       songs.add(loadedSong);
     }
     songsNotifier.value = songs;
@@ -227,7 +240,7 @@ class BaseApp extends StatefulWidget {
     List<PlaylistDataDB> playlistsDB = await globals.db.getAllPlaylists();
     for (var list in playlistsDB) {
       playlists.add(PlaylistData(
-        name: list.name,
+        title: list.title,
         description: list.description,
         art: list.art,
         id: list.id,

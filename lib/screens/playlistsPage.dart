@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:expandable/expandable.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
@@ -12,9 +15,11 @@ import 'package:test_project/models/states/song/songData.dart';
 import 'package:test_project/screens/CRUDPage.dart';
 import 'package:test_project/screens/themedPage.dart';
 import 'package:test_project/widgets/contextPopupButton.dart';
+import 'package:path/path.dart' as p;
 
 import '../models/contextItemTuple.dart';
 import '../widgets/appBar.dart';
+import '../widgets/artUri.dart';
 
 class PlaylistsPage extends ThemedPage {
   PlaylistsPage({super.key, required super.title});
@@ -32,6 +37,7 @@ class PlaylistsPage extends ThemedPage {
 
 class _PlaylistsPageState extends CRUDState<PlaylistData> {
   ValueNotifier<List<MediaItem>> songs = ValueNotifier(<MediaItem>[]);
+  ValueNotifier<String> artUriNotifier = ValueNotifier<String>('');
 
   TextEditingController newName = TextEditingController(text: '');
   TextEditingController newDescription = TextEditingController(text: '');
@@ -130,7 +136,65 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     return popup;
   }
 
+  Future<String> getArt() async {
+    var artDir = Directory(widget.app.artDir);
+    if (!await artDir.exists()) {
+      await artDir.create();
+    }
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowMultiple: false,
+      allowedExtensions: ['png', 'jpg'],
+      withData: false,
+      withReadStream: true,
+    );
+
+    if (result != null && result.count == 1) {
+      String? path = result.paths[0];
+      if (path == null) return '';
+      String base = p.basename(path);
+      //var dir = p.join(songs, base);
+
+      String ogPath = path;
+      print('og path: $ogPath');
+      File tempFile = File(ogPath);
+      String newPath = p.join(artDir.path, base);
+      File preCachedFile = File(newPath);
+      //check if file already exists
+      if (!await preCachedFile.exists()) {
+        var cacheFile = await tempFile.rename(newPath);
+        print('cachedFile path: ${cacheFile.path}');
+      }
+      //remove temp cache file
+      if (await tempFile.exists()) {
+        await tempFile.delete();
+      }
+
+      return preCachedFile.path;
+    } else {
+      print('No result or cancelled');
+      return '';
+    }
+  }
+
   //set states
+  @override
+  Future<void> setCreate() async {
+    newName.text = '';
+    newDescription.text = '';
+    newArt.text = '';
+    artUriNotifier.value = '';
+  }
+
+  @override
+  Future<void> setRead() async {
+    super.setRead();
+    artUriNotifier.value = '';
+    widget.setAndroidBack(() async {
+      widget.app.navigation.goto(context, '/');
+      return false;
+    });
+  }
 
   @override
   Future<void> setUpdate(PlaylistData item) async {
@@ -138,10 +202,15 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     // if (item.id != null) {
     //   print('editing ${item.name} - ${item.id}');
     // }
+    widget.setAndroidBack(() async {
+      cancel();
+      return false;
+    });
     itemToEdit = item;
-    newName.text = itemToEdit!.name;
+    newName.text = itemToEdit!.title;
     newDescription.text = itemToEdit!.description;
     newArt.text = itemToEdit!.art;
+    artUriNotifier.value = newArt.text;
     await setPlaylistSongs();
     state = ViewState.update;
   }
@@ -155,14 +224,14 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   //crud ops
   @override
   Future<List<PlaylistData?>> create() async {
-    var data = PlaylistData(name: '');
+    var data = PlaylistData(title: '');
     await update(data);
     return [data];
   }
 
   @override
-  Future<void> update(PlaylistData item) async {
-    item.name = newName.text;
+  Future<PlaylistData> update(PlaylistData item) async {
+    item.title = newName.text;
     item.description = newDescription.text;
     item.art = newArt.text;
     var tmp = List.of(playlists);
@@ -175,6 +244,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
       tmp[tmp.indexOf(item)] = item;
     }
     playlists = tmp;
+    return item;
   }
 
   @override
@@ -239,51 +309,69 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                       PointerDeviceKind.mouse,
                     },
                   ),
-                  child: ListView.builder(
-                      itemCount: 3 + songs.value.length,
-                      itemBuilder: (context, index) {
-                        newName.text = '';
-                        newDescription.text = '';
-                        newArt.text = '';
-                        switch (index) {
-                          case 0:
-                            return ListTile(
-                              leading: Container(
-                                width: 80,
-                                child: const Text('Name:'),
-                              ),
-                              title: TextFormField(
-                                controller: newName,
-                              ),
-                            );
-                          case 1:
-                            return ListTile(
-                              leading: Container(
-                                width: 80,
-                                child: const Text('Description:'),
-                              ),
-                              title: TextFormField(
-                                controller: newDescription,
-                              ),
-                            );
-                          case 2:
-                            return ListTile(
-                              leading: Container(
-                                width: 80,
-                                child: const Text('Cover Art:'),
-                              ),
-                              title: TextFormField(
-                                controller: newArt,
-                              ),
-                            );
-                          default:
-                            var tag = songs.value[index];
-                            return ListTile(
-                              title: Text(tag.title),
-                              subtitle: Text(tag.artist ?? ''),
-                            );
-                        }
-                      }),
+                  child: ListView(
+                    children: [
+                      ListTile(
+                        title: Container(
+                          width: 80,
+                          child: const Text('Name:'),
+                        ),
+                        subtitle: TextFormField(
+                          controller: newName,
+                        ),
+                      ),
+                      ListTile(
+                        title: Container(
+                          width: 80,
+                          child: const Text('Description:'),
+                        ),
+                        subtitle: TextFormField(
+                          controller: newDescription,
+                        ),
+                      ),
+                      ListTile(
+                        title: Container(
+                          width: 80,
+                          child: const Text('Playlist Art'),
+                        ),
+                        subtitle: TextFormField(
+                          controller: newArt,
+                          onChanged: (text) async {
+                            artUriNotifier.value = text;
+                          },
+                          onFieldSubmitted: (text) async {
+                            artUriNotifier.value = text;
+                          },
+                        ),
+                        trailing: IconButton(
+                          icon: Icon(
+                            Icons.folder_open_rounded,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                          onPressed: () async {
+                            String artPath = await getArt();
+                            print('Art path: $artPath');
+                            newArt.text = artPath;
+                          },
+                        ),
+                      ),
+                      Container(
+                        width: 200,
+                        height: 200,
+                        constraints: BoxConstraints(
+                          maxHeight: 200,
+                          maxWidth: 200,
+                        ),
+                        child: ValueListenableBuilder<String>(
+                          valueListenable: artUriNotifier,
+                          builder: ((context, newUri, child) {
+                            print('Notifier updated: $newUri');
+                            return ArtUri(Uri.parse(newUri));
+                          }),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -357,7 +445,8 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                               //print(widget.songContexts[song]);
                               playlistContexts[playlist]!.showDialog();
                             },
-                            title: Text(playlist.name),
+                            leading: ArtUri(Uri.parse(playlist.art)),
+                            title: Text(playlist.title),
                             subtitle: Text(playlist.description),
                             trailing: playlistContextBtn,
                           );
@@ -403,7 +492,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
               ),
               header: Center(
                 child: Text(
-                  playlist.name,
+                  playlist.title,
                   style: TextStyle(fontSize: 25),
                 ),
               ),
@@ -417,30 +506,62 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
               expanded: Column(
                 children: [
                   ListTile(
-                    leading: Container(
+                    title: Container(
                       width: 80,
                       child: const Text('Name:'),
                     ),
-                    title: TextFormField(
+                    subtitle: TextFormField(
                       controller: newName,
                     ),
                   ),
                   ListTile(
-                    leading: Container(
+                    title: Container(
                       width: 80,
-                      child: const Text('Description:'),
+                      child: const Text('Description'),
                     ),
-                    title: TextFormField(
+                    subtitle: TextFormField(
                       controller: newDescription,
                     ),
                   ),
                   ListTile(
-                    leading: Container(
+                    title: Container(
                       width: 80,
-                      child: const Text('Cover Art:'),
+                      child: const Text('Playlist Art'),
                     ),
-                    title: TextFormField(
+                    subtitle: TextFormField(
                       controller: newArt,
+                      onChanged: (text) async {
+                        artUriNotifier.value = text;
+                      },
+                      onFieldSubmitted: (text) async {
+                        artUriNotifier.value = text;
+                      },
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(
+                        Icons.folder_open_rounded,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      onPressed: () async {
+                        String artPath = await getArt();
+                        print('Art path: $artPath');
+                        newArt.text = artPath;
+                      },
+                    ),
+                  ),
+                  Container(
+                    width: 200,
+                    height: 200,
+                    constraints: BoxConstraints(
+                      maxHeight: 200,
+                      maxWidth: 200,
+                    ),
+                    child: ValueListenableBuilder<String>(
+                      valueListenable: artUriNotifier,
+                      builder: ((context, newUri, child) {
+                        print('Notifier updated: $newUri');
+                        return ArtUri(Uri.parse(newUri));
+                      }),
                     ),
                   ),
                   ElevatedButton(
@@ -526,7 +647,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                                     },
                                   );
                                 } else {
-                                  newName.text = playlist.name;
+                                  newName.text = playlist.title;
                                   newDescription.text = playlist.description;
                                   newArt.text = playlist.art;
                                   var tag = songs.value[index - 1];

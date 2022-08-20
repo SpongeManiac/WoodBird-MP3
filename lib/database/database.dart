@@ -10,14 +10,14 @@ class HomePageState extends Table {
   IntColumn get id =>
       integer().autoIncrement().withDefault(const Constant(1))();
   //info to preload widget
+  BoolColumn get darkMode => boolean().withDefault(const Constant(false))();
+  BoolColumn get swapTrack => boolean().withDefault(const Constant(false))();
   IntColumn get theme => integer().withDefault(const Constant(0))();
-  IntColumn get count => integer().withDefault(const Constant(0))();
+  //IntColumn get count => integer().withDefault(const Constant(0))();
   IntColumn get color => integer().withDefault(const Constant(0xFF000000))();
   TextColumn get controls => text()
       .withDefault(const Constant('[0, 1, 2, 3, 4]'))
       .withLength(min: 10, max: 20)();
-  BoolColumn get darkMode => boolean().withDefault(const Constant(false))();
-  BoolColumn get swapTrack => boolean().withDefault(const Constant(false))();
   //BoolColumn get
 }
 
@@ -35,33 +35,34 @@ class Songs extends Table {
   IntColumn get id => integer().autoIncrement()();
   //Song data
   TextColumn get artist => text().withLength(min: 0, max: 128)();
-  TextColumn get name => text().withLength(min: 0, max: 128)();
+  TextColumn get album => text().withLength(min: 0, max: 128)();
+  TextColumn get title => text().withLength(min: 0, max: 128)();
   // where the file is stored locally
-  TextColumn get localPath => text().withLength(min: 0, max: 512)();
+  TextColumn get localPath => text().withLength(min: 0, max: 1024)();
   TextColumn get art =>
-      text().withLength(min: 0, max: 512).withDefault(const Constant(''))();
+      text().withLength(min: 0, max: 1024).withDefault(const Constant(''))();
 }
 
 @DataClassName('PlaylistDataDB')
 class Playlists extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get name => text().withLength(min: 0, max: 128)();
+  TextColumn get title => text().withLength(min: 0, max: 128)();
   TextColumn get description =>
-      text().withLength(min: 0, max: 256).withDefault(const Constant(''))();
+      text().withLength(min: 0, max: 1024).withDefault(const Constant(''))();
   TextColumn get art =>
-      text().withLength(min: 0, max: 512).withDefault(const Constant(''))();
+      text().withLength(min: 0, max: 1024).withDefault(const Constant(''))();
 }
 
 @DataClassName('AlbumDataDB')
 class Albums extends Table {
   // PrimaryKey
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get name => text().withLength(min: 0, max: 128)();
+  TextColumn get title => text().withLength(min: 0, max: 128)();
   // set default to empty description
   TextColumn get description =>
-      text().withLength(min: 0, max: 256).withDefault(const Constant(''))();
+      text().withLength(min: 0, max: 1024).withDefault(const Constant(''))();
   TextColumn get art =>
-      text().withLength(min: 0, max: 512).withDefault(const Constant(''))();
+      text().withLength(min: 0, max: 1024).withDefault(const Constant(''))();
 }
 
 @DataClassName('PlaylistSongDataDB')
@@ -76,6 +77,17 @@ class AlbumSongs extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get album => integer().references(Albums, #id)();
   IntColumn get song => integer().references(Songs, #id)();
+}
+
+//streams
+@DataClassName('StreamDataDB')
+class Streams extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get title => text().withLength(min: 0, max: 128)();
+  TextColumn get description =>
+      text().withLength(min: 0, max: 1024).withDefault(const Constant(''))();
+  TextColumn get streamURL =>
+      text().withLength(min: 0, max: 1024).withDefault(const Constant(''))();
 }
 
 @DriftDatabase(tables: [
@@ -140,14 +152,14 @@ class SharedDatabase extends _$SharedDatabase {
   }
 
   Future<int> delSongData(SongDataDB song) async {
-    print('deleting ${song.name}, index ${song.id}');
+    print('deleting ${song.title}, index ${song.id}');
     return (delete(songs)..where((s) => s.id.equals(song.id))).go();
     //remove file?
   }
 
   Future<List<SongDataDB>> getAllSongs() async {
     return await (select(songs)
-          ..orderBy([(t) => OrderingTerm(expression: t.name)]))
+          ..orderBy([(t) => OrderingTerm(expression: t.title)]))
         .get();
   }
 
@@ -179,7 +191,7 @@ class SharedDatabase extends _$SharedDatabase {
   }
 
   Future<int> delPlaylistData(PlaylistDataDB playlist) async {
-    print('deleting ${playlist.name}, index ${playlist.id}');
+    print('deleting ${playlist.title}, index ${playlist.id}');
     return await (delete(playlists)..where((p) => p.id.equals(playlist.id)))
         .go();
   }
@@ -222,7 +234,7 @@ class SharedDatabase extends _$SharedDatabase {
 
   Future<List<PlaylistDataDB>> getAllPlaylists() async {
     return await (select(playlists)
-          ..orderBy([(t) => OrderingTerm(expression: t.name)]))
+          ..orderBy([(t) => OrderingTerm(expression: t.title)]))
         .get();
   }
 }

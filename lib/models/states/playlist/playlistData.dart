@@ -5,19 +5,24 @@ import '../baseState.dart';
 
 class PlaylistData extends BaseDataDB {
   PlaylistData({
-    required this.name,
+    required this.title,
     this.description = '',
     this.art = '',
     this.id,
   });
   int? id;
-  String name;
+  String title;
   String description;
   String art;
 
   @override
   PlaylistData copy() {
-    return PlaylistData(name: name, description: description, art: art, id: id);
+    return PlaylistData(
+      title: title,
+      description: description,
+      art: art,
+      id: id,
+    );
   }
 
   @override
@@ -25,7 +30,7 @@ class PlaylistData extends BaseDataDB {
     PlaylistData data = dataclass as PlaylistData;
     var copy = this.copy();
     copy.id = data.id;
-    copy.name = data.name;
+    copy.title = data.title;
     copy.description = data.description;
     copy.art = data.art;
     return copy;
@@ -34,7 +39,7 @@ class PlaylistData extends BaseDataDB {
   @override
   PlaylistsCompanion getCompanion() {
     return PlaylistsCompanion(
-      name: Value(name),
+      title: Value(title),
       description: Value(description),
       art: Value(art),
     );
@@ -44,7 +49,7 @@ class PlaylistData extends BaseDataDB {
   PlaylistDataDB getEntry() {
     return PlaylistDataDB(
       id: id!,
-      name: name,
+      title: title,
       description: description,
       art: art,
     );
