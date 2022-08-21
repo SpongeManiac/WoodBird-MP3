@@ -1,8 +1,8 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:expandable/expandable.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -10,7 +10,7 @@ import 'package:marquee/marquee.dart';
 import 'package:select_dialog/select_dialog.dart';
 import 'package:test_project/database/database.dart';
 import 'package:test_project/models/AudioInterface.dart';
-import 'package:test_project/models/states/playlist/playlistData.dart';
+import 'package:test_project/models/states/album/albumData.dart';
 import 'package:test_project/models/states/song/songData.dart';
 import 'package:test_project/screens/CRUDPage.dart';
 import 'package:test_project/screens/themedPage.dart';
@@ -21,8 +21,8 @@ import '../models/contextItemTuple.dart';
 import '../widgets/appBar.dart';
 import '../widgets/artUri.dart';
 
-class PlaylistsPage extends ThemedPage {
-  PlaylistsPage({super.key, required super.title});
+class AlbumsPage extends ThemedPage {
+  AlbumsPage({super.key, required super.title});
 
   @override
   AppBarData getDefaultAppBar() {
@@ -32,22 +32,26 @@ class PlaylistsPage extends ThemedPage {
   }
 
   @override
-  State<StatefulWidget> createState() => _PlaylistsPageState();
+  State<StatefulWidget> createState() => _AlbumsPageState();
 }
 
-class _PlaylistsPageState extends CRUDState<PlaylistData> {
+class _AlbumsPageState extends CRUDState<AlbumData> {
   ValueNotifier<List<MediaItem>> songs = ValueNotifier(<MediaItem>[]);
   ValueNotifier<String> artUriNotifier = ValueNotifier<String>('');
 
   TextEditingController newName = TextEditingController(text: '');
+  TextEditingController newArtist = TextEditingController(text: '');
   TextEditingController newDescription = TextEditingController(text: '');
   TextEditingController newArt = TextEditingController(text: '');
 
-  Map<PlaylistData, ContextPopupButton> playlistContexts =
-      <PlaylistData, ContextPopupButton>{};
+  Map<AlbumData, ContextPopupButton> albumContexts =
+      <AlbumData, ContextPopupButton>{};
 
-  List<PlaylistData> get playlists => widget.app.playlistsNotifier.value;
-  set playlists(playlists) => widget.app.playlistsNotifier.value = playlists;
+  List<AlbumData> get albums {
+    return widget.app.albumsNotifier.value;
+  }
+
+  set albums(albums) => widget.app.albumsNotifier.value = albums;
 
   @override
   void initState() {
@@ -55,10 +59,10 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     widget.initState(context);
   }
 
-  Future<void> setPlaylistSongs() async {
+  Future<void> setalbumSongs() async {
     if (itemToEdit == null) return;
     List<MediaItem> tmp = [];
-    List<SongDataDB> songsDB = await widget.db.getPlaylistSongs(itemToEdit!);
+    List<SongDataDB> songsDB = await widget.db.getAlbumSongs(itemToEdit!);
 
     for (var song in songsDB) {
       tmp.add(AudioInterface.getTag(SongData.fromDB(song).source));
@@ -66,8 +70,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     songs.value = tmp;
   }
 
-  ContextPopupButton getPlaylistContext(
-      BuildContext context, PlaylistData playlist) {
+  ContextPopupButton getalbumContext(BuildContext context, AlbumData album) {
     var popup = ContextPopupButton(
       icon: Icon(
         Icons.more_vert,
@@ -78,28 +81,26 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
           'Set queue': ContextItemTuple(
             Icons.queue_music_rounded,
             () async {
-              List<AudioSource> songs =
-                  (await widget.db.getPlaylistSongs(playlist))
-                      .map((s) => SongData.fromDB(s).source)
-                      .toList();
+              List<AudioSource> songs = (await widget.db.getAlbumSongs(album))
+                  .map((s) => SongData.fromDB(s).source)
+                  .toList();
               await widget.app.audioInterface.setQueue(songs);
             },
           ),
           'Add to queue': ContextItemTuple(
             Icons.playlist_add_rounded,
             () async {
-              List<AudioSource> songs =
-                  (await widget.db.getPlaylistSongs(playlist))
-                      .map((s) => SongData.fromDB(s).source)
-                      .toList();
+              List<AudioSource> songs = (await widget.db.getAlbumSongs(album))
+                  .map((s) => SongData.fromDB(s).source)
+                  .toList();
               await widget.app.audioInterface.addToQueue(songs);
             },
           ),
           'Edit': ContextItemTuple(Icons.edit_rounded, () async {
-            await setUpdate(playlist);
+            await setUpdate(album);
           }),
           'Delete': ContextItemTuple(Icons.delete_rounded, () async {
-            await delete(playlist);
+            await delete(album);
           }),
         };
 
@@ -132,7 +133,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
       },
     );
 
-    playlistContexts[playlist] = popup;
+    albumContexts[album] = popup;
     return popup;
   }
 
@@ -181,6 +182,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   @override
   Future<void> setCreate() async {
     newName.text = '';
+    newArtist.text = '';
     newDescription.text = '';
     newArt.text = '';
     artUriNotifier.value = '';
@@ -198,7 +200,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   }
 
   @override
-  Future<void> setUpdate(PlaylistData item) async {
+  Future<void> setUpdate(AlbumData item) async {
     print('switching to update');
     // if (item.id != null) {
     //   print('editing ${item.name} - ${item.id}');
@@ -209,63 +211,65 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     });
     itemToEdit = item;
     newName.text = itemToEdit!.title;
+    newArtist.text = itemToEdit!.artist;
     newDescription.text = itemToEdit!.description;
     newArt.text = itemToEdit!.art;
     artUriNotifier.value = newArt.text;
-    await setPlaylistSongs();
+    await setalbumSongs();
     state = ViewState.update;
   }
 
   @override
-  Future<void> setDelete(PlaylistData item) async {
+  Future<void> setDelete(AlbumData item) async {
     print('switching to delete');
     state = ViewState.delete;
   }
 
   //crud ops
   @override
-  Future<List<PlaylistData?>> create() async {
-    var data = PlaylistData(title: '');
+  Future<List<AlbumData?>> create() async {
+    var data = AlbumData(title: '', artist: '');
     await update(data);
     return [data];
   }
 
   @override
-  Future<PlaylistData> update(PlaylistData item) async {
+  Future<AlbumData> update(AlbumData item) async {
     item.title = newName.text;
+    item.artist = newArtist.text;
     item.description = newDescription.text;
     item.art = newArt.text;
-    var tmp = List.of(playlists);
-    print('saving playlist changes to db');
-    bool isNew = (item.id == null || !await widget.db.playlistExists(item.id!));
+    var tmp = List.of(albums);
+    print('saving album changes to db');
+    bool isNew = (item.id == null || !await widget.db.albumExists(item.id!));
     await item.saveData();
     if (isNew) {
       tmp.add(item);
     } else {
       tmp[tmp.indexOf(item)] = item;
     }
-    playlists = tmp;
+    albums = tmp;
     return item;
   }
 
   @override
-  Future<void> delete(PlaylistData item) async {
-    var tmp = List.of(playlists);
-    if (playlists.contains(item)) {
-      await widget.db.delPlaylistData(item.getEntry());
+  Future<void> delete(AlbumData item) async {
+    var tmp = List.of(albums);
+    if (albums.contains(item)) {
+      await widget.db.delAlbumData(item.getEntry());
       tmp.remove(item);
-      playlists = tmp;
+      albums = tmp;
     } else {
-      print('playlist not in list, delete failed');
+      print('album not in list, delete failed');
     }
   }
 
   Future<void> deleteSong(MediaItem song) async {
     var tmp = List.of(songs.value);
     if (tmp.contains(song)) {
-      print('Removing song from playlist');
+      print('Removing song from album');
       tmp.remove(song);
-      await widget.db.delPlaylistSong(itemToEdit!.getEntry(),
+      await widget.db.delAlbumSong(itemToEdit!.getEntry(),
           (await widget.db.getSongData(int.parse(song.id)))!);
       songs.value = tmp;
     }
@@ -287,7 +291,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Create a playlist',
+                        'Create a album',
                         style: Theme.of(context).textTheme.headline6,
                         textAlign: TextAlign.center,
                       ),
@@ -300,6 +304,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
               child: RefreshIndicator(
                 onRefresh: () async {
                   newName.text = '';
+                  newArtist.text = '';
                   newDescription.text = '';
                   newArt.text = '';
                 },
@@ -313,19 +318,25 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                   child: ListView(
                     children: [
                       ListTile(
-                        title: const Text('Name:'),
+                        title: const Text('Name'),
                         subtitle: TextFormField(
                           controller: newName,
                         ),
                       ),
                       ListTile(
-                        title: const Text('Description:'),
+                        title: const Text('Artist'),
+                        subtitle: TextFormField(
+                          controller: newArtist,
+                        ),
+                      ),
+                      ListTile(
+                        title: const Text('Description'),
                         subtitle: TextFormField(
                           controller: newDescription,
                         ),
                       ),
                       ListTile(
-                        title: const Text('Playlist Art'),
+                        title: const Text('Album Art'),
                         subtitle: TextFormField(
                           controller: newArt,
                           onChanged: (text) async {
@@ -399,10 +410,10 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
 
   @override
   Widget readView(BuildContext context) {
-    return ValueListenableBuilder<List<PlaylistData>>(
-      valueListenable: widget.app.playlistsNotifier,
-      builder: ((context, newPlaylists, _) {
-        print('got playlists: ${newPlaylists.toList()}');
+    return ValueListenableBuilder<List<AlbumData>>(
+      valueListenable: widget.app.albumsNotifier,
+      builder: ((context, newalbums, _) {
+        print('got albums: ${newalbums.toList()}');
         return RefreshIndicator(
           onRefresh: () async => setState(() {}),
           child: ScrollConfiguration(
@@ -418,36 +429,35 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                   child: ListView.builder(
                     scrollDirection: Axis.vertical,
                     physics: const AlwaysScrollableScrollPhysics(),
-                    itemCount: newPlaylists.length,
+                    itemCount: newalbums.length,
                     itemBuilder: (context, index) {
                       switch (index) {
                         default:
-                          PlaylistData playlist = newPlaylists[index];
+                          AlbumData album = newalbums[index];
 
-                          var playlistContextBtn =
-                              getPlaylistContext(context, playlist);
+                          var albumContextBtn = getalbumContext(context, album);
                           return ListTile(
                             enabled: true,
                             onTap: () async {
                               //print('tap');
-                              await setUpdate(playlist);
+                              await setUpdate(album);
                             },
                             onLongPress: () {
                               //print('long press');
                               //print(widget.songContexts[song]);
-                              playlistContexts[playlist]!.showDialog();
+                              albumContexts[album]!.showDialog();
                             },
-                            leading: ArtUri(Uri.parse(playlist.art)),
-                            title: Text(playlist.title),
-                            subtitle: Text(playlist.description),
-                            trailing: playlistContextBtn,
+                            leading: ArtUri(Uri.parse(album.art)),
+                            title: Text(album.title),
+                            subtitle: Text(album.description),
+                            trailing: albumContextBtn,
                           );
                       }
                     },
                   ),
                 ),
                 ListTile(
-                  title: Text('Create Playlist...'),
+                  title: Text('Create album...'),
                   trailing: Icon(
                     Icons.add,
                     color: Theme.of(context).primaryColor,
@@ -467,10 +477,10 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   @override
   Widget updateView(BuildContext context) {
     if (itemToEdit == null) {
-      return Text('Invalid Playlist');
+      return Text('Invalid album');
     }
-    var playlist = itemToEdit!;
-    //setPlaylistSongs();
+    var album = itemToEdit!;
+    //setalbumSongs();
     print('${songs.value.length} songs gotten');
     return Center(
       child: Padding(
@@ -484,13 +494,13 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
               ),
               header: Center(
                 child: Text(
-                  playlist.title,
+                  album.title,
                   style: TextStyle(fontSize: 25),
                 ),
               ),
               collapsed: Center(
                 child: Text(
-                  playlist.description,
+                  album.description,
                   maxLines: 1,
                   overflow: TextOverflow.fade,
                 ),
@@ -498,9 +508,15 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
               expanded: Column(
                 children: [
                   ListTile(
-                    title: const Text('Name:'),
+                    title: const Text('Title:'),
                     subtitle: TextFormField(
                       controller: newName,
+                    ),
+                  ),
+                  ListTile(
+                    title: const Text('Artist'),
+                    subtitle: TextFormField(
+                      controller: newArtist,
                     ),
                   ),
                   ListTile(
@@ -510,7 +526,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                     ),
                   ),
                   ListTile(
-                    title: const Text('Playlist Art'),
+                    title: const Text('Album Art'),
                     subtitle: TextFormField(
                       controller: newArt,
                       onChanged: (text) async {
@@ -549,7 +565,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                   ),
                   ElevatedButton(
                     onPressed: () async {
-                      await update(playlist);
+                      await update(album);
                       await setRead();
                     },
                     child: Text('Save'),
@@ -563,7 +579,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                   Expanded(
                     child: RefreshIndicator(
                       onRefresh: () async {
-                        await setPlaylistSongs();
+                        await setalbumSongs();
                       },
                       child: ScrollConfiguration(
                         behavior: ScrollConfiguration.of(context).copyWith(
@@ -592,8 +608,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                                           () async {
                                         await SelectDialog.showModal<MediaItem>(
                                             context,
-                                            label:
-                                                'Select playlists to add song to.',
+                                            label: 'Select songs to add.',
                                             multipleSelectedValues: selected,
                                             items:
                                                 widget.app.songsNotifier.value
@@ -618,8 +633,8 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                                         List<MediaItem> tmp =
                                             List.from(songs.value);
                                         for (var song in selected) {
-                                          await widget.db.addPlaylistSong(
-                                            playlist.getEntry(),
+                                          await widget.db.addAlbumSong(
+                                            album.getEntry(),
                                             (await widget.db.getSongData(
                                                 int.parse(song.id)))!,
                                           );
@@ -630,9 +645,10 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                                     },
                                   );
                                 } else {
-                                  newName.text = playlist.title;
-                                  newDescription.text = playlist.description;
-                                  newArt.text = playlist.art;
+                                  newName.text = album.title;
+                                  newArtist.text = album.artist;
+                                  newDescription.text = album.description;
+                                  newArt.text = album.art;
                                   var tag = songs.value[index - 1];
                                   return ListTile(
                                     leading:

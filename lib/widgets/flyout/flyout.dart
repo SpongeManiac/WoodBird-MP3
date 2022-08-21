@@ -51,6 +51,11 @@ class Flyout extends StatelessWidget {
                     onTapped: () => navigate(context, '/songs'),
                   ),
                   FlyoutItem(
+                    icon: Icons.album_rounded,
+                    text: 'Albums',
+                    onTapped: () => navigate(context, '/albums'),
+                  ),
+                  FlyoutItem(
                     icon: Icons.queue_music_rounded,
                     text: 'Playlists',
                     onTapped: () => navigate(context, '/playlists'),

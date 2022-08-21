@@ -1136,11 +1136,13 @@ class $PlaylistSongsTable extends PlaylistSongs
 class AlbumDataDB extends DataClass implements Insertable<AlbumDataDB> {
   final int id;
   final String title;
+  final String artist;
   final String description;
   final String art;
   AlbumDataDB(
       {required this.id,
       required this.title,
+      required this.artist,
       required this.description,
       required this.art});
   factory AlbumDataDB.fromData(Map<String, dynamic> data, {String? prefix}) {
@@ -1150,6 +1152,8 @@ class AlbumDataDB extends DataClass implements Insertable<AlbumDataDB> {
           .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
       title: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}title'])!,
+      artist: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}artist'])!,
       description: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}description'])!,
       art: const StringType()
@@ -1161,6 +1165,7 @@ class AlbumDataDB extends DataClass implements Insertable<AlbumDataDB> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['title'] = Variable<String>(title);
+    map['artist'] = Variable<String>(artist);
     map['description'] = Variable<String>(description);
     map['art'] = Variable<String>(art);
     return map;
@@ -1170,6 +1175,7 @@ class AlbumDataDB extends DataClass implements Insertable<AlbumDataDB> {
     return AlbumsCompanion(
       id: Value(id),
       title: Value(title),
+      artist: Value(artist),
       description: Value(description),
       art: Value(art),
     );
@@ -1181,6 +1187,7 @@ class AlbumDataDB extends DataClass implements Insertable<AlbumDataDB> {
     return AlbumDataDB(
       id: serializer.fromJson<int>(json['id']),
       title: serializer.fromJson<String>(json['title']),
+      artist: serializer.fromJson<String>(json['artist']),
       description: serializer.fromJson<String>(json['description']),
       art: serializer.fromJson<String>(json['art']),
     );
@@ -1191,16 +1198,22 @@ class AlbumDataDB extends DataClass implements Insertable<AlbumDataDB> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'title': serializer.toJson<String>(title),
+      'artist': serializer.toJson<String>(artist),
       'description': serializer.toJson<String>(description),
       'art': serializer.toJson<String>(art),
     };
   }
 
   AlbumDataDB copyWith(
-          {int? id, String? title, String? description, String? art}) =>
+          {int? id,
+          String? title,
+          String? artist,
+          String? description,
+          String? art}) =>
       AlbumDataDB(
         id: id ?? this.id,
         title: title ?? this.title,
+        artist: artist ?? this.artist,
         description: description ?? this.description,
         art: art ?? this.art,
       );
@@ -1209,6 +1222,7 @@ class AlbumDataDB extends DataClass implements Insertable<AlbumDataDB> {
     return (StringBuffer('AlbumDataDB(')
           ..write('id: $id, ')
           ..write('title: $title, ')
+          ..write('artist: $artist, ')
           ..write('description: $description, ')
           ..write('art: $art')
           ..write(')'))
@@ -1216,13 +1230,14 @@ class AlbumDataDB extends DataClass implements Insertable<AlbumDataDB> {
   }
 
   @override
-  int get hashCode => Object.hash(id, title, description, art);
+  int get hashCode => Object.hash(id, title, artist, description, art);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is AlbumDataDB &&
           other.id == this.id &&
           other.title == this.title &&
+          other.artist == this.artist &&
           other.description == this.description &&
           other.art == this.art);
 }
@@ -1230,29 +1245,35 @@ class AlbumDataDB extends DataClass implements Insertable<AlbumDataDB> {
 class AlbumsCompanion extends UpdateCompanion<AlbumDataDB> {
   final Value<int> id;
   final Value<String> title;
+  final Value<String> artist;
   final Value<String> description;
   final Value<String> art;
   const AlbumsCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
+    this.artist = const Value.absent(),
     this.description = const Value.absent(),
     this.art = const Value.absent(),
   });
   AlbumsCompanion.insert({
     this.id = const Value.absent(),
     required String title,
+    required String artist,
     this.description = const Value.absent(),
     this.art = const Value.absent(),
-  }) : title = Value(title);
+  })  : title = Value(title),
+        artist = Value(artist);
   static Insertable<AlbumDataDB> custom({
     Expression<int>? id,
     Expression<String>? title,
+    Expression<String>? artist,
     Expression<String>? description,
     Expression<String>? art,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (title != null) 'title': title,
+      if (artist != null) 'artist': artist,
       if (description != null) 'description': description,
       if (art != null) 'art': art,
     });
@@ -1261,11 +1282,13 @@ class AlbumsCompanion extends UpdateCompanion<AlbumDataDB> {
   AlbumsCompanion copyWith(
       {Value<int>? id,
       Value<String>? title,
+      Value<String>? artist,
       Value<String>? description,
       Value<String>? art}) {
     return AlbumsCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
+      artist: artist ?? this.artist,
       description: description ?? this.description,
       art: art ?? this.art,
     );
@@ -1279,6 +1302,9 @@ class AlbumsCompanion extends UpdateCompanion<AlbumDataDB> {
     }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
+    }
+    if (artist.present) {
+      map['artist'] = Variable<String>(artist.value);
     }
     if (description.present) {
       map['description'] = Variable<String>(description.value);
@@ -1294,6 +1320,7 @@ class AlbumsCompanion extends UpdateCompanion<AlbumDataDB> {
     return (StringBuffer('AlbumsCompanion(')
           ..write('id: $id, ')
           ..write('title: $title, ')
+          ..write('artist: $artist, ')
           ..write('description: $description, ')
           ..write('art: $art')
           ..write(')'))
@@ -1321,6 +1348,14 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, AlbumDataDB> {
           GeneratedColumn.checkTextLength(minTextLength: 0, maxTextLength: 128),
       type: const StringType(),
       requiredDuringInsert: true);
+  final VerificationMeta _artistMeta = const VerificationMeta('artist');
+  @override
+  late final GeneratedColumn<String?> artist = GeneratedColumn<String?>(
+      'artist', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 0, maxTextLength: 128),
+      type: const StringType(),
+      requiredDuringInsert: true);
   final VerificationMeta _descriptionMeta =
       const VerificationMeta('description');
   @override
@@ -1341,7 +1376,7 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, AlbumDataDB> {
       requiredDuringInsert: false,
       defaultValue: const Constant(''));
   @override
-  List<GeneratedColumn> get $columns => [id, title, description, art];
+  List<GeneratedColumn> get $columns => [id, title, artist, description, art];
   @override
   String get aliasedName => _alias ?? 'albums';
   @override
@@ -1359,6 +1394,12 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, AlbumDataDB> {
           _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
     } else if (isInserting) {
       context.missing(_titleMeta);
+    }
+    if (data.containsKey('artist')) {
+      context.handle(_artistMeta,
+          artist.isAcceptableOrUnknown(data['artist']!, _artistMeta));
+    } else if (isInserting) {
+      context.missing(_artistMeta);
     }
     if (data.containsKey('description')) {
       context.handle(

@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart';
 import 'package:test_project/models/states/playlist/playlistData.dart';
 
+import '../models/states/album/albumData.dart';
+
 part 'database.g.dart';
 
 //Page States
@@ -58,6 +60,7 @@ class Albums extends Table {
   // PrimaryKey
   IntColumn get id => integer().autoIncrement()();
   TextColumn get title => text().withLength(min: 0, max: 128)();
+  TextColumn get artist => text().withLength(min: 0, max: 128)();
   // set default to empty description
   TextColumn get description =>
       text().withLength(min: 0, max: 1024).withDefault(const Constant(''))();
@@ -234,6 +237,79 @@ class SharedDatabase extends _$SharedDatabase {
 
   Future<List<PlaylistDataDB>> getAllPlaylists() async {
     return await (select(playlists)
+          ..orderBy([(t) => OrderingTerm(expression: t.title)]))
+        .get();
+  }
+
+  //albums
+  Future<bool> albumExists(int id) async {
+    if (id < 0) {
+      return false;
+    }
+    var count = countAll(filter: albums.id.equals(id));
+    var res = await (selectOnly(albums)..addColumns([count]))
+        .map((row) => row.read(count))
+        .getSingle();
+    if (res > 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<int> setAlbumData(AlbumsCompanion companion) async {
+    int newId = await into(albums).insertOnConflictUpdate(companion);
+    print('new id: $newId');
+    //PlaylistsCompanion.insert(name: )
+    return newId;
+  }
+
+  Future<bool> updateAlbumData(AlbumDataDB album) async {
+    return await update(albums).replace(album);
+  }
+
+  Future<int> delAlbumData(AlbumDataDB album) async {
+    print('deleting ${album.title}, index ${album.id}');
+    return await (delete(albums)..where((p) => p.id.equals(album.id))).go();
+  }
+
+  Future<int> addAlbumSong(AlbumDataDB album, SongDataDB song) async {
+    AlbumSongsCompanion entry = AlbumSongsCompanion(
+      album: Value(album.id),
+      song: Value(song.id),
+    );
+    return await into(albumSongs).insert(entry);
+  }
+
+  Future delAlbumSong(AlbumDataDB album, SongDataDB song) async {
+    return await (delete(albumSongs)
+          ..where((e) => e.album.equals(album.id) & e.song.equals(song.id)))
+        .go();
+  }
+
+  Future<List<SongDataDB>> getAlbumSongs(AlbumData album) async {
+    // var playlistQuery = select(playlists)
+    //   ..where((tbl) => tbl.id.equals(playlist.id));
+    //get songs from playlist
+    final songsQuery = await (select(albumSongs).join(
+      [
+        innerJoin(
+          songs,
+          songs.id.equalsExp(albumSongs.song),
+        ),
+      ],
+    )..where(albumSongs.album.equals(album.id)))
+        .get();
+
+    var songsList = songsQuery.map((result) {
+      return result.readTable(songs);
+    }).toList();
+    print('got ${songsList.length} songs in playlist');
+    return songsList;
+  }
+
+  Future<List<AlbumDataDB>> getAllAlbums() async {
+    return await (select(albums)
           ..orderBy([(t) => OrderingTerm(expression: t.title)]))
         .get();
   }

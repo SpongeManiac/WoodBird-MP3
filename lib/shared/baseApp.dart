@@ -12,9 +12,11 @@ import '../globals.dart' as globals;
 import 'package:path/path.dart' as p;
 import '../models/AudioInterface.dart';
 import '../models/colorMaterializer.dart';
+import '../models/states/album/albumData.dart';
 import '../models/states/pages/homePageData.dart';
 import '../models/states/playlist/playlistData.dart';
 import '../models/states/song/songData.dart';
+import '../screens/albumsPage.dart';
 import '../screens/homePage.dart';
 import '../screens/settingsPage.dart';
 import '../screens/pageNav.dart';
@@ -113,11 +115,16 @@ class BaseApp extends StatefulWidget {
   final ValueNotifier<List<PlaylistData>> playlistsNotifier =
       ValueNotifier(<PlaylistData>[]);
 
+  //albums
+  final ValueNotifier<List<AlbumData>> albumsNotifier =
+      ValueNotifier(<AlbumData>[]);
+
   final Map<String, ThemedPage Function(BuildContext)> routes = {
     '/': (context) => HomePage(title: 'Home'),
-    '/playlists': (context) => PlaylistsPage(title: 'Playlists'),
-    '/settings': (context) => SettingsPage(title: 'Settings'),
     '/songs': (context) => SongsPage(title: 'Songs'),
+    '/playlists': (context) => PlaylistsPage(title: 'Playlists'),
+    '/albums': (context) => AlbumsPage(title: 'Albums'),
+    '/settings': (context) => SettingsPage(title: 'Settings'),
   };
 
   AppBarTitleListener appBar = AppBarTitleListener();
