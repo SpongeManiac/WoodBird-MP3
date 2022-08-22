@@ -8,18 +8,18 @@ import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:marquee/marquee.dart';
 import 'package:select_dialog/select_dialog.dart';
-import 'package:test_project/database/database.dart';
-import 'package:test_project/models/AudioInterface.dart';
-import 'package:test_project/models/states/album/albumData.dart';
-import 'package:test_project/models/states/song/songData.dart';
-import 'package:test_project/screens/CRUDPage.dart';
-import 'package:test_project/screens/themedPage.dart';
-import 'package:test_project/widgets/contextPopupButton.dart';
 import 'package:path/path.dart' as p;
 
+import '../database/database.dart';
+import '../models/AudioInterface.dart';
 import '../models/contextItemTuple.dart';
+import '../models/states/album/albumData.dart';
+import '../models/states/song/songData.dart';
 import '../widgets/appBar.dart';
 import '../widgets/artUri.dart';
+import '../widgets/contextPopupButton.dart';
+import 'CRUDPage.dart';
+import 'themedPage.dart';
 
 class AlbumsPage extends ThemedPage {
   AlbumsPage({super.key, required super.title});
@@ -59,7 +59,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
     widget.initState(context);
   }
 
-  Future<void> setalbumSongs() async {
+  Future<void> setAlbumSongs() async {
     if (itemToEdit == null) return;
     List<MediaItem> tmp = [];
     List<SongDataDB> songsDB = await widget.db.getAlbumSongs(itemToEdit!);
@@ -215,7 +215,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
     newDescription.text = itemToEdit!.description;
     newArt.text = itemToEdit!.art;
     artUriNotifier.value = newArt.text;
-    await setalbumSongs();
+    await setAlbumSongs();
     state = ViewState.update;
   }
 
@@ -415,7 +415,10 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
       builder: ((context, newalbums, _) {
         print('got albums: ${newalbums.toList()}');
         return RefreshIndicator(
-          onRefresh: () async => setState(() {}),
+          onRefresh: () async {
+            await widget.app.loadAlbums();
+            setState(() {});
+          },
           child: ScrollConfiguration(
             behavior: ScrollConfiguration.of(context).copyWith(
               dragDevices: {
@@ -579,7 +582,8 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
                   Expanded(
                     child: RefreshIndicator(
                       onRefresh: () async {
-                        await setalbumSongs();
+                        await setAlbumSongs();
+                        setState(() {});
                       },
                       child: ScrollConfiguration(
                         behavior: ScrollConfiguration.of(context).copyWith(
@@ -591,7 +595,10 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
                         child: ValueListenableBuilder<List<MediaItem>>(
                           valueListenable: songs,
                           builder: (context, value, _) {
-                            return ListView.builder(
+                            return ReorderableListView.builder(
+                              onReorder: (int oldIndex, int newIndex) async {
+                                //await AudioInterface.moveGeneric(list, oldIndex, newIndex)
+                              },
                               itemCount: songs.value.length + 1,
                               itemBuilder: (context, index) {
                                 if (index == 0) {

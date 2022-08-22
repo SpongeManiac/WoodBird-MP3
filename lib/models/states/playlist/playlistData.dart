@@ -57,7 +57,7 @@ class PlaylistData extends BaseDataDB {
 
   @override
   Future<void> saveData() async {
-    print('id before: $id');
+    print('playlist id before: $id');
     id ??= -1;
     //check if id exists already
     if (await db.playlistExists(id!)) {
@@ -67,6 +67,6 @@ class PlaylistData extends BaseDataDB {
       print('Playlist does not exist, upserting');
       id = await db.setPlaylistData(getCompanion());
     }
-    print('id after: $id');
+    print('playlist id after: $id');
   }
 }

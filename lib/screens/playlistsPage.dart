@@ -404,7 +404,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
       builder: ((context, newPlaylists, _) {
         print('got playlists: ${newPlaylists.toList()}');
         return RefreshIndicator(
-          onRefresh: () async => setState(() {}),
+          onRefresh: () async {},
           child: ScrollConfiguration(
             behavior: ScrollConfiguration.of(context).copyWith(
               dragDevices: {

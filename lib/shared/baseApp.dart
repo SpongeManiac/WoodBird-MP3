@@ -153,7 +153,10 @@ class BaseApp extends StatefulWidget {
 
     //load songs
     await loadSongs();
+    //load playlists
     await loadPlaylists();
+    //load albums
+    await loadAlbums();
   }
 
   Future<void> savePageStates() async {
@@ -254,6 +257,22 @@ class BaseApp extends StatefulWidget {
       ));
     }
     playlistsNotifier.value = playlists;
+  }
+
+  Future<void> loadAlbums() async {
+    print('loading albums');
+    List<AlbumData> albums = [];
+    List<AlbumDataDB> albumsDB = await globals.db.getAllAlbums();
+    for (var album in albumsDB) {
+      albums.add(AlbumData(
+        title: album.title,
+        artist: album.artist,
+        description: album.description,
+        art: album.art,
+        id: album.id,
+      ));
+    }
+    albumsNotifier.value = albums;
   }
 
   @override

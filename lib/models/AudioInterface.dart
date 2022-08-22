@@ -573,6 +573,51 @@ class AudioInterface {
     queueNotifier.value = playlist.length;
   }
 
+  List<T> moveGeneric<T>(List<T> list, int oldIndex, int newIndex) {
+    if (oldIndex != newIndex) {
+      bool oldLarger = oldIndex > newIndex;
+      //newIndex--;
+      if (!oldLarger) {
+        //print('adjusting newIndex: $newIndex');
+        newIndex--;
+        //print('new: $newIndex');
+      }
+      //print('moving $oldIndex to $newIndex');
+      var tmp = List.of(list);
+      var maxLength = tmp.length - 1;
+      //print('max length: $maxLength');
+      T itm = tmp[oldIndex];
+      if (newIndex >= maxLength) {
+        //print('moving song to end. Just adding');
+        tmp.add(itm);
+      } else {
+        if (oldLarger) {
+          //print('new oldIndex: $oldIndex');
+          oldIndex++;
+          //print('inserting @ $newIndex');
+          //print('before:');
+          //printList(tmp);
+          tmp.insert(newIndex, itm);
+          //print('after:');
+          //printList(tmp);
+        } else {
+          //print('shifting');
+          newIndex++;
+          //print('inserting @ $newIndex');
+          //print('before:');
+          //printList(tmp);
+          tmp.insert(newIndex, itm);
+          //print('after:');
+          //printList(tmp);
+        }
+      }
+      print('removing old');
+      tmp.removeAt(oldIndex);
+      return tmp;
+    }
+    return [];
+  }
+
   Future<void> moveUp(AudioSource song) async {
     var idx = playlist.children.indexOf(song);
     if (idx > 0) {

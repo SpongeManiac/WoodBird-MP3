@@ -62,11 +62,15 @@ class AlbumData extends BaseDataDB {
 
   @override
   Future<void> saveData() async {
+    print('album id before: $id');
     id ??= -1;
     if (await db.albumExists(id!)) {
+      print('Album exists, updating');
       await db.updateAlbumData(getEntry());
     } else {
+      print('Album does not exist, upserting');
       id = await db.setAlbumData(getCompanion());
     }
+    print('album id after: $id');
   }
 }
