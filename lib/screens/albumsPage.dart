@@ -44,6 +44,58 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
   TextEditingController newDescription = TextEditingController(text: '');
   TextEditingController newArt = TextEditingController(text: '');
 
+  bool formExpanded = false;
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  Widget get albumForm => Form(
+        key: formKey,
+        child: Padding(
+          padding: EdgeInsets.all(10),
+          child: Column(
+            children: [
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                ),
+                controller: newName,
+                validator: (value) => validateTitle(value),
+                maxLength: 128,
+              ),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Artist',
+                ),
+                controller: newArtist,
+                validator: (value) => validateTitle(value),
+                maxLength: 128,
+              ),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                ),
+                controller: newDescription,
+                validator: (value) => validateDesc(value),
+                maxLines: 3,
+                maxLength: 1024,
+              ),
+              TextFormField(
+                decoration: InputDecoration(
+                  icon: Container(
+                    height: 56,
+                    width: 56,
+                    child: ArtUri(Uri.parse(newArt.text)),
+                  ),
+                  labelText: 'Art',
+                ),
+                controller: newArt,
+                //validator: (value) => validateDesc(value),
+                maxLines: 2,
+                maxLength: 1024,
+              ),
+            ],
+          ),
+        ),
+      );
+
   Map<AlbumData, ContextPopupButton> albumContexts =
       <AlbumData, ContextPopupButton>{};
 
@@ -59,6 +111,17 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
     widget.initState(context);
   }
 
+  String? validateTitle(String? val) {
+    val = val ?? '';
+    if (val.isEmpty || val.trim().isEmpty) return 'Please enter some text.';
+    return null;
+  }
+
+  String? validateDesc(String? val) {
+    val = val ?? '';
+    return null;
+  }
+
   Future<void> setAlbumSongs() async {
     if (itemToEdit == null) return;
     List<MediaItem> tmp = [];
@@ -70,7 +133,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
     songs.value = tmp;
   }
 
-  ContextPopupButton getalbumContext(BuildContext context, AlbumData album) {
+  ContextPopupButton getAlbumContext(BuildContext context, AlbumData album) {
     var popup = ContextPopupButton(
       icon: Icon(
         Icons.more_vert,
@@ -102,6 +165,73 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
           'Delete': ContextItemTuple(Icons.delete_rounded, () async {
             await delete(album);
           }),
+        };
+
+        List<PopupMenuItem<String>> list = [];
+
+        for (String val in choices.keys) {
+          var choice = choices[val];
+          list.add(
+            PopupMenuItem(
+              onTap: choice!.onPress,
+              child: Row(
+                children: [
+                  Icon(
+                    choice.icon,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  Expanded(
+                    child: Text(
+                      val,
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return list;
+      },
+    );
+
+    albumContexts[album] = popup;
+    return popup;
+  }
+
+  ContextPopupButton getSongContext(
+      BuildContext context, AlbumData album, MediaItem song) {
+    var popup = ContextPopupButton(
+      icon: Icon(
+        Icons.more_vert,
+        color: Theme.of(context).primaryColor,
+      ),
+      itemBuilder: (context) {
+        Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
+          'Remove': ContextItemTuple(
+            Icons.close,
+            () async {
+              var tmp = List.of(songs.value);
+              int songId = int.tryParse(song.id) ?? -1;
+              if (tmp.contains(song) &&
+                  songId > -1 &&
+                  await widget.db.delAlbumSong(
+                        album.getEntry(),
+                        (await widget.db.getSongData(songId))!,
+                      ) >
+                      0) {
+                tmp.remove(song);
+                songs.value = tmp;
+                setState(() {
+                  for (var s in songs.value) {
+                    print('song relations:');
+                    print(s.title);
+                  }
+                });
+              }
+            },
+          ),
         };
 
         List<PopupMenuItem<String>> list = [];
@@ -279,132 +409,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
   @override
   Widget createView(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: EdgeInsets.all(10),
-        child: Column(
-          children: [
-            Container(
-              height: Theme.of(context).textTheme.headlineMedium!.fontSize,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Create a album',
-                        style: Theme.of(context).textTheme.headline6,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: () async {
-                  newName.text = '';
-                  newArtist.text = '';
-                  newDescription.text = '';
-                  newArt.text = '';
-                },
-                child: ScrollConfiguration(
-                  behavior: ScrollConfiguration.of(context).copyWith(
-                    dragDevices: {
-                      PointerDeviceKind.touch,
-                      PointerDeviceKind.mouse,
-                    },
-                  ),
-                  child: ListView(
-                    children: [
-                      ListTile(
-                        title: const Text('Name'),
-                        subtitle: TextFormField(
-                          controller: newName,
-                        ),
-                      ),
-                      ListTile(
-                        title: const Text('Artist'),
-                        subtitle: TextFormField(
-                          controller: newArtist,
-                        ),
-                      ),
-                      ListTile(
-                        title: const Text('Description'),
-                        subtitle: TextFormField(
-                          controller: newDescription,
-                        ),
-                      ),
-                      ListTile(
-                        title: const Text('Album Art'),
-                        subtitle: TextFormField(
-                          controller: newArt,
-                          onChanged: (text) async {
-                            artUriNotifier.value = text;
-                          },
-                          onFieldSubmitted: (text) async {
-                            artUriNotifier.value = text;
-                          },
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(
-                            Icons.folder_open_rounded,
-                            color: Theme.of(context).primaryColor,
-                          ),
-                          onPressed: () async {
-                            String artPath = await getArt();
-                            print('Art path: $artPath');
-                            newArt.text = artPath;
-                          },
-                        ),
-                      ),
-                      Container(
-                        width: 200,
-                        height: 200,
-                        constraints: BoxConstraints(
-                          maxHeight: 200,
-                          maxWidth: 200,
-                        ),
-                        child: ValueListenableBuilder<String>(
-                          valueListenable: artUriNotifier,
-                          builder: ((context, newUri, child) {
-                            print('Notifier updated: $newUri');
-                            return ArtUri(Uri.parse(newUri));
-                          }),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () async {
-                    await create();
-                    await setRead();
-                  },
-                  child: Text('Save'),
-                  // style: ButtonStyle(
-                  //   backgroundColor: Theme.of(context).,
-                  // ),
-                ),
-                Container(
-                  width: 10,
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    await cancel();
-                  },
-                  child: Text('cancel'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+      child: albumForm,
     );
   }
 
@@ -438,7 +443,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
                         default:
                           AlbumData album = newalbums[index];
 
-                          var albumContextBtn = getalbumContext(context, album);
+                          var albumContextBtn = getAlbumContext(context, album);
                           return ListTile(
                             enabled: true,
                             onTap: () async {
@@ -483,243 +488,84 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
       return Text('Invalid album');
     }
     var album = itemToEdit!;
-    //setalbumSongs();
     print('${songs.value.length} songs gotten');
     return Center(
-      child: Padding(
-        padding: EdgeInsets.all(10),
-        child: Column(
-          children: [
-            ExpandablePanel(
-              theme: ExpandableThemeData(
-                hasIcon: true,
-                iconColor: Theme.of(context).primaryColor,
+      child: Expanded(
+        child: Padding(
+          padding: EdgeInsets.all(10),
+          child: ListView(
+            children: [
+              ExpansionTile(
+                title: Text(album.title),
+                onExpansionChanged: (isExpanded) {
+                  setState(() {
+                    print('isExpanded: $formExpanded');
+                    formExpanded = !isExpanded;
+                  });
+                },
+                children: [albumForm],
               ),
-              header: Center(
-                child: Text(
-                  album.title,
-                  style: TextStyle(fontSize: 25),
+              ListTile(
+                title: Text('Add songs...'),
+                trailing: Icon(
+                  Icons.add_rounded,
+                  color: Theme.of(context).primaryColor,
                 ),
+                onTap: () async {
+                  //avoid dialog being closed after choosing option
+                  List<MediaItem> selected = [];
+                  await Future.delayed(Duration(seconds: 0), () async {
+                    await SelectDialog.showModal<MediaItem>(context,
+                        label: 'Select songs to add.',
+                        multipleSelectedValues: selected,
+                        items: widget.app.songsNotifier.value
+                            .map(AudioInterface.getTag)
+                            .toList(), itemBuilder: (context, tag, isSelected) {
+                      return ListTile(
+                        title: Text(tag.title),
+                        subtitle: Text(tag.artist ?? ''),
+                        trailing:
+                            (isSelected ? Icon(Icons.check_rounded) : null),
+                      );
+                    }, onMultipleItemsChange: (List<MediaItem> selectedSong) {
+                      setState(() {
+                        selected = selectedSong;
+                      });
+                    });
+                  }).then((value) async {
+                    print('selected: ${selected.length}');
+                    List<MediaItem> tmp = List.from(songs.value);
+                    for (var song in selected) {
+                      await widget.db.addAlbumSong(
+                        album.getEntry(),
+                        (await widget.db.getSongData(int.parse(song.id)))!,
+                      );
+                      tmp.add(song);
+                    }
+                    songs.value = tmp;
+                  });
+                },
               ),
-              collapsed: Center(
-                child: Text(
-                  album.description,
-                  maxLines: 1,
-                  overflow: TextOverflow.fade,
-                ),
+              ReorderableListView.builder(
+                shrinkWrap: true,
+                onReorder: (oldIndex, newIndex) {},
+                itemCount: songs.value.length,
+                itemBuilder: (context, index) {
+                  MediaItem song = songs.value[index];
+                  //int songId = int.tryParse(song.id) ?? -1;
+                  //SongData songData;
+
+                  return ListTile(
+                    key: Key(index.toString()),
+                    leading: ArtUri(song.artUri ?? Uri.parse('')),
+                    title: Text(song.title),
+                    subtitle: Text(song.artist ?? ''),
+                    trailing: getSongContext(context, album, song),
+                  );
+                },
               ),
-              expanded: Column(
-                children: [
-                  ListTile(
-                    title: const Text('Title:'),
-                    subtitle: TextFormField(
-                      controller: newName,
-                    ),
-                  ),
-                  ListTile(
-                    title: const Text('Artist'),
-                    subtitle: TextFormField(
-                      controller: newArtist,
-                    ),
-                  ),
-                  ListTile(
-                    title: const Text('Description'),
-                    subtitle: TextFormField(
-                      controller: newDescription,
-                    ),
-                  ),
-                  ListTile(
-                    title: const Text('Album Art'),
-                    subtitle: TextFormField(
-                      controller: newArt,
-                      onChanged: (text) async {
-                        artUriNotifier.value = text;
-                      },
-                      onFieldSubmitted: (text) async {
-                        artUriNotifier.value = text;
-                      },
-                    ),
-                    trailing: IconButton(
-                      icon: Icon(
-                        Icons.folder_open_rounded,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                      onPressed: () async {
-                        String artPath = await getArt();
-                        print('Art path: $artPath');
-                        newArt.text = artPath;
-                      },
-                    ),
-                  ),
-                  Container(
-                    width: 200,
-                    height: 200,
-                    constraints: BoxConstraints(
-                      maxHeight: 200,
-                      maxWidth: 200,
-                    ),
-                    child: ValueListenableBuilder<String>(
-                      valueListenable: artUriNotifier,
-                      builder: ((context, newUri, child) {
-                        print('Notifier updated: $newUri');
-                        return ArtUri(Uri.parse(newUri));
-                      }),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await update(album);
-                      await setRead();
-                    },
-                    child: Text('Save'),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Column(
-                children: [
-                  Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: () async {
-                        await setAlbumSongs();
-                        setState(() {});
-                      },
-                      child: ScrollConfiguration(
-                        behavior: ScrollConfiguration.of(context).copyWith(
-                          dragDevices: {
-                            PointerDeviceKind.touch,
-                            PointerDeviceKind.mouse,
-                          },
-                        ),
-                        child: ValueListenableBuilder<List<MediaItem>>(
-                          valueListenable: songs,
-                          builder: (context, value, _) {
-                            return ReorderableListView.builder(
-                              onReorder: (int oldIndex, int newIndex) async {
-                                //await AudioInterface.moveGeneric(list, oldIndex, newIndex)
-                              },
-                              itemCount: songs.value.length + 1,
-                              itemBuilder: (context, index) {
-                                if (index == 0) {
-                                  return ListTile(
-                                    title: Text('Add songs...'),
-                                    trailing: Icon(
-                                      Icons.add_rounded,
-                                      color: Theme.of(context).primaryColor,
-                                    ),
-                                    onTap: () async {
-                                      //avoid dialog being closed after choosing option
-                                      List<MediaItem> selected = [];
-                                      await Future.delayed(Duration(seconds: 0),
-                                          () async {
-                                        await SelectDialog.showModal<MediaItem>(
-                                            context,
-                                            label: 'Select songs to add.',
-                                            multipleSelectedValues: selected,
-                                            items:
-                                                widget.app.songsNotifier.value
-                                                    .map(AudioInterface.getTag)
-                                                    .toList(), itemBuilder:
-                                                (context, tag, isSelected) {
-                                          return ListTile(
-                                            title: Text(tag.title),
-                                            subtitle: Text(tag.artist ?? ''),
-                                            trailing: (isSelected
-                                                ? Icon(Icons.check_rounded)
-                                                : null),
-                                          );
-                                        }, onMultipleItemsChange:
-                                                (List<MediaItem> selectedSong) {
-                                          setState(() {
-                                            selected = selectedSong;
-                                          });
-                                        });
-                                      }).then((value) async {
-                                        print('selected: ${selected.length}');
-                                        List<MediaItem> tmp =
-                                            List.from(songs.value);
-                                        for (var song in selected) {
-                                          await widget.db.addAlbumSong(
-                                            album.getEntry(),
-                                            (await widget.db.getSongData(
-                                                int.parse(song.id)))!,
-                                          );
-                                          tmp.add(song);
-                                        }
-                                        songs.value = tmp;
-                                      });
-                                    },
-                                  );
-                                } else {
-                                  newName.text = album.title;
-                                  newArtist.text = album.artist;
-                                  newDescription.text = album.description;
-                                  newArt.text = album.art;
-                                  var tag = songs.value[index - 1];
-                                  return ListTile(
-                                    leading:
-                                        ArtUri(tag.artUri ?? Uri.parse('')),
-                                    title: Text(tag.title),
-                                    subtitle: Text(tag.artist ?? ''),
-                                    trailing: ContextPopupButton(
-                                      icon: Icon(Icons.more_vert),
-                                      itemBuilder: (context) {
-                                        Map<String, ContextItemTuple> choices =
-                                            {
-                                          'Remove': ContextItemTuple(
-                                              Icons.remove_circle_rounded,
-                                              () async {
-                                            await deleteSong(tag);
-                                          }),
-                                        };
-                                        List<PopupMenuItem<String>> items = [];
-                                        for (var val in choices.keys) {
-                                          var choice = choices[val];
-                                          items.add(
-                                            PopupMenuItem(
-                                              onTap: choice!.onPress,
-                                              child: Row(
-                                                children: [
-                                                  Icon(choice.icon,
-                                                      color: Theme.of(context)
-                                                          .primaryColor),
-                                                  Expanded(
-                                                    child: Text(
-                                                      val,
-                                                      textAlign:
-                                                          TextAlign.right,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                        return items;
-                                      },
-                                    ),
-                                  );
-                                }
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                  Center(
-                    child: ElevatedButton(
-                      child: Text('Back'),
-                      onPressed: () async {
-                        await cancel();
-                      },
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

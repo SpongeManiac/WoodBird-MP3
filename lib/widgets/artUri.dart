@@ -7,10 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class ArtUri extends StatefulWidget {
-  ArtUri(this.uri, [this.padding]);
+  ArtUri(this.uri, {this.maxSize, this.padding});
 
-  double? padding;
   Uri uri;
+  double? padding;
+  double? maxSize;
 
   @override
   State<StatefulWidget> createState() => _ArtUriState();

@@ -208,9 +208,12 @@ class SharedDatabase extends _$SharedDatabase {
   }
 
   Future delPlaylistSong(PlaylistDataDB playlist, SongDataDB song) async {
+    final firstSongID = selectOnly(playlistSongs)
+      ..addColumns([playlistSongs.id])
+      ..where(playlistSongs.playlist.equals(playlist.id) &
+          playlistSongs.song.equals(song.id));
     return await (delete(playlistSongs)
-          ..where(
-              (e) => e.playlist.equals(playlist.id) & e.song.equals(song.id)))
+          ..where((e) => e.id.equalsExp(subqueryExpression(firstSongID))))
         .go();
   }
 
@@ -281,9 +284,13 @@ class SharedDatabase extends _$SharedDatabase {
     return await into(albumSongs).insert(entry);
   }
 
-  Future delAlbumSong(AlbumDataDB album, SongDataDB song) async {
+  Future<int> delAlbumSong(AlbumDataDB album, SongDataDB song) async {
+    final firstSongID = selectOnly(albumSongs)
+      ..addColumns([albumSongs.id])
+      ..where(
+          albumSongs.album.equals(album.id) & albumSongs.song.equals(song.id));
     return await (delete(albumSongs)
-          ..where((e) => e.album.equals(album.id) & e.song.equals(song.id)))
+          ..where((e) => e.id.equalsExp(subqueryExpression(firstSongID))))
         .go();
   }
 

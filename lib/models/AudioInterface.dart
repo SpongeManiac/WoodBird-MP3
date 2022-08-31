@@ -573,7 +573,7 @@ class AudioInterface {
     queueNotifier.value = playlist.length;
   }
 
-  List<T> moveGeneric<T>(List<T> list, int oldIndex, int newIndex) {
+  static List<T> moveGeneric<T>(List<T> list, int oldIndex, int newIndex) {
     if (oldIndex != newIndex) {
       bool oldLarger = oldIndex > newIndex;
       //newIndex--;

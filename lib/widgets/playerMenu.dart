@@ -409,7 +409,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                   newQueue > 0 && currentPlaying > -1
                                       ? currentSongTag!.artUri ?? noSongUri
                                       : noSongUri,
-                                  20),
+                                  padding: 20),
                             ),
                           ),
 
