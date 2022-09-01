@@ -287,6 +287,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                           //print('controls: ${controls.length}');
                                           return ReorderableListView.builder(
                                             shrinkWrap: true,
+                                            buildDefaultDragHandles: false,
                                             scrollDirection: Axis.horizontal,
                                             onReorder: ((oldIndex, newIndex) {
                                               moveControl(oldIndex, newIndex);
@@ -297,66 +298,84 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                               //     'loading control: ${controls[index]}');
                                               switch (controls[index]) {
                                                 case 0: // prev
-                                                  return IconButton(
+                                                  return ReorderableDelayedDragStartListener(
+                                                    index: index,
                                                     key: const Key('prev'),
-                                                    icon: Icon(
-                                                      Icons
-                                                          .skip_previous_rounded,
-                                                      color: Theme.of(context)
-                                                          .primaryColorDark,
+                                                    child: IconButton(
+                                                      icon: Icon(
+                                                        Icons
+                                                            .skip_previous_rounded,
+                                                        color: Theme.of(context)
+                                                            .primaryColorDark,
+                                                      ),
+                                                      //iconSize: 20,
+                                                      onPressed: () async {
+                                                        await widget
+                                                            .interface.player
+                                                            .seekToPrevious();
+                                                      },
                                                     ),
-                                                    //iconSize: 20,
-                                                    onPressed: () async {
-                                                      await widget
-                                                          .interface.player
-                                                          .seekToPrevious();
-                                                    },
                                                   );
                                                 case 1: //pause/play
-                                                  return PlayPauseButton(
+                                                  return ReorderableDelayedDragStartListener(
+                                                    index: index,
                                                     key: const Key('play'),
-                                                    //size: 20,
-                                                    color: Theme.of(context)
-                                                        .primaryColorDark,
-                                                  );
-                                                case 2: //next
-                                                  return IconButton(
-                                                    key: const Key('next'),
-                                                    icon: Icon(
-                                                      Icons.skip_next_rounded,
+                                                    child: PlayPauseButton(
+                                                      //size: 20,
                                                       color: Theme.of(context)
                                                           .primaryColorDark,
                                                     ),
-                                                    //iconSize: 20,
-                                                    onPressed: () async {
-                                                      await widget
-                                                          .interface.player
-                                                          .seekToNext();
-                                                    },
+                                                  );
+                                                case 2: //next
+                                                  return ReorderableDelayedDragStartListener(
+                                                    index: index,
+                                                    key: const Key('next'),
+                                                    child: IconButton(
+                                                      icon: Icon(
+                                                        Icons.skip_next_rounded,
+                                                        color: Theme.of(context)
+                                                            .primaryColorDark,
+                                                      ),
+                                                      //iconSize: 20,
+                                                      onPressed: () async {
+                                                        await widget
+                                                            .interface.player
+                                                            .seekToNext();
+                                                      },
+                                                    ),
                                                   );
                                                 case 3: //shuffle mode
-                                                  return ShuffleModeButton(
+                                                  return ReorderableDelayedDragStartListener(
+                                                    index: index,
                                                     key: const Key('shuffle'),
-                                                    //size: 20,
-                                                    color: Theme.of(context)
-                                                        .primaryColorDark,
-                                                  );
-                                                case 4: //loop mode
-                                                  return LoopModeButton(
-                                                    key: const Key('loop'),
-                                                    //size: 20,
-                                                    color: Theme.of(context)
-                                                        .primaryColorDark,
-                                                  );
-                                                default:
-                                                  return IconButton(
-                                                    key: Key('unknown$index'),
-                                                    onPressed: () {},
-                                                    icon: Icon(
-                                                      Icons
-                                                          .question_mark_rounded,
+                                                    child: ShuffleModeButton(
+                                                      //size: 20,
                                                       color: Theme.of(context)
                                                           .primaryColorDark,
+                                                    ),
+                                                  );
+                                                case 4: //loop mode
+                                                  return ReorderableDelayedDragStartListener(
+                                                    index: index,
+                                                    key: const Key('loop'),
+                                                    child: LoopModeButton(
+                                                      //size: 20,
+                                                      color: Theme.of(context)
+                                                          .primaryColorDark,
+                                                    ),
+                                                  );
+                                                default:
+                                                  return ReorderableDelayedDragStartListener(
+                                                    key: Key('unknown$index'),
+                                                    index: index,
+                                                    child: IconButton(
+                                                      onPressed: () {},
+                                                      icon: Icon(
+                                                        Icons
+                                                            .question_mark_rounded,
+                                                        color: Theme.of(context)
+                                                            .primaryColorDark,
+                                                      ),
                                                     ),
                                                   );
                                               }
@@ -414,6 +433,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
                           ),
 
                           ReorderableListView.builder(
+                            buildDefaultDragHandles: false,
                             onReorder: (int oldIndex, int newIndex) {
                               widget.interface.move(oldIndex, newIndex);
                             },
@@ -426,51 +446,56 @@ class _PlayerMenuState extends State<PlayerMenu> {
                               var songContextBtn =
                                   getSongContext(context, song);
                               if (isCurrent) {
-                                return Container(
-                                    key: ValueKey(index),
-                                    child: ListTile(
-                                      onTap: () async {
-                                        await widget.interface.setCurrent(song);
-                                      },
-                                      title: Text(
-                                        tag.title,
-                                        style: TextStyle(
-                                          color: Theme.of(context)
-                                              .primaryColorLight,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      subtitle: Text(
-                                        tag.artist ?? '',
-                                        style: TextStyle(
-                                          color: Theme.of(context)
-                                              .primaryColorLight,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      trailing: songContextBtn,
-                                    ));
-                              } else {
-                                return ListTile(
+                                return ReorderableDelayedDragStartListener(
+                                  index: index,
                                   key: ValueKey(index),
-                                  onTap: () async {
-                                    await widget.interface.setCurrent(song);
-                                  },
-                                  title: Text(
-                                    tag.title,
-                                    style: TextStyle(
-                                      color:
-                                          Theme.of(context).primaryColorLight,
+                                  child: ListTile(
+                                    onTap: () async {
+                                      await widget.interface.setCurrent(song);
+                                    },
+                                    title: Text(
+                                      tag.title,
+                                      style: TextStyle(
+                                        color:
+                                            Theme.of(context).primaryColorLight,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                  subtitle: Text(
-                                    tag.artist ?? '',
-                                    style: TextStyle(
-                                      color:
-                                          Theme.of(context).primaryColorLight,
+                                    subtitle: Text(
+                                      tag.artist ?? '',
+                                      style: TextStyle(
+                                        color:
+                                            Theme.of(context).primaryColorLight,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
+                                    trailing: songContextBtn,
                                   ),
-                                  trailing: songContextBtn,
+                                );
+                              } else {
+                                return ReorderableDelayedDragStartListener(
+                                  index: index,
+                                  key: ValueKey(index),
+                                  child: ListTile(
+                                    onTap: () async {
+                                      await widget.interface.setCurrent(song);
+                                    },
+                                    title: Text(
+                                      tag.title,
+                                      style: TextStyle(
+                                        color:
+                                            Theme.of(context).primaryColorLight,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      tag.artist ?? '',
+                                      style: TextStyle(
+                                        color:
+                                            Theme.of(context).primaryColorLight,
+                                      ),
+                                    ),
+                                    trailing: songContextBtn,
+                                  ),
                                 );
                               }
                             },

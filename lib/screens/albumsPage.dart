@@ -409,7 +409,37 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
   @override
   Widget createView(BuildContext context) {
     return Center(
-      child: albumForm,
+      child: Column(
+        children: [
+          albumForm,
+          Expanded(child: Container()),
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    await create();
+                    await setRead();
+                  },
+                  child: Text('Save'),
+                  // style: ButtonStyle(
+                  //   backgroundColor: Theme.of(context).,
+                  // ),
+                ),
+                Padding(padding: EdgeInsets.symmetric(horizontal: 10)),
+                ElevatedButton(
+                  onPressed: () async {
+                    await cancel();
+                  },
+                  child: Text('cancel'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -424,58 +454,50 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
             await widget.app.loadAlbums();
             setState(() {});
           },
-          child: ScrollConfiguration(
-            behavior: ScrollConfiguration.of(context).copyWith(
-              dragDevices: {
-                PointerDeviceKind.touch,
-                PointerDeviceKind.mouse,
-              },
-            ),
-            child: Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    scrollDirection: Axis.vertical,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    itemCount: newalbums.length,
-                    itemBuilder: (context, index) {
-                      switch (index) {
-                        default:
-                          AlbumData album = newalbums[index];
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  //physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: newalbums.length,
+                  itemBuilder: (context, index) {
+                    switch (index) {
+                      default:
+                        AlbumData album = newalbums[index];
 
-                          var albumContextBtn = getAlbumContext(context, album);
-                          return ListTile(
-                            enabled: true,
-                            onTap: () async {
-                              //print('tap');
-                              await setUpdate(album);
-                            },
-                            onLongPress: () {
-                              //print('long press');
-                              //print(widget.songContexts[song]);
-                              albumContexts[album]!.showDialog();
-                            },
-                            leading: ArtUri(Uri.parse(album.art)),
-                            title: Text(album.title),
-                            subtitle: Text(album.description),
-                            trailing: albumContextBtn,
-                          );
-                      }
-                    },
-                  ),
-                ),
-                ListTile(
-                  title: Text('Create album...'),
-                  trailing: Icon(
-                    Icons.add,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  onTap: () async {
-                    await setCreate();
+                        var albumContextBtn = getAlbumContext(context, album);
+                        return ListTile(
+                          enabled: true,
+                          onTap: () async {
+                            //print('tap');
+                            await setUpdate(album);
+                          },
+                          onLongPress: () {
+                            //print('long press');
+                            //print(widget.songContexts[song]);
+                            albumContexts[album]!.showDialog();
+                          },
+                          leading: ArtUri(Uri.parse(album.art)),
+                          title: Text(album.title),
+                          subtitle: Text(album.description),
+                          trailing: albumContextBtn,
+                        );
+                    }
                   },
                 ),
-              ],
-            ),
+              ),
+              ListTile(
+                title: Text('Create album...'),
+                trailing: Icon(
+                  Icons.add,
+                  color: Theme.of(context).primaryColor,
+                ),
+                onTap: () async {
+                  await setCreate();
+                },
+              ),
+            ],
           ),
         );
       }),
@@ -489,83 +511,112 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
     }
     var album = itemToEdit!;
     print('${songs.value.length} songs gotten');
-    return Center(
-      child: Expanded(
-        child: Padding(
-          padding: EdgeInsets.all(10),
-          child: ListView(
-            children: [
-              ExpansionTile(
-                title: Text(album.title),
-                onExpansionChanged: (isExpanded) {
-                  setState(() {
-                    print('isExpanded: $formExpanded');
-                    formExpanded = !isExpanded;
-                  });
-                },
-                children: [albumForm],
-              ),
-              ListTile(
-                title: Text('Add songs...'),
-                trailing: Icon(
-                  Icons.add_rounded,
-                  color: Theme.of(context).primaryColor,
-                ),
-                onTap: () async {
-                  //avoid dialog being closed after choosing option
-                  List<MediaItem> selected = [];
-                  await Future.delayed(Duration(seconds: 0), () async {
-                    await SelectDialog.showModal<MediaItem>(context,
-                        label: 'Select songs to add.',
-                        multipleSelectedValues: selected,
-                        items: widget.app.songsNotifier.value
-                            .map(AudioInterface.getTag)
-                            .toList(), itemBuilder: (context, tag, isSelected) {
-                      return ListTile(
-                        title: Text(tag.title),
-                        subtitle: Text(tag.artist ?? ''),
-                        trailing:
-                            (isSelected ? Icon(Icons.check_rounded) : null),
-                      );
-                    }, onMultipleItemsChange: (List<MediaItem> selectedSong) {
-                      setState(() {
-                        selected = selectedSong;
-                      });
-                    });
-                  }).then((value) async {
-                    print('selected: ${selected.length}');
-                    List<MediaItem> tmp = List.from(songs.value);
-                    for (var song in selected) {
-                      await widget.db.addAlbumSong(
-                        album.getEntry(),
-                        (await widget.db.getSongData(int.parse(song.id)))!,
-                      );
-                      tmp.add(song);
-                    }
-                    songs.value = tmp;
-                  });
-                },
-              ),
-              ReorderableListView.builder(
+    return Padding(
+      padding: EdgeInsets.all(10),
+      child: Center(
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
                 shrinkWrap: true,
-                onReorder: (oldIndex, newIndex) {},
-                itemCount: songs.value.length,
-                itemBuilder: (context, index) {
-                  MediaItem song = songs.value[index];
-                  //int songId = int.tryParse(song.id) ?? -1;
-                  //SongData songData;
+                children: [
+                  ExpansionTile(
+                    title: Text(album.title),
+                    onExpansionChanged: (isExpanded) {
+                      setState(() {
+                        print('isExpanded: $formExpanded');
+                        formExpanded = !isExpanded;
+                      });
+                    },
+                    children: [
+                      albumForm,
+                      Padding(
+                        padding: EdgeInsets.all(10),
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            await update(album);
+                            await setRead();
+                          },
+                          child: Text('Save'),
+                          // style: ButtonStyle(
+                          //   backgroundColor: Theme.of(context).,
+                          // ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  ListTile(
+                    title: Text('Add songs...'),
+                    trailing: Icon(
+                      Icons.add_rounded,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                    onTap: () async {
+                      //avoid dialog being closed after choosing option
+                      List<MediaItem> selected = [];
+                      await Future.delayed(Duration(seconds: 0), () async {
+                        await SelectDialog.showModal<MediaItem>(context,
+                            label: 'Select songs to add.',
+                            multipleSelectedValues: selected,
+                            items: widget.app.songsNotifier.value
+                                .map(AudioInterface.getTag)
+                                .toList(),
+                            itemBuilder: (context, tag, isSelected) {
+                          return ListTile(
+                            title: Text(tag.title),
+                            subtitle: Text(tag.artist ?? ''),
+                            trailing:
+                                (isSelected ? Icon(Icons.check_rounded) : null),
+                          );
+                        }, onMultipleItemsChange:
+                                (List<MediaItem> selectedSong) {
+                          setState(() {
+                            selected = selectedSong;
+                          });
+                        });
+                      }).then((value) async {
+                        print('selected: ${selected.length}');
+                        List<MediaItem> tmp = List.from(songs.value);
+                        for (var song in selected) {
+                          await widget.db.addAlbumSong(
+                            album.getEntry(),
+                            (await widget.db.getSongData(int.parse(song.id)))!,
+                          );
+                          tmp.add(song);
+                        }
+                        songs.value = tmp;
+                      });
+                    },
+                  ),
+                  ReorderableListView.builder(
+                    shrinkWrap: true,
+                    buildDefaultDragHandles: false,
+                    onReorder: (oldIndex, newIndex) {},
+                    itemCount: songs.value.length,
+                    itemBuilder: (context, index) {
+                      MediaItem song = songs.value[index];
+                      //int songId = int.tryParse(song.id) ?? -1;
+                      //SongData songData;
 
-                  return ListTile(
-                    key: Key(index.toString()),
-                    leading: ArtUri(song.artUri ?? Uri.parse('')),
-                    title: Text(song.title),
-                    subtitle: Text(song.artist ?? ''),
-                    trailing: getSongContext(context, album, song),
-                  );
-                },
+                      return ListTile(
+                        key: Key(index.toString()),
+                        leading: ArtUri(song.artUri ?? Uri.parse('')),
+                        title: Text(song.title),
+                        subtitle: Text(song.artist ?? ''),
+                        trailing: getSongContext(context, album, song),
+                      );
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await cancel();
+              },
+              child: Text('Back'),
+            ),
+          ],
         ),
       ),
     );

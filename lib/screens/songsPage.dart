@@ -442,19 +442,13 @@ class _SongsPageState extends CRUDState<AudioSource> {
                 },
               ));
             }
-            children.add(Expanded(
-              child: RefreshIndicator(
-                onRefresh: () async {
-                  await widget.app.loadSongs();
-                  setState(() {});
-                },
-                child: ScrollConfiguration(
-                  behavior: ScrollConfiguration.of(context).copyWith(
-                    dragDevices: {
-                      PointerDeviceKind.touch,
-                      PointerDeviceKind.mouse,
-                    },
-                  ),
+            children.add(
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    await widget.app.loadSongs();
+                    setState(() {});
+                  },
                   child: ListView.builder(
                     scrollDirection: Axis.vertical,
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -484,7 +478,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
                   ),
                 ),
               ),
-            ));
+            );
             print('got songs: ${newSongs.toList()}');
             return Column(
               children: children,
@@ -559,75 +553,67 @@ class _SongsPageState extends CRUDState<AudioSource> {
                   newArt.text =
                       toEditTag.artUri == null ? '' : toEditTag.artUri!.path;
                 },
-                child: ScrollConfiguration(
-                  behavior: ScrollConfiguration.of(context).copyWith(
-                    dragDevices: {
-                      PointerDeviceKind.touch,
-                      PointerDeviceKind.mouse,
-                    },
-                  ),
-                  child: ListView(
-                    children: [
-                      ListTile(
-                        title: const Text('Name'),
-                        subtitle: TextFormField(
-                          controller: newName,
-                        ),
+                child: ListView(
+                  children: [
+                    ListTile(
+                      title: const Text('Name'),
+                      subtitle: TextFormField(
+                        controller: newName,
                       ),
-                      ListTile(
-                        title: Text('Artist'),
-                        subtitle: TextFormField(
-                          controller: newAlbum,
-                        ),
+                    ),
+                    ListTile(
+                      title: Text('Artist'),
+                      subtitle: TextFormField(
+                        controller: newAlbum,
                       ),
-                      ListTile(
-                        title: Text('Album'),
-                        subtitle: TextFormField(
-                          controller: newAlbum,
-                        ),
+                    ),
+                    ListTile(
+                      title: Text('Album'),
+                      subtitle: TextFormField(
+                        controller: newAlbum,
                       ),
-                      ListTile(
-                        title: const Text('Song Art'),
-                        subtitle: TextFormField(
-                          controller: newArt,
-                          onChanged: (text) async {
-                            artUriNotifier.value = text;
-                          },
-                          onFieldSubmitted: (text) async {
-                            //print('Text changed: $text');
-                            artUriNotifier.value = text;
-                            //newArt.text;
-                          },
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(
-                            Icons.folder_open_rounded,
-                            color: Theme.of(context).primaryColor,
-                          ),
-                          onPressed: () async {
-                            String artPath = await getArt();
-                            print('Art path: $artPath');
-                            newArt.text = artPath;
-                          },
-                        ),
+                    ),
+                    ListTile(
+                      title: const Text('Song Art'),
+                      subtitle: TextFormField(
+                        controller: newArt,
+                        onChanged: (text) async {
+                          artUriNotifier.value = text;
+                        },
+                        onFieldSubmitted: (text) async {
+                          //print('Text changed: $text');
+                          artUriNotifier.value = text;
+                          //newArt.text;
+                        },
                       ),
-                      Container(
-                        width: 200,
-                        height: 200,
-                        constraints: BoxConstraints(
-                          maxHeight: 200,
-                          maxWidth: 200,
+                      trailing: IconButton(
+                        icon: Icon(
+                          Icons.folder_open_rounded,
+                          color: Theme.of(context).primaryColor,
                         ),
-                        child: ValueListenableBuilder<String>(
-                          valueListenable: artUriNotifier,
-                          builder: ((context, newUri, child) {
-                            print('Notifier updated: $newUri');
-                            return ArtUri(Uri.parse(newUri));
-                          }),
-                        ),
+                        onPressed: () async {
+                          String artPath = await getArt();
+                          print('Art path: $artPath');
+                          newArt.text = artPath;
+                        },
                       ),
-                    ],
-                  ),
+                    ),
+                    Container(
+                      width: 200,
+                      height: 200,
+                      constraints: BoxConstraints(
+                        maxHeight: 200,
+                        maxWidth: 200,
+                      ),
+                      child: ValueListenableBuilder<String>(
+                        valueListenable: artUriNotifier,
+                        builder: ((context, newUri, child) {
+                          print('Notifier updated: $newUri');
+                          return ArtUri(Uri.parse(newUri));
+                        }),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
