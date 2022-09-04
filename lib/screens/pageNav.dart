@@ -8,6 +8,7 @@ import 'package:test_project/widgets/playerMenu.dart';
 
 import '../globals.dart' show app;
 import '../widgets/hideableFloatingAction.dart';
+import '../widgets/loadingIndicator.dart';
 
 class PageNav extends StatefulWidget {
   PageNav({
@@ -137,40 +138,48 @@ class _PageNavState extends State<PageNav> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<String>(
-      valueListenable: app.routeNotifier,
-      builder: (_, newRoute, __) {
-        ThemedPage Function(BuildContext)? builder = app.routes[newRoute];
-        if (builder == null) {
-          builder = app.routes['/'];
-          app.currentRoute = '/';
-        } else {
-          //reset back button function
-          app.currentRoute = newRoute;
-        }
-        var size = MediaQuery.of(context).size;
-        //print('size: $size');
-        int maxHeight = MediaQuery.of(context).size.shortestSide.ceil();
-        //print('Max height: $maxHeight');
-        return Stack(
-          children: [
-            Padding(
-              padding: EdgeInsets.only(bottom: 100),
-              child: WillPopScope(
-                onWillPop: () => widget.androidOnBack(),
-                child: builder!(context),
-              ),
-            ),
-            SlidingUpPanel(
-              //margin: EdgeInsets.only(top: 60),
-              //color: Theme.of(context),
-              minHeight: 100,
-              maxHeight: maxHeight.toDouble(),
-              panel: PlayerMenu(),
-            ),
-          ],
-        );
-      },
+    return Stack(
+      children: [
+        ValueListenableBuilder<String>(
+          valueListenable: app.routeNotifier,
+          builder: (_, newRoute, __) {
+            ThemedPage Function(BuildContext)? builder = app.routes[newRoute];
+            if (builder == null) {
+              builder = app.routes['/'];
+              app.currentRoute = '/';
+            } else {
+              //reset back button function
+              app.currentRoute = newRoute;
+            }
+            var size = MediaQuery.of(context).size;
+            //print('size: $size');
+            int maxHeight = MediaQuery.of(context).size.shortestSide.ceil();
+            //print('Max height: $maxHeight');
+            return Stack(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(bottom: 100),
+                  child: WillPopScope(
+                    onWillPop: () => widget.androidOnBack(),
+                    child: builder!(context),
+                  ),
+                ),
+                SlidingUpPanel(
+                  //margin: EdgeInsets.only(top: 60),
+                  //color: Theme.of(context),
+                  minHeight: 100,
+                  maxHeight: maxHeight.toDouble(),
+                  panel: PlayerMenu(),
+                ),
+              ],
+            );
+          },
+        ),
+        LoadingIndicator(
+          loadingNotifier: app.loadingNotifier,
+          loadingProgressNotifier: app.loadingProgressNotifier,
+        ),
+      ],
     );
   }
 }

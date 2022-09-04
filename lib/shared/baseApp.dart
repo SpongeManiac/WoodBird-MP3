@@ -88,6 +88,10 @@ class BaseApp extends StatefulWidget {
   final ValueNotifier<HideableFloatingActionData> floatingActionNotifier =
       ValueNotifier(HideableFloatingActionData(false));
 
+  final ValueNotifier<bool> loadingNotifier = ValueNotifier<bool>(false);
+  final ValueNotifier<double?> loadingProgressNotifier =
+      ValueNotifier<double?>(0);
+
   late AudioHandler handler;
   late AudioSession session;
 

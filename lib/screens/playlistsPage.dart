@@ -18,6 +18,7 @@ import 'package:test_project/widgets/contextPopupButton.dart';
 import 'package:path/path.dart' as p;
 
 import '../models/contextItemTuple.dart';
+import '../platform_specific/device.dart';
 import '../widgets/appBar.dart';
 import '../widgets/artUri.dart';
 
@@ -82,7 +83,25 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                     child: ArtUri(Uri.parse(newArt.text)),
                   ),
                   labelText: 'Art',
+                  suffix: IconButton(
+                    icon: Icon(
+                      Icons.folder_open_rounded,
+                    ),
+                    onPressed: () async {
+                      widget.app.loadingProgressNotifier.value = null;
+                      widget.app.loadingNotifier.value = true;
+                      var path = await (widget.app as DesktopApp).getArt();
+                      if (path.isNotEmpty) {
+                        setState(() {
+                          newArt.text = path;
+                        });
+                      } else {}
+                      widget.app.loadingProgressNotifier.value = null;
+                      widget.app.loadingNotifier.value = false;
+                    },
+                  ),
                 ),
+                onEditingComplete: () async {},
                 controller: newArt,
                 //validator: (value) => validateDesc(value),
                 maxLines: 2,
@@ -443,6 +462,16 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
           },
           child: Column(
             children: [
+              ListTile(
+                title: Text('Create Playlist...'),
+                trailing: Icon(
+                  Icons.add,
+                  color: Theme.of(context).primaryColor,
+                ),
+                onTap: () async {
+                  await setCreate();
+                },
+              ),
               Expanded(
                 child: ListView.builder(
                   scrollDirection: Axis.vertical,
@@ -474,16 +503,6 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                     }
                   },
                 ),
-              ),
-              ListTile(
-                title: Text('Create Playlist...'),
-                trailing: Icon(
-                  Icons.add,
-                  color: Theme.of(context).primaryColor,
-                ),
-                onTap: () async {
-                  await setCreate();
-                },
               ),
             ],
           ),

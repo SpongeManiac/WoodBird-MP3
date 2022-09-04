@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_window_close/flutter_window_close.dart';
@@ -62,6 +63,48 @@ class DesktopApp extends BaseApp {
     } else {
       //desktop
       FlutterWindowClose.closeWindow();
+    }
+  }
+
+  Future<String> getArt() async {
+    var artDirectory = Directory(artDir);
+    if (!await artDirectory.exists()) {
+      await artDirectory.create();
+    }
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowMultiple: false,
+      allowedExtensions: ['png', 'jpg'],
+      withData: false,
+      withReadStream: true,
+    );
+
+    if (result != null && result.count == 1) {
+      String? path = result.paths[0];
+      if (path == null) return '';
+      String base = p.basename(path);
+      //var dir = p.join(songs, base);
+
+      String ogPath = path;
+      print('og path: $ogPath');
+      File tempFile = File(ogPath);
+      String newPath = p.join(artDirectory.path, base);
+      File preCachedFile = File(newPath);
+      //check if file already exists
+      if (!await preCachedFile.exists()) {
+        var cacheFile = await tempFile.rename(newPath);
+        print('cachedFile path: ${cacheFile.path}');
+      }
+      //remove temp cache file
+      if (await tempFile.exists()) {
+        await tempFile.delete();
+      }
+
+      return preCachedFile.path;
+    } else {
+      print('No result or cancelled');
+
+      return '';
     }
   }
 

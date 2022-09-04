@@ -15,6 +15,7 @@ import '../models/AudioInterface.dart';
 import '../models/contextItemTuple.dart';
 import '../models/states/album/albumData.dart';
 import '../models/states/song/songData.dart';
+import '../platform_specific/device.dart';
 import '../widgets/appBar.dart';
 import '../widgets/artUri.dart';
 import '../widgets/contextPopupButton.dart';
@@ -85,6 +86,23 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
                     child: ArtUri(Uri.parse(newArt.text)),
                   ),
                   labelText: 'Art',
+                  suffix: IconButton(
+                    icon: Icon(
+                      Icons.folder_open_rounded,
+                    ),
+                    onPressed: () async {
+                      widget.app.loadingProgressNotifier.value = null;
+                      widget.app.loadingNotifier.value = true;
+                      var path = await (widget.app as DesktopApp).getArt();
+                      if (path.isNotEmpty) {
+                        setState(() {
+                          newArt.text = path;
+                        });
+                      }
+                      widget.app.loadingNotifier.value = false;
+                      widget.app.loadingProgressNotifier.value = null;
+                    },
+                  ),
                 ),
                 controller: newArt,
                 //validator: (value) => validateDesc(value),
@@ -456,6 +474,16 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
           },
           child: Column(
             children: [
+              ListTile(
+                title: Text('Create album...'),
+                trailing: Icon(
+                  Icons.add,
+                  color: Theme.of(context).primaryColor,
+                ),
+                onTap: () async {
+                  await setCreate();
+                },
+              ),
               Expanded(
                 child: ListView.builder(
                   scrollDirection: Axis.vertical,
@@ -486,16 +514,6 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
                     }
                   },
                 ),
-              ),
-              ListTile(
-                title: Text('Create album...'),
-                trailing: Icon(
-                  Icons.add,
-                  color: Theme.of(context).primaryColor,
-                ),
-                onTap: () async {
-                  await setCreate();
-                },
               ),
             ],
           ),

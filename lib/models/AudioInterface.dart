@@ -535,9 +535,12 @@ class AudioInterface {
     }
   }
 
-  Future<void> setCurrent(AudioSource song) async {
-    var tag = getTag(song);
-    player.seek(Duration(seconds: 0), index: playlist.children.indexOf(song));
+  Future<void> setCurrent(int song) async {
+    if (song < 0 || song > playlist.children.length - 1) {
+      print('Out of bounds queue index: $song');
+      return;
+    }
+    player.seek(Duration(seconds: 0), index: song);
   }
 
   Future<void> togglePlay() async {

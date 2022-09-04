@@ -4,7 +4,7 @@ class ContextPopupButton extends PopupMenuButton<String> {
   ContextPopupButton({super.key, super.icon, required super.itemBuilder});
 
   void Function() showDialog = () {
-    print('default');
+    print('default context dialog');
   };
 
   @override
@@ -26,6 +26,10 @@ class _ContextPopupButtonState extends PopupMenuButtonState<String> {
 
   @override
   Widget build(BuildContext context) {
+    (widget as ContextPopupButton).showDialog = () {
+      print('showing button');
+      super.showButtonMenu();
+    };
     return super.build(context);
   }
 }

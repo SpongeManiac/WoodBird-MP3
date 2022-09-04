@@ -7,11 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class ArtUri extends StatefulWidget {
-  ArtUri(this.uri, {this.maxSize, this.padding});
+  ArtUri(this.uri, {this.maxSize, this.padding, this.opacity});
 
   Uri uri;
   double? padding;
   double? maxSize;
+  double? opacity;
 
   @override
   State<StatefulWidget> createState() => _ArtUriState();
@@ -125,11 +126,14 @@ class _ArtUriState extends State<ArtUri> {
   }
 
   Widget getDefaultArt() {
-    return FittedBox(
-      fit: BoxFit.contain,
-      child: Icon(
-        Icons.music_note_rounded,
-        color: Theme.of(context).primaryColor,
+    return Opacity(
+      opacity: widget.opacity ?? 1,
+      child: FittedBox(
+        fit: BoxFit.contain,
+        child: Icon(
+          Icons.music_note_rounded,
+          color: Theme.of(context).primaryColor,
+        ),
       ),
     );
   }
@@ -164,10 +168,18 @@ class _ArtUriState extends State<ArtUri> {
                 String path = widget.uri.toString();
                 if (isWebImg(path)) {
                   //print('is web img');
-                  return Image.network(path);
+                  return Opacity(
+                    opacity: widget.opacity ?? 1,
+                    child: Image.network(path),
+                  );
                 } else {
                   //print('is file img');
-                  return Image.file(File.fromUri(widget.uri));
+                  return Opacity(
+                    opacity: widget.opacity ?? 1,
+                    child: Image.file(
+                      File.fromUri(widget.uri),
+                    ),
+                  );
                 }
               } else {
                 print('invalid uri');

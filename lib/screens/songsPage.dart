@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:select_dialog/select_dialog.dart';
 import 'package:test_project/database/database.dart';
 import 'package:test_project/models/states/song/songData.dart';
+import 'package:test_project/platform_specific/device.dart';
 import 'package:test_project/screens/CRUDPage.dart';
 import 'package:test_project/widgets/artUri.dart';
 import 'package:test_project/widgets/contextPopupButton.dart';
@@ -18,6 +19,7 @@ import '../models/AudioInterface.dart';
 import '../models/contextItemTuple.dart';
 import '../widgets/contextPopupButton.dart';
 import '../widgets/appBar.dart';
+import '../widgets/loadingIndicator.dart';
 import 'themedPage.dart';
 import 'package:path/path.dart' as p;
 
@@ -55,11 +57,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
   List<AudioSource> get songs => widget.app.songsNotifier.value;
   set songs(List<AudioSource> newSongs) =>
       widget.app.songsNotifier.value = newSongs;
-  //List<AudioSource> get queue => interface.queueNotifier.value.children;
-  //set queue(queue) => interface.queueNotifier.value = queue;
 
-  ValueNotifier<bool> loadingSongsNotifier = ValueNotifier<bool>(false);
-  ValueNotifier<double?> loadingProgressNotifier = ValueNotifier<double?>(0);
   ValueNotifier<String> artUriNotifier = ValueNotifier<String>('');
 
   MediaItem get toEditTag {
@@ -71,7 +69,87 @@ class _SongsPageState extends CRUDState<AudioSource> {
   TextEditingController newName = TextEditingController(text: '');
   TextEditingController newArt = TextEditingController(text: '');
 
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  Widget get songForm => Form(
+        key: formKey,
+        child: Padding(
+          padding: EdgeInsets.all(10),
+          child: Column(
+            children: [
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                ),
+                controller: newName,
+                validator: (value) => validateTitle(value),
+                maxLength: 128,
+              ),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Artist',
+                ),
+                controller: newArtist,
+                validator: (value) => validateTitle(value),
+                maxLength: 128,
+              ),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Album',
+                ),
+                controller: newAlbum,
+                validator: (value) => validateTitle(value),
+                maxLines: 3,
+                maxLength: 128,
+              ),
+              TextFormField(
+                decoration: InputDecoration(
+                  icon: Container(
+                    height: 56,
+                    width: 56,
+                    child: ArtUri(Uri.parse(newArt.text)),
+                  ),
+                  labelText: 'Art',
+                  suffix: IconButton(
+                    icon: Icon(
+                      Icons.folder_open_rounded,
+                    ),
+                    onPressed: () async {
+                      widget.app.loadingProgressNotifier.value = null;
+                      widget.app.loadingNotifier.value = true;
+                      var path = await (widget.app as DesktopApp).getArt();
+                      if (path.isNotEmpty) {
+                        setState(() {
+                          newArt.text = path;
+                        });
+                      }
+                      widget.app.loadingNotifier.value = false;
+                      widget.app.loadingProgressNotifier.value = null;
+                    },
+                  ),
+                ),
+                controller: newArt,
+                validator: (value) => validateDesc(value),
+                maxLines: 2,
+                maxLength: 1024,
+              ),
+            ],
+          ),
+        ),
+      );
+
+  String? validateTitle(String? val) {
+    val = val ?? '';
+    if (val.isEmpty || val.trim().isEmpty) return 'Please enter some text.';
+    return null;
+  }
+
+  String? validateDesc(String? val) {
+    val = val ?? '';
+    return null;
+  }
+
   ContextPopupButton getSongContext(AudioSource song) {
+    print('getting song popup context');
     var popup = ContextPopupButton(
       icon:
           //Badge(
@@ -209,47 +287,6 @@ class _SongsPageState extends CRUDState<AudioSource> {
     await cancel();
   }
 
-  Future<String> getArt() async {
-    var artDir = Directory(widget.app.artDir);
-    if (!await artDir.exists()) {
-      await artDir.create();
-    }
-    final FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowMultiple: false,
-      allowedExtensions: ['png', 'jpg'],
-      withData: false,
-      withReadStream: true,
-    );
-
-    if (result != null && result.count == 1) {
-      String? path = result.paths[0];
-      if (path == null) return '';
-      String base = p.basename(path);
-      //var dir = p.join(songs, base);
-
-      String ogPath = path;
-      print('og path: $ogPath');
-      File tempFile = File(ogPath);
-      String newPath = p.join(artDir.path, base);
-      File preCachedFile = File(newPath);
-      //check if file already exists
-      if (!await preCachedFile.exists()) {
-        var cacheFile = await tempFile.rename(newPath);
-        print('cachedFile path: ${cacheFile.path}');
-      }
-      //remove temp cache file
-      if (await tempFile.exists()) {
-        await tempFile.delete();
-      }
-
-      return preCachedFile.path;
-    } else {
-      print('No result or cancelled');
-      return '';
-    }
-  }
-
   //crud ops
   @override
   Future<List<AudioSource?>> create() async {
@@ -258,8 +295,8 @@ class _SongsPageState extends CRUDState<AudioSource> {
     if (!await songsDir.exists()) {
       await songsDir.create();
     }
-    loadingProgressNotifier.value = null;
-    loadingSongsNotifier.value = true;
+    widget.app.loadingProgressNotifier.value = null;
+    widget.app.loadingNotifier.value = true;
     print('going to add song');
     final FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -271,7 +308,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
     if (result != null && result.count > 0) {
       double fraction = (1.0 / result.count);
       print('songs: ${result.count}, fraction: $fraction');
-      loadingProgressNotifier.value = fraction;
+      widget.app.loadingProgressNotifier.value = fraction;
       for (var i = 0; i < result.count; i++) {
         String? path = result.paths[i];
         path ??= '-1';
@@ -327,14 +364,14 @@ class _SongsPageState extends CRUDState<AudioSource> {
         print('Adding: ${songSource.uri}');
         newSongs.add(songSource);
         //print('updating progress: ${loadingProgressNotifier.value}');
-        loadingProgressNotifier.value = (i + 1) * fraction;
+        widget.app.loadingProgressNotifier.value = (i + 1) * fraction;
         //await Future.delayed(const Duration(milliseconds: 10));
       }
     } else {
       print('null result');
     }
-    loadingSongsNotifier.value = false;
-    loadingProgressNotifier.value = 0;
+    widget.app.loadingNotifier.value = false;
+    widget.app.loadingProgressNotifier.value = null;
     return newSongs;
   }
 
@@ -412,12 +449,12 @@ class _SongsPageState extends CRUDState<AudioSource> {
 
   @override
   Widget readView(BuildContext context) {
-    return Stack(
-      children: [
-        ValueListenableBuilder<List<AudioSource>>(
-          valueListenable: widget.app.songsNotifier,
-          builder: (context, newSongs, _) {
-            List<Widget> children = [
+    return ValueListenableBuilder<List<AudioSource>>(
+      valueListenable: widget.app.songsNotifier,
+      builder: (context, newSongs, _) {
+        return Center(
+          child: Column(
+            children: [
               ListTile(
                 title: Text('Add Song(s)...'),
                 trailing: Icon(
@@ -429,20 +466,19 @@ class _SongsPageState extends CRUDState<AudioSource> {
                   setState(() {});
                 },
               ),
-            ];
-            if (newSongs.isNotEmpty) {
-              children.add(ListTile(
-                title: const Text('Queue All'),
-                trailing: Icon(
-                  Icons.auto_awesome_motion_rounded,
-                  color: Theme.of(context).primaryColorDark,
+              Visibility(
+                visible: newSongs.isNotEmpty,
+                child: ListTile(
+                  title: const Text('Queue All'),
+                  trailing: Icon(
+                    Icons.auto_awesome_motion_rounded,
+                    color: Theme.of(context).primaryColorDark,
+                  ),
+                  onTap: () {
+                    interface.addToQueue(songs);
+                  },
                 ),
-                onTap: () {
-                  interface.addToQueue(songs);
-                },
-              ));
-            }
-            children.add(
+              ),
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () async {
@@ -478,32 +514,10 @@ class _SongsPageState extends CRUDState<AudioSource> {
                   ),
                 ),
               ),
-            );
-            print('got songs: ${newSongs.toList()}');
-            return Column(
-              children: children,
-            );
-          },
-        ),
-        ValueListenableBuilder<bool>(
-          valueListenable: loadingSongsNotifier,
-          builder: (context, loadingSongs, _) {
-            print('loading songs: $loadingSongs');
-            return Visibility(
-              visible: loadingSongs,
-              child: ValueListenableBuilder<double?>(
-                valueListenable: loadingProgressNotifier,
-                builder: (context, progress, _) {
-                  print('progres: $progress');
-                  return Center(
-                    child: CircularProgressIndicator(value: progress),
-                  );
-                },
-              ),
-            );
-          },
-        ),
-      ],
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -555,64 +569,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
                 },
                 child: ListView(
                   children: [
-                    ListTile(
-                      title: const Text('Name'),
-                      subtitle: TextFormField(
-                        controller: newName,
-                      ),
-                    ),
-                    ListTile(
-                      title: Text('Artist'),
-                      subtitle: TextFormField(
-                        controller: newAlbum,
-                      ),
-                    ),
-                    ListTile(
-                      title: Text('Album'),
-                      subtitle: TextFormField(
-                        controller: newAlbum,
-                      ),
-                    ),
-                    ListTile(
-                      title: const Text('Song Art'),
-                      subtitle: TextFormField(
-                        controller: newArt,
-                        onChanged: (text) async {
-                          artUriNotifier.value = text;
-                        },
-                        onFieldSubmitted: (text) async {
-                          //print('Text changed: $text');
-                          artUriNotifier.value = text;
-                          //newArt.text;
-                        },
-                      ),
-                      trailing: IconButton(
-                        icon: Icon(
-                          Icons.folder_open_rounded,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                        onPressed: () async {
-                          String artPath = await getArt();
-                          print('Art path: $artPath');
-                          newArt.text = artPath;
-                        },
-                      ),
-                    ),
-                    Container(
-                      width: 200,
-                      height: 200,
-                      constraints: BoxConstraints(
-                        maxHeight: 200,
-                        maxWidth: 200,
-                      ),
-                      child: ValueListenableBuilder<String>(
-                        valueListenable: artUriNotifier,
-                        builder: ((context, newUri, child) {
-                          print('Notifier updated: $newUri');
-                          return ArtUri(Uri.parse(newUri));
-                        }),
-                      ),
-                    ),
+                    songForm,
                   ],
                 ),
               ),
@@ -635,9 +592,9 @@ class _SongsPageState extends CRUDState<AudioSource> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    print('Cancel tapped');
-                    print(newName.text);
-                    print(toEditTag.id);
+                    //print('Cancel tapped');
+                    //print(newName.text);
+                    //print(toEditTag.id);
                     await cancel();
                   },
                   child: Text(
