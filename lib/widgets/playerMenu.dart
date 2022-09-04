@@ -432,10 +432,6 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                     ),
                                   ),
                                 ),
-                                Container(
-                                  color: Colors.red,
-                                  height: 56,
-                                )
                               ],
                             ),
                           ),
