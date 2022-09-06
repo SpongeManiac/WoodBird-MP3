@@ -505,7 +505,10 @@ class _SongsPageState extends CRUDState<AudioSource> {
                           //print(widget.songContexts[song]);
                           songContexts[song]!.showDialog();
                         },
-                        leading: ArtUri(tag.artUri ?? Uri.parse('')),
+                        leading: ArtUri(
+                          tag.artUri ?? Uri.parse(''),
+                          maxSize: 48,
+                        ),
                         title: Text(tag.title),
                         subtitle: Text(tag.artist ?? 'empty'),
                         trailing: songContextBtn,

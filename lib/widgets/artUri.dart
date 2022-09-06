@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 class ArtUri extends StatefulWidget {
@@ -126,16 +127,35 @@ class _ArtUriState extends State<ArtUri> {
   }
 
   Widget getDefaultArt() {
-    return Opacity(
-      opacity: widget.opacity ?? 1,
-      child: FittedBox(
-        fit: BoxFit.contain,
-        child: Icon(
-          Icons.music_note_rounded,
-          color: Theme.of(context).primaryColor,
+    if (widget.maxSize != null) {
+      return Opacity(
+        opacity: widget.opacity ?? 1,
+        child: Container(
+          height: widget.maxSize,
+          width: widget.maxSize,
+          child: FittedBox(
+            fit: BoxFit.contain,
+            child: Icon(
+              Icons.music_note_rounded,
+              color: Theme.of(context).primaryColor,
+            ),
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      return Opacity(
+        opacity: widget.opacity ?? 1,
+        child: Container(
+          child: FittedBox(
+            fit: BoxFit.contain,
+            child: Icon(
+              Icons.music_note_rounded,
+              color: Theme.of(context).primaryColor,
+            ),
+          ),
+        ),
+      );
+    }
   }
 
   Widget getLoading() {
@@ -168,16 +188,31 @@ class _ArtUriState extends State<ArtUri> {
                 String path = widget.uri.toString();
                 if (isWebImg(path)) {
                   //print('is web img');
-                  return Opacity(
-                    opacity: widget.opacity ?? 1,
-                    child: Image.network(path),
+                  return Container(
+                    height: widget.maxSize,
+                    width: widget.maxSize,
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: Opacity(
+                        opacity: widget.opacity ?? 1,
+                        child: Image.network(path),
+                      ),
+                    ),
                   );
                 } else {
                   //print('is file img');
-                  return Opacity(
-                    opacity: widget.opacity ?? 1,
-                    child: Image.file(
-                      File.fromUri(widget.uri),
+                  return Container(
+                    //color: Colors.red,
+                    height: widget.maxSize,
+                    width: widget.maxSize,
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: Opacity(
+                        opacity: widget.opacity ?? 1,
+                        child: Image.file(
+                          File.fromUri(widget.uri),
+                        ),
+                      ),
                     ),
                   );
                 }
