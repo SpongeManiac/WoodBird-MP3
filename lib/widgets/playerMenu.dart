@@ -461,7 +461,8 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                             Theme.of(context).primaryColorLight,
                                         width: 2,
                                         style: BorderStyle.solid,
-                                        strokeAlign: StrokeAlign.inside,
+                                        strokeAlign:
+                                            BorderSide.strokeAlignInside,
                                       ),
                                     ),
                                     child: ListTile(

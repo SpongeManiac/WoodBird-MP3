@@ -44,9 +44,9 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.8
   file_picker: ^5.0.1
   receive_sharing_intent: ^1.4.5
-  just_audio: ^0.9.28
+  just_audio: ^0.9.29
   just_audio_background: ^0.0.1-beta.7
-  just_audio_windows: ^0.1.0
+  #just_audio_windows: ^0.1.0
   sliding_up_panel: ^2.0.0+1
   marquee: ^2.2.3
   #audio_session: ^0.1.10

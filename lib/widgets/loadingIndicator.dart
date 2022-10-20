@@ -41,7 +41,7 @@ class LoadingIndicator extends StatelessWidget {
                             color: Theme.of(context).primaryColor,
                             width: 2,
                             style: BorderStyle.solid,
-                            strokeAlign: StrokeAlign.inside,
+                            strokeAlign: BorderSide.strokeAlignInside,
                           ),
                         ),
                         child: Padding(
