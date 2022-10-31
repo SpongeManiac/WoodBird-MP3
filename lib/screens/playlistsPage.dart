@@ -156,7 +156,6 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                   (await widget.db.getPlaylistSongs(playlist))
                       .map((s) => SongData.fromDB(s).source)
                       .toList();
-              print(songs);
               await widget.app.audioInterface.setQueue(songs);
             },
           ),
