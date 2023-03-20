@@ -1,7 +1,3 @@
-library test_project;
-
-import 'package:just_audio/just_audio.dart';
-
 import 'shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'database/connection/shared.dart';
