@@ -101,7 +101,7 @@ class DesktopApp extends BaseApp {
 
       String ogPath = path;
       print('og path: $ogPath');
-      File tempFile = File(ogPath);
+      //File tempFile = File(ogPath);
       String newPath = p.join(artDirectory.path, base);
       File preCachedFile = File(newPath);
       //check if file already exists
