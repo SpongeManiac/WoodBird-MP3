@@ -12,7 +12,7 @@ class HomePageState extends Table {
   IntColumn get id =>
       integer().autoIncrement().withDefault(const Constant(1))();
   //info to preload widget
-  BoolColumn get darkMode => boolean().withDefault(const Constant(false))();
+  BoolColumn get darkmode => boolean().withDefault(const Constant(false))();
   BoolColumn get swapTrack => boolean().withDefault(const Constant(false))();
   IntColumn get theme => integer().withDefault(const Constant(0))();
   //IntColumn get count => integer().withDefault(const Constant(0))();
@@ -120,7 +120,7 @@ class SharedDatabase extends _$SharedDatabase {
 
   Future<int> setHomeState(HomePageStateDB state) async {
     print('Saving Home State');
-    return into(homePageState).insertOnConflictUpdate(state);
+    return await into(homePageState).insertOnConflictUpdate(state);
   }
 
   //songs
@@ -252,8 +252,8 @@ class SharedDatabase extends _$SharedDatabase {
     var count = countAll(filter: albums.id.equals(id));
     var res = await (selectOnly(albums)..addColumns([count]))
         .map((row) => row.read(count))
-        .getSingle();
-    if (res > 0) {
+        .get();
+    if (res.length == 1) {
       return true;
     } else {
       return false;
