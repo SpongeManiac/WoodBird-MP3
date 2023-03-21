@@ -77,59 +77,68 @@ class _SongsPageState extends CRUDState<AudioSource> {
           child: Column(
             children: [
               TextFormField(
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.done,
                 decoration: const InputDecoration(
                   labelText: 'Title',
                 ),
                 controller: newName,
                 validator: (value) => validateTitle(value),
+                minLines: 1,
                 maxLength: 128,
               ),
               TextFormField(
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.done,
                 decoration: const InputDecoration(
                   labelText: 'Artist',
                 ),
                 controller: newArtist,
                 validator: (value) => validateTitle(value),
+                minLines: 1,
                 maxLength: 128,
               ),
               TextFormField(
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.done,
                 decoration: const InputDecoration(
                   labelText: 'Album',
                 ),
                 controller: newAlbum,
                 validator: (value) => validateTitle(value),
-                maxLines: 3,
+                minLines: 1,
                 maxLength: 128,
               ),
               TextFormField(
-                decoration: InputDecoration(
-                  icon: Container(
-                    height: 56,
-                    width: 56,
-                    child: ArtUri(Uri.parse(newArt.text)),
-                  ),
-                  labelText: 'Art',
-                  suffix: IconButton(
-                    icon: Icon(
-                      Icons.folder_open_rounded,
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                    icon: Container(
+                      height: 56,
+                      width: 56,
+                      child: IconButton(
+                        iconSize: 56.0,
+                        color: Theme.of(context).primaryColor,
+                        icon: ArtUri(Uri.parse(newArt.text)),
+                        onPressed: () async {
+                          widget.app.loadingProgressNotifier.value = null;
+                          widget.app.loadingNotifier.value = true;
+                          var path = await (widget.app as DesktopApp).getArt();
+                          if (path.isNotEmpty) {
+                            setState(() {
+                              newArt.text = path;
+                            });
+                          }
+                          widget.app.loadingNotifier.value = false;
+                          widget.app.loadingProgressNotifier.value = null;
+                        },
+                      ),
                     ),
-                    onPressed: () async {
-                      widget.app.loadingProgressNotifier.value = null;
-                      widget.app.loadingNotifier.value = true;
-                      var path = await (widget.app as DesktopApp).getArt();
-                      if (path.isNotEmpty) {
-                        setState(() {
-                          newArt.text = path;
-                        });
-                      }
-                      widget.app.loadingNotifier.value = false;
-                      widget.app.loadingProgressNotifier.value = null;
-                    },
-                  ),
+                    labelText: 'Art',
+                    hintText: 'Image URL/Path',
                 ),
                 controller: newArt,
                 validator: (value) => validateDesc(value),
-                maxLines: 2,
                 maxLength: 1024,
               ),
             ],
@@ -559,9 +568,6 @@ class _SongsPageState extends CRUDState<AudioSource> {
                 ),
               ),
             ),
-            Divider(),
-            Text('${(song as UriAudioSource).uri}'),
-            Divider(),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {
@@ -573,6 +579,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
                 child: ListView(
                   children: [
                     songForm,
+                    Text('${(song as UriAudioSource).uri}'),
                   ],
                 ),
               ),

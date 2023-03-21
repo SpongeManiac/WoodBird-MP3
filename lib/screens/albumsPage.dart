@@ -54,19 +54,25 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
           child: Column(
             children: [
               TextFormField(
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.done,
                 decoration: const InputDecoration(
                   labelText: 'Title',
                 ),
                 controller: newName,
                 validator: (value) => validateTitle(value),
+                minLines: 1,
                 maxLength: 128,
               ),
               TextFormField(
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.done,
                 decoration: const InputDecoration(
                   labelText: 'Artist',
                 ),
                 controller: newArtist,
                 validator: (value) => validateTitle(value),
+                minLines: 1,
                 maxLength: 128,
               ),
               TextFormField(
@@ -75,38 +81,40 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
                 ),
                 controller: newDescription,
                 validator: (value) => validateDesc(value),
-                maxLines: 3,
+                minLines: 1,
                 maxLength: 1024,
               ),
               TextFormField(
-                decoration: InputDecoration(
-                  icon: Container(
-                    height: 56,
-                    width: 56,
-                    child: ArtUri(Uri.parse(newArt.text)),
-                  ),
-                  labelText: 'Art',
-                  suffix: IconButton(
-                    icon: Icon(
-                      Icons.folder_open_rounded,
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                    icon: Container(
+                      height: 56,
+                      width: 56,
+                      child: IconButton(
+                        iconSize: 56.0,
+                        color: Theme.of(context).primaryColor,
+                        icon: ArtUri(Uri.parse(newArt.text)),
+                        onPressed: () async {
+                          widget.app.loadingProgressNotifier.value = null;
+                          widget.app.loadingNotifier.value = true;
+                          var path = await (widget.app as DesktopApp).getArt();
+                          if (path.isNotEmpty) {
+                            setState(() {
+                              newArt.text = path;
+                            });
+                          }
+                          widget.app.loadingNotifier.value = false;
+                          widget.app.loadingProgressNotifier.value = null;
+                        },
+                      ),
                     ),
-                    onPressed: () async {
-                      widget.app.loadingProgressNotifier.value = null;
-                      widget.app.loadingNotifier.value = true;
-                      var path = await (widget.app as DesktopApp).getArt();
-                      if (path.isNotEmpty) {
-                        setState(() {
-                          newArt.text = path;
-                        });
-                      }
-                      widget.app.loadingNotifier.value = false;
-                      widget.app.loadingProgressNotifier.value = null;
-                    },
-                  ),
+                    labelText: 'Art',
+                    hintText: 'Image URL/Path',
                 ),
                 controller: newArt,
-                //validator: (value) => validateDesc(value),
-                maxLines: 2,
+                validator: (value) => validateDesc(value),
+                minLines: 1,
                 maxLength: 1024,
               ),
             ],
@@ -429,8 +437,17 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
     return Center(
       child: Column(
         children: [
-          albumForm,
-          Expanded(child: Container()),
+          Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {},
+                child: ListView(
+                  children: [
+                    albumForm,
+                    //Text('${(song as UriAudioSource).uri}'),
+                  ],
+                ),
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: Row(

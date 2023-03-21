@@ -130,7 +130,7 @@ SPEC CHECKSUMS:
   DKPhotoGallery: fdfad5125a9fdda9cc57df834d49df790dbb4179
   file_picker: 817ab1d8cd2da9d2da412a417162deee3500fc95
   file_saver: 503e386464dbe118f630e17b4c2e1190fa0cf808
-  Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
+  Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   flutter_platform_alert: 6a241c90f3cc350d0286deeefee9f52bee957019
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   just_audio: baa7252489dbcf47a4c7cc9ca663e9661c99aafa
@@ -142,6 +142,6 @@ SPEC CHECKSUMS:
   sqlite3_flutter_libs: 1641350489d5c2bcb9d0773ade9693624111b24c
   SwiftyGif: 6c3eafd0ce693cad58bb63d2b2fb9bacb8552780
 
-PODFILE CHECKSUM: 62577f86570eb66fc4fd766c4e7bef543dfc0a92
+PODFILE CHECKSUM: 13dc3e92db0ca2b1618e23ed556eddc00535c086
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.12.0

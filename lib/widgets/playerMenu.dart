@@ -86,28 +86,28 @@ class _PlayerMenuState extends State<PlayerMenu> {
         Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
           'Remove from queue':
               ContextItemTuple(Icons.playlist_remove_rounded, () async {
-            await widget.interface.remove(song);
+            await widget.interface.removeIdx(index);
           }),
           'Play': ContextItemTuple(Icons.play_arrow_rounded, () async {
             await widget.interface.setCurrent(index);
             setState(() {});
           }),
           'Move Up': ContextItemTuple(Icons.move_up_rounded, () async {
-            await widget.interface.moveUp(song);
+            await widget.interface.moveUpIdx(index);
             setState(() {});
           }),
           'Move Down': ContextItemTuple(Icons.move_down_rounded, () async {
-            await widget.interface.moveDown(song);
+            await widget.interface.moveDownIdx(index);
             setState(() {});
           }),
           'Move to top':
               ContextItemTuple(Icons.format_list_numbered_rounded, () async {
-            await widget.interface.moveTop(song);
+            await widget.interface.moveTopIdx(index);
             setState(() {});
           }),
           'Move to bottom':
               ContextItemTuple(Icons.low_priority_rounded, () async {
-            await widget.interface.moveEnd(song);
+            await widget.interface.moveEndIdx(index);
             setState(() {});
           }),
           'Remove All': ContextItemTuple(Icons.low_priority_rounded, () async {

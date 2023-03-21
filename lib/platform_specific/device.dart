@@ -65,20 +65,34 @@ class DesktopApp extends BaseApp {
       FlutterWindowClose.closeWindow();
     }
   }
-
+  Future<Image?> getArtLocal() async {
+    var artDirectory = Directory(artDir);
+    if (!await artDirectory.exists()) {
+      await artDirectory.create();
+    }
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.media,
+      allowMultiple: false,
+      allowedExtensions: ['png', 'jpg'],
+      withData: true,
+      withReadStream: true,
+    );
+    if(result != null && result.count == 1){
+      return Image.memory(result.files[0].bytes!);
+    }
+  }
   Future<String> getArt() async {
     var artDirectory = Directory(artDir);
     if (!await artDirectory.exists()) {
       await artDirectory.create();
     }
     final FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
+      type: FileType.media,
       allowMultiple: false,
-      allowedExtensions: ['png', 'jpg'],
-      withData: false,
+      //allowedExtensions: ['png', 'jpg'],
+      withData: true,
       withReadStream: true,
     );
-
     if (result != null && result.count == 1) {
       String? path = result.paths[0];
       if (path == null) return '';
@@ -92,13 +106,18 @@ class DesktopApp extends BaseApp {
       File preCachedFile = File(newPath);
       //check if file already exists
       if (!await preCachedFile.exists()) {
-        var cacheFile = await tempFile.rename(newPath);
-        print('cachedFile path: ${cacheFile.path}');
+        // var cacheFile = await tempFile.rename(newPath);
+        // print('cachedFile path: ${cacheFile.path}');
+        // preCachedFile = cacheFile;
+        //create file with bytes
+        await preCachedFile.create();
+        await preCachedFile.writeAsBytes(result.files[0].bytes!);
+        //File.fromRawPath(result.files[0].bytes!);
       }
       //remove temp cache file
-      if (await tempFile.exists()) {
-        await tempFile.delete();
-      }
+      //if (await tempFile.exists()) {
+        //await tempFile.delete();
+      //}
 
       return preCachedFile.path;
     } else {

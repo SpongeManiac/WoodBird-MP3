@@ -4,7 +4,7 @@
 <dict>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.package.woodbird</string>
+		<string>group.com.rpgrogan.woodbirdmp3</string>
 	</array>
 </dict>
 </plist>

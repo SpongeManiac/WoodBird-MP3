@@ -40,15 +40,15 @@ class Flyout extends StatelessWidget {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  FlyoutItem(
-                    icon: Icons.home_rounded,
-                    text: 'Home',
-                    onTapped: () => navigate(context, '/'),
-                  ),
+                  // FlyoutItem(
+                  //   icon: Icons.home_rounded,
+                  //   text: 'Home',
+                  //   onTapped: () => navigate(context, '/'),
+                  // ),
                   FlyoutItem(
                     icon: Icons.music_note_rounded,
                     text: 'Songs',
-                    onTapped: () => navigate(context, '/songs'),
+                    onTapped: () => navigate(context, '/'),
                   ),
                   FlyoutItem(
                     icon: Icons.album_rounded,

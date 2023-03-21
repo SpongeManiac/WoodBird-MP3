@@ -84,7 +84,7 @@ SPEC CHECKSUMS:
   file_saver: 44e6fbf666677faf097302460e214e977fdd977b
   flutter_platform_alert: b21b2b7d801e71c12ce9ffab618ff114ca9fc903
   flutter_window_close: ee4a6b81ca6fafe93b7cba48b0a18976e3f48e39
-  FlutterMacOS: ae6af50a8ea7d6103d888583d46bd8328a7e9811
+  FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   just_audio: 9b67ca7b97c61cfc9784ea23cd8cc55eb226d489
   path_provider_macos: 3c0c3b4b0d4a76d2bf989a913c2de869c5641a19
@@ -94,4 +94,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 290b89638b803a41d96e2a2c02a9e1e635956f78
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.12.0

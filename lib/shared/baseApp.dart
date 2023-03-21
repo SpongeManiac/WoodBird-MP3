@@ -124,8 +124,8 @@ class BaseApp extends StatefulWidget {
       ValueNotifier(<AlbumData>[]);
 
   final Map<String, ThemedPage Function(BuildContext)> routes = {
-    '/': (context) => HomePage(title: 'Home'),
-    '/songs': (context) => SongsPage(title: 'Songs'),
+    //'/': (context) => HomePage(title: 'Home'),
+    '/': (context) => SongsPage(title: 'Songs'),
     '/playlists': (context) => PlaylistsPage(title: 'Playlists'),
     '/albums': (context) => AlbumsPage(title: 'Albums'),
     '/settings': (context) => SettingsPage(title: 'Settings'),
@@ -140,7 +140,7 @@ class BaseApp extends StatefulWidget {
       appBar: appBar,
       drawer: flyout,
       body: navigation,
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
     );
   }
 
