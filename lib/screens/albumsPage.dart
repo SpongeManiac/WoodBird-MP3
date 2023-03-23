@@ -87,30 +87,30 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
               TextFormField(
                 keyboardType: TextInputType.text,
                 textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(
-                    icon: Container(
-                      height: 56,
-                      width: 56,
-                      child: IconButton(
-                        iconSize: 56.0,
-                        color: Theme.of(context).primaryColor,
-                        icon: ArtUri(Uri.parse(newArt.text)),
-                        onPressed: () async {
-                          widget.app.loadingProgressNotifier.value = null;
-                          widget.app.loadingNotifier.value = true;
-                          var path = await (widget.app as DesktopApp).getArt();
-                          if (path.isNotEmpty) {
-                            setState(() {
-                              newArt.text = path;
-                            });
-                          }
-                          widget.app.loadingNotifier.value = false;
-                          widget.app.loadingProgressNotifier.value = null;
-                        },
-                      ),
+                decoration: InputDecoration(
+                  icon: Container(
+                    height: 56,
+                    width: 56,
+                    child: IconButton(
+                      iconSize: 56.0,
+                      color: Theme.of(context).primaryColor,
+                      icon: ArtUri(Uri.parse(newArt.text)),
+                      onPressed: () async {
+                        widget.app.loadingProgressNotifier.value = null;
+                        widget.app.loadingNotifier.value = true;
+                        var path = await (widget.app as DesktopApp).getArt();
+                        if (path.isNotEmpty) {
+                          setState(() {
+                            newArt.text = path;
+                          });
+                        }
+                        widget.app.loadingNotifier.value = false;
+                        widget.app.loadingProgressNotifier.value = null;
+                      },
                     ),
-                    labelText: 'Art',
-                    hintText: 'Image URL/Path',
+                  ),
+                  labelText: 'Art',
+                  hintText: 'Image URL/Path',
                 ),
                 controller: newArt,
                 validator: (value) => validateDesc(value),
@@ -384,7 +384,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
   //crud ops
   @override
   Future<List<AlbumData?>> create() async {
-    var data = AlbumData(title: '', artist: '');
+    var data = AlbumData(title: '', songOrder: [], artist: '');
     await update(data);
     return [data];
   }
@@ -438,16 +438,16 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
       child: Column(
         children: [
           Expanded(
-              child: RefreshIndicator(
-                onRefresh: () async {},
-                child: ListView(
-                  children: [
-                    albumForm,
-                    //Text('${(song as UriAudioSource).uri}'),
-                  ],
-                ),
+            child: RefreshIndicator(
+              onRefresh: () async {},
+              child: ListView(
+                children: [
+                  albumForm,
+                  //Text('${(song as UriAudioSource).uri}'),
+                ],
               ),
             ),
+          ),
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: Row(

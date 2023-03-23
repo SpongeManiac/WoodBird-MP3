@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/src/runtime/data_class.dart';
 import 'package:test_project/database/database.dart';
 
@@ -6,6 +8,7 @@ import '../baseState.dart';
 class AlbumData extends BaseDataDB {
   AlbumData({
     required this.title,
+    required this.songOrder,
     required this.artist,
     this.description = '',
     this.art = '',
@@ -14,6 +17,7 @@ class AlbumData extends BaseDataDB {
 
   int? id;
   String title;
+  List<int> songOrder;
   String artist;
   String description;
   String art;
@@ -22,6 +26,7 @@ class AlbumData extends BaseDataDB {
   AlbumData copy() {
     return AlbumData(
       title: title,
+      songOrder: songOrder,
       artist: artist,
       description: description,
       art: art,
@@ -31,10 +36,11 @@ class AlbumData extends BaseDataDB {
 
   @override
   AlbumData fromEntry(DataClass dataclass) {
-    AlbumData data = dataclass as AlbumData;
+    AlbumDataDB data = dataclass as AlbumDataDB;
     var copy = this.copy();
     copy.id = data.id;
     copy.title = data.title;
+    copy.songOrder = json.decode(data.songOrder).cast<int>();
     copy.description = data.description;
     copy.art = data.art;
     return copy;
@@ -43,10 +49,8 @@ class AlbumData extends BaseDataDB {
   @override
   AlbumsCompanion getCompanion() {
     return AlbumsCompanion(
-        title: Value(title),
-        artist: Value(artist),
-        description: Value(description),
-        art: Value(art));
+      id: id == null ? const Value.absent() : Value(id!),
+    );
   }
 
   @override
@@ -54,6 +58,7 @@ class AlbumData extends BaseDataDB {
     return AlbumDataDB(
       id: id!,
       title: title,
+      songOrder: songOrder.toString(),
       artist: artist,
       description: description,
       art: art,

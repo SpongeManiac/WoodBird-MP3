@@ -189,19 +189,23 @@ class _SettingsPageState extends State<SettingsPage> {
                               _themeChanged(newval);
                             },
                             isExpanded: true,
-                            buttonDecoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(15),
-                              border: Border.all(
-                                color: Colors.grey,
+                            buttonStyleData: ButtonStyleData(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                border: Border.all(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              width: 250,
+                            ),
+                            dropdownStyleData: DropdownStyleData(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                border: Border.all(
+                                  color: Colors.grey,
+                                ),
                               ),
                             ),
-                            dropdownDecoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(15),
-                              border: Border.all(
-                                color: Colors.grey,
-                              ),
-                            ),
-                            buttonWidth: 250,
                           ),
                         ),
                       ),

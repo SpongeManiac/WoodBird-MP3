@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
+import 'package:test_project/models/PlaylistSongSorter.dart';
 import 'package:test_project/models/states/playlist/playlistData.dart';
+import 'package:test_project/models/states/song/songData.dart';
 
 import '../models/states/album/albumData.dart';
 
@@ -12,7 +16,7 @@ class HomePageState extends Table {
   IntColumn get id =>
       integer().autoIncrement().withDefault(const Constant(1))();
   //info to preload widget
-  BoolColumn get darkmode => boolean().withDefault(const Constant(false))();
+  BoolColumn get darkMode => boolean().withDefault(const Constant(false))();
   BoolColumn get swapTrack => boolean().withDefault(const Constant(false))();
   IntColumn get theme => integer().withDefault(const Constant(0))();
   //IntColumn get count => integer().withDefault(const Constant(0))();
@@ -49,6 +53,7 @@ class Songs extends Table {
 class Playlists extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get title => text().withLength(min: 0, max: 128)();
+  TextColumn get songOrder => text().withLength(min: 0, max: 2048)();
   TextColumn get description =>
       text().withLength(min: 0, max: 1024).withDefault(const Constant(''))();
   TextColumn get art =>
@@ -60,6 +65,7 @@ class Albums extends Table {
   // PrimaryKey
   IntColumn get id => integer().autoIncrement()();
   TextColumn get title => text().withLength(min: 0, max: 128)();
+  TextColumn get songOrder => text().withLength(min: 0, max: 2048)();
   TextColumn get artist => text().withLength(min: 0, max: 128)();
   // set default to empty description
   TextColumn get description =>
@@ -132,7 +138,7 @@ class SharedDatabase extends _$SharedDatabase {
     var res = await (selectOnly(songs)..addColumns([count]))
         .map((row) => row.read(count))
         .getSingle();
-    if (res > 0) {
+    if (res != null && res > 0) {
       return true;
     } else {
       return false;
@@ -175,31 +181,64 @@ class SharedDatabase extends _$SharedDatabase {
     var res = await (selectOnly(playlists)..addColumns([count]))
         .map((row) => row.read(count))
         .getSingle();
-    if (res > 0) {
+    if (res != null && res > 0) {
       return true;
     } else {
       return false;
     }
   }
 
-  Future<int> setPlaylistData(PlaylistsCompanion companion) async {
-    int newId = await into(playlists).insertOnConflictUpdate(companion);
+  Future<int> addPlaylistData(PlaylistsCompanion companion) async {
+    int newId = await into(playlists).insert(companion);
     print('new id: $newId');
     //PlaylistsCompanion.insert(name: )
     return newId;
   }
 
+  //Future<int> addPlaylistData(PlaylistsCompanion companion) async {
+  //  int newId = await into(playlists).insert(entity)
+  //}
+
+  Future<PlaylistDataDB?> getPlaylistData(int id) async {
+    return await (select(playlists)
+          ..where((tbl) => tbl.id.equals(id))
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
   Future<bool> updatePlaylistData(PlaylistDataDB playlist) async {
+    print('Updating playlist: new songOrder: ${playlist.songOrder}');
     return await update(playlists).replace(playlist);
   }
 
   Future<int> delPlaylistData(PlaylistDataDB playlist) async {
+    //get playlist relations
+    var playlistSongs = await getPlaylistSongs(playlist);
+    for (var song in playlistSongs) {
+      await delPlaylistSong(playlist, song);
+    }
     print('deleting ${playlist.title}, index ${playlist.id}');
     return await (delete(playlists)..where((p) => p.id.equals(playlist.id)))
         .go();
   }
 
   Future<int> addPlaylistSong(PlaylistDataDB playlist, SongDataDB song) async {
+    //add song into song order
+    //List<int> songOrder = json.decode(playlist.songOrder).cast<int>();
+    //print('songOrder before add: $songOrder');
+
+    //songOrder.add(song.id);
+    //print('songOrder after add: $songOrder');
+
+    //copy current playlist
+    //var newOrderPlaylist = PlaylistData.fromDB(playlist);
+    //replace song order
+    //newOrderPlaylist.songOrder = songOrder;
+    //update playlist song order
+    //var newOrderEntry = newOrderPlaylist.getEntry();
+    //print('entry id: ${newOrderEntry.id}');
+    //await updatePlaylistData(newOrderEntry);
+    //print('songOrder after update: ${newOrderPlaylist.songOrder}');
     PlaylistSongsCompanion entry = PlaylistSongsCompanion(
       playlist: Value(playlist.id),
       song: Value(song.id),
@@ -207,7 +246,17 @@ class SharedDatabase extends _$SharedDatabase {
     return await into(playlistSongs).insert(entry);
   }
 
-  Future delPlaylistSong(PlaylistDataDB playlist, SongDataDB song) async {
+  Future<int> delPlaylistSong(PlaylistDataDB playlist, SongDataDB song) async {
+    //del song from song order
+    //List<int> songOrder = json.decode(playlist.songOrder).cast<int>();
+    //print('songOrder before del: $songOrder');
+    //songOrder.remove(song.id);
+    //print('songOrder after del: $songOrder');
+    //replace song order
+    //playlist = playlist.copyWith(songOrder: songOrder.toString());
+    //update playlist song order
+    //await updatePlaylistData(playlist);
+    //print('songOrder after update: ${playlist.songOrder}');
     final firstSongID = selectOnly(playlistSongs)
       ..addColumns([playlistSongs.id])
       ..where(playlistSongs.playlist.equals(playlist.id) &
@@ -217,13 +266,14 @@ class SharedDatabase extends _$SharedDatabase {
         .go();
   }
 
-  Future<List<SongDataDB>> getPlaylistSongs(PlaylistData playlist) async {
+  Future<List<SongDataDB>> getPlaylistSongs(PlaylistDataDB playlist) async {
     // var playlistQuery = select(playlists)
     //   ..where((tbl) => tbl.id.equals(playlist.id));
     //get songs from playlist
+    List<int> songOrder = json.decode(playlist.songOrder).cast<int>();
     final songsQuery = await (select(playlistSongs).join(
       [
-        innerJoin(
+        leftOuterJoin(
           songs,
           songs.id.equalsExp(playlistSongs.song),
         ),
@@ -234,7 +284,14 @@ class SharedDatabase extends _$SharedDatabase {
     var songsList = songsQuery.map((result) {
       return result.readTable(songs);
     }).toList();
+    //sort songs into playlist order
+    songsList = PlaylistSongSorter.sort(songsList, songOrder);
+    //..sort((a, b) => songOrder.indexOf(a.id) - songOrder.indexOf(b.id));
+    //..sort((a, b) => a.id.compareTo(b.id));
+    //final ref = {for (var e in songsList) e.id: e};
+    //songsList = List.from(playlist.songOrder.map((id) => ref[id]));
     print('got ${songsList.length} songs in playlist');
+    print('songOrder: ${playlist.songOrder}');
     return songsList;
   }
 
@@ -298,6 +355,9 @@ class SharedDatabase extends _$SharedDatabase {
     // var playlistQuery = select(playlists)
     //   ..where((tbl) => tbl.id.equals(playlist.id));
     //get songs from playlist
+    if (album.id == null) {
+      return List.empty();
+    }
     final songsQuery = await (select(albumSongs).join(
       [
         innerJoin(
@@ -305,7 +365,7 @@ class SharedDatabase extends _$SharedDatabase {
           songs.id.equalsExp(albumSongs.song),
         ),
       ],
-    )..where(albumSongs.album.equals(album.id)))
+    )..where(albumSongs.album.equals(album.id!)))
         .get();
 
     var songsList = songsQuery.map((result) {

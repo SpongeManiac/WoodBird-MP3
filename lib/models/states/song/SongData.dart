@@ -3,6 +3,7 @@ import 'package:just_audio/just_audio.dart' show AudioSource, UriAudioSource;
 import 'package:just_audio_background/just_audio_background.dart'
     show MediaItem;
 import 'package:test_project/models/AudioInterface.dart';
+import 'package:test_project/models/MediaItemDB.dart';
 
 import '../../../globals.dart' show app, db;
 import 'package:path/path.dart' as p;
@@ -89,6 +90,7 @@ class SongData extends BaseDataDB {
   @override
   SongsCompanion getCompanion() {
     return SongsCompanion(
+      //id: id == null ? const Value.absent() : Value(id!),
       artist: Value(artist),
       album: Value(album),
       title: Value(title),

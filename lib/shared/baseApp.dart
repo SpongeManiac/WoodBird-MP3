@@ -185,7 +185,7 @@ class BaseApp extends StatefulWidget {
       color: 0xFF000000,
       controls: '[0,1,2,3,4]',
       swapTrack: false,
-      darkMode: false,
+      darkMode: true,
     );
 
     //make sure data is valid
@@ -254,10 +254,11 @@ class BaseApp extends StatefulWidget {
     List<PlaylistDataDB> playlistsDB = await globals.db.getAllPlaylists();
     for (var list in playlistsDB) {
       playlists.add(PlaylistData(
+        id: list.id,
         title: list.title,
+        songOrder: json.decode(list.songOrder).cast<int>(),
         description: list.description,
         art: list.art,
-        id: list.id,
       ));
     }
     playlistsNotifier.value = playlists;
@@ -270,6 +271,7 @@ class BaseApp extends StatefulWidget {
     for (var album in albumsDB) {
       albums.add(AlbumData(
         title: album.title,
+        songOrder: json.decode(album.songOrder).cast<int>(),
         artist: album.artist,
         description: album.description,
         art: album.art,

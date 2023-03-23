@@ -11,7 +11,7 @@ import file_saver
 import flutter_platform_alert
 import flutter_window_close
 import just_audio
-import path_provider_macos
+import path_provider_foundation
 import sqflite
 import sqlite3_flutter_libs
 

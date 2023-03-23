@@ -10,6 +10,7 @@ import 'package:marquee/marquee.dart';
 import 'package:select_dialog/select_dialog.dart';
 import 'package:test_project/database/database.dart';
 import 'package:test_project/models/AudioInterface.dart';
+import 'package:test_project/models/MediaItemDB.dart';
 import 'package:test_project/models/states/playlist/playlistData.dart';
 import 'package:test_project/models/states/song/songData.dart';
 import 'package:test_project/screens/CRUDPage.dart';
@@ -50,6 +51,8 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   List<PlaylistData> get playlists => widget.app.playlistsNotifier.value;
   set playlists(playlists) => widget.app.playlistsNotifier.value = playlists;
 
+  ScrollController scrollController = ScrollController();
+
   bool formExpanded = false;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   Widget get playlistForm => Form(
@@ -81,30 +84,30 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
               TextFormField(
                 keyboardType: TextInputType.text,
                 textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(
-                    icon: Container(
-                      height: 56,
-                      width: 56,
-                      child: IconButton(
-                        iconSize: 56.0,
-                        color: Theme.of(context).primaryColor,
-                        icon: ArtUri(Uri.parse(newArt.text)),
-                        onPressed: () async {
-                          widget.app.loadingProgressNotifier.value = null;
-                          widget.app.loadingNotifier.value = true;
-                          var path = await (widget.app as DesktopApp).getArt();
-                          if (path.isNotEmpty) {
-                            setState(() {
-                              newArt.text = path;
-                            });
-                          }
-                          widget.app.loadingNotifier.value = false;
-                          widget.app.loadingProgressNotifier.value = null;
-                        },
-                      ),
+                decoration: InputDecoration(
+                  icon: Container(
+                    height: 56,
+                    width: 56,
+                    child: IconButton(
+                      iconSize: 56.0,
+                      color: Theme.of(context).primaryColor,
+                      icon: ArtUri(Uri.parse(newArt.text)),
+                      onPressed: () async {
+                        widget.app.loadingProgressNotifier.value = null;
+                        widget.app.loadingNotifier.value = true;
+                        var path = await (widget.app as DesktopApp).getArt();
+                        if (path.isNotEmpty) {
+                          setState(() {
+                            newArt.text = path;
+                          });
+                        }
+                        widget.app.loadingNotifier.value = false;
+                        widget.app.loadingProgressNotifier.value = null;
+                      },
                     ),
-                    labelText: 'Art',
-                    hintText: 'Image URL/Path',
+                  ),
+                  labelText: 'Art',
+                  hintText: 'Image URL/Path',
                 ),
                 controller: newArt,
                 validator: (value) => validateDesc(value),
@@ -136,11 +139,13 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   Future<void> setPlaylistSongs() async {
     if (itemToEdit == null) return;
     List<MediaItem> tmp = [];
-    List<SongDataDB> songsDB = await widget.db.getPlaylistSongs(itemToEdit!);
-
+    List<SongDataDB> songsDB =
+        await widget.db.getPlaylistSongs(itemToEdit!.getEntry());
+    //sort songs
     for (var song in songsDB) {
       tmp.add(AudioInterface.getTag(SongData.fromDB(song).source));
     }
+
     songs.value = tmp;
   }
 
@@ -157,7 +162,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
             Icons.queue_music_rounded,
             () async {
               List<AudioSource> songs =
-                  (await widget.db.getPlaylistSongs(playlist))
+                  (await widget.db.getPlaylistSongs(playlist.getEntry()))
                       .map((s) => SongData.fromDB(s).source)
                       .toList();
               await widget.app.audioInterface.setQueue(songs);
@@ -167,7 +172,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
             Icons.playlist_add_rounded,
             () async {
               List<AudioSource> songs =
-                  (await widget.db.getPlaylistSongs(playlist))
+                  (await widget.db.getPlaylistSongs(playlist.getEntry()))
                       .map((s) => SongData.fromDB(s).source)
                       .toList();
               await widget.app.audioInterface.addToQueue(songs);
@@ -214,8 +219,8 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     return popup;
   }
 
-  ContextPopupButton getSongContext(
-      BuildContext context, PlaylistData playlist, MediaItem song) {
+  ContextPopupButton getSongContext(BuildContext context, PlaylistData playlist,
+      MediaItem song, int songIndex) {
     var popup = ContextPopupButton(
       icon: Icon(
         Icons.more_vert,
@@ -226,24 +231,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
           'Remove': ContextItemTuple(
             Icons.close,
             () async {
-              var tmp = List.of(songs.value);
-              int songId = int.tryParse(song.id) ?? -1;
-              if (tmp.contains(song) &&
-                  songId > -1 &&
-                  await widget.db.delPlaylistSong(
-                        playlist.getEntry(),
-                        (await widget.db.getSongData(songId))!,
-                      ) >
-                      0) {
-                tmp.remove(song);
-                songs.value = tmp;
-                setState(() {
-                  for (var s in songs.value) {
-                    print('song relations:');
-                    print(s.title);
-                  }
-                });
-              }
+              await deleteSong(song, songIndex);
             },
           ),
         };
@@ -345,9 +333,9 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   @override
   Future<void> setUpdate(PlaylistData item) async {
     print('switching to update');
-    // if (item.id != null) {
-    //   print('editing ${item.name} - ${item.id}');
-    // }
+    if (item.id != null) {
+      print('editing ${item.title} - ${item.id}');
+    }
     widget.setAndroidBack(() async {
       cancel();
       return false;
@@ -370,13 +358,18 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   //crud ops
   @override
   Future<List<PlaylistData?>> create() async {
-    var data = PlaylistData(title: '');
+    var data = PlaylistData(
+        title: newName.text,
+        songOrder: [],
+        description: newDescription.text,
+        art: newArt.text);
     await update(data);
     return [data];
   }
 
   @override
   Future<PlaylistData> update(PlaylistData item) async {
+    print('playlist id before: ${item.id}');
     item.title = newName.text;
     item.description = newDescription.text;
     item.art = newArt.text;
@@ -384,12 +377,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     print('saving playlist changes to db');
     bool isNew = (item.id == null || !await widget.db.playlistExists(item.id!));
     await item.saveData();
-    if (isNew) {
-      tmp.add(item);
-    } else {
-      tmp[tmp.indexOf(item)] = item;
-    }
-    playlists = tmp;
+    await widget.app.loadPlaylists();
     return item;
   }
 
@@ -398,22 +386,70 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     var tmp = List.of(playlists);
     if (playlists.contains(item)) {
       await widget.db.delPlaylistData(item.getEntry());
-      tmp.remove(item);
-      playlists = tmp;
+      await widget.app.loadPlaylists();
     } else {
       print('playlist not in list, delete failed');
     }
   }
 
-  Future<void> deleteSong(MediaItem song) async {
+  Future<void> deleteSong(MediaItem song, int songIndex) async {
+    int songID = int.parse(song.id);
     var tmp = List.of(songs.value);
-    if (tmp.contains(song)) {
-      print('Removing song from playlist');
-      tmp.remove(song);
-      await widget.db.delPlaylistSong(itemToEdit!.getEntry(),
-          (await widget.db.getSongData(int.parse(song.id)))!);
-      songs.value = tmp;
+    if (tmp.contains(song) && songID > -1) {
+      int itemsDeleted = await widget.db.delPlaylistSong(
+          itemToEdit!.getEntry(), (await widget.db.getSongData(songID))!);
+      if (itemsDeleted > 0) {
+        //   print('Removing song from playlist');
+        //   tmp.remove(song);
+        //   //update playlist
+        //   itemToEdit = PlaylistData.fromDB(
+        //       (await widget.db.getPlaylistData(itemToEdit!.id!))!);
+        //   //update songs
+        //   songs.value = tmp;
+        //   //return true;
+        //   setState(() {});
+        //remove item from order by index
+        var playlist = itemToEdit!;
+        print('removing songOrder at $songIndex');
+        print('SongOrder before Delete: ${playlist.songOrder}');
+        playlist.songOrder.removeAt(songIndex);
+        print('SongOrder after Delete: ${playlist.songOrder}');
+        //remove song from songs by index
+        tmp.removeAt(songIndex);
+        //update playlist in DB
+        await updatePlaylist(playlist);
+        //save songs
+        songs.value = tmp;
+        setState(() {});
+      }
     }
+    //return false;
+  }
+
+  Future<void> ReorderSong(int oldIndex, int newIndex) async {
+    var songList = songs.value;
+    print(
+        'Before reorder: ${songList.map((s) => int.parse(s.id)).toList().toString()}');
+    songList = AudioInterface.moveGeneric(songList, oldIndex, newIndex);
+    var songOrder = songList.map((s) => int.parse(s.id)).toList();
+    var playlist = itemToEdit!;
+    playlist.songOrder = songOrder;
+    print('After reorder: ${songOrder.toString()}');
+    //update playlist in DB
+    await updatePlaylist(playlist);
+    //save songs
+    songs.value = songList;
+    setState(() {});
+  }
+
+  Future<PlaylistData> updatePlaylist(PlaylistData playlist) async {
+    //update playlist in DB
+    await widget.db.updatePlaylistData(playlist.getEntry());
+    //update itemToEdit
+    itemToEdit = playlist;
+    //reload playlists
+    await widget.app.loadPlaylists();
+    return playlist;
   }
 
   //views
@@ -423,16 +459,16 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
       child: Column(
         children: [
           Expanded(
-              child: RefreshIndicator(
-                onRefresh: () async {},
-                child: ListView(
-                  children: [
-                    playlistForm,
-                    //Text('${(song as UriAudioSource).uri}'),
-                  ],
-                ),
+            child: RefreshIndicator(
+              onRefresh: () async {},
+              child: ListView(
+                children: [
+                  playlistForm,
+                  //Text('${(song as UriAudioSource).uri}'),
+                ],
               ),
             ),
+          ),
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: Row(
@@ -491,29 +527,26 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                   //physics: const AlwaysScrollableScrollPhysics(),
                   itemCount: newPlaylists.length,
                   itemBuilder: (context, index) {
-                    switch (index) {
-                      default:
-                        PlaylistData playlist = newPlaylists[index];
+                    PlaylistData playlist = newPlaylists[index];
 
-                        var playlistContextBtn =
-                            getPlaylistContext(context, playlist);
-                        return ListTile(
-                          enabled: true,
-                          onTap: () async {
-                            //print('tap');
-                            await setUpdate(playlist);
-                          },
-                          onLongPress: () {
-                            //print('long press');
-                            //print(widget.songContexts[song]);
-                            playlistContexts[playlist]!.showDialog();
-                          },
-                          leading: ArtUri(Uri.parse(playlist.art)),
-                          title: Text(playlist.title),
-                          subtitle: Text(playlist.description),
-                          trailing: playlistContextBtn,
-                        );
-                    }
+                    var playlistContextBtn =
+                        getPlaylistContext(context, playlist);
+                    return ListTile(
+                      enabled: true,
+                      onTap: () async {
+                        //print('tap');
+                        await setUpdate(playlist);
+                      },
+                      onLongPress: () {
+                        //print('long press');
+                        //print(widget.songContexts[song]);
+                        playlistContexts[playlist]!.showDialog();
+                      },
+                      leading: ArtUri(Uri.parse(playlist.art)),
+                      title: Text(playlist.title),
+                      subtitle: Text(playlist.description),
+                      trailing: playlistContextBtn,
+                    );
                   },
                 ),
               ),
@@ -529,113 +562,127 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     if (itemToEdit == null) {
       return Text('Invalid playlist');
     }
-    var playlist = itemToEdit!;
+    //var playlist = itemToEdit!;
     print('${songs.value.length} songs gotten');
-    return Padding(
-      padding: EdgeInsets.all(10),
-      child: Center(
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                shrinkWrap: true,
-                children: [
-                  ExpansionTile(
-                    title: Text(playlist.title),
-                    onExpansionChanged: (isExpanded) {
-                      setState(() {
-                        print('isExpanded: $formExpanded');
-                        formExpanded = !isExpanded;
-                      });
-                    },
-                    children: [
-                      playlistForm,
-                      Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            await update(playlist);
-                            await setRead();
-                          },
-                          child: Text('Save'),
-                        ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(10),
+            controller: scrollController,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ExpansionTile(
+                  title: Text(itemToEdit!.title),
+                  onExpansionChanged: (isExpanded) {
+                    setState(() {
+                      print('isExpanded: $formExpanded');
+                      formExpanded = !isExpanded;
+                    });
+                  },
+                  children: [
+                    playlistForm,
+                    Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          await update(itemToEdit!);
+                          await setRead();
+                        },
+                        child: Text('Save'),
                       ),
-                    ],
-                  ),
-                  ListTile(
-                    title: Text('Add songs...'),
-                    trailing: Icon(
-                      Icons.add_rounded,
-                      color: Theme.of(context).primaryColor,
                     ),
-                    onTap: () async {
-                      //avoid dialog being closed after choosing option
-                      List<MediaItem> selected = [];
-                      await Future.delayed(Duration(seconds: 0), () async {
-                        await SelectDialog.showModal<MediaItem>(context,
-                            label: 'Select songs to add.',
-                            multipleSelectedValues: selected,
-                            items: widget.app.songsNotifier.value
-                                .map(AudioInterface.getTag)
-                                .toList(),
-                            itemBuilder: (context, tag, isSelected) {
-                          return ListTile(
-                            title: Text(tag.title),
-                            subtitle: Text(tag.artist ?? ''),
-                            trailing:
-                                (isSelected ? Icon(Icons.check_rounded) : null),
-                          );
-                        }, onMultipleItemsChange:
-                                (List<MediaItem> selectedSong) {
-                          setState(() {
-                            selected = selectedSong;
-                          });
+                  ],
+                ),
+                ListTile(
+                  title: Text('Add songs...'),
+                  trailing: Icon(
+                    Icons.add_rounded,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  onTap: () async {
+                    //avoid dialog being closed after choosing option
+                    List<MediaItem> selected = [];
+                    await Future.delayed(Duration(seconds: 0), () async {
+                      await SelectDialog.showModal<MediaItem>(context,
+                          label: 'Select songs to add.',
+                          multipleSelectedValues: selected,
+                          items: widget.app.songsNotifier.value
+                              .map(AudioInterface.getTag)
+                              .toList(),
+                          itemBuilder: (context, tag, isSelected) {
+                        return ListTile(
+                          title: Text(tag.title),
+                          subtitle: Text(tag.artist ?? ''),
+                          trailing:
+                              (isSelected ? Icon(Icons.check_rounded) : null),
+                        );
+                      }, onMultipleItemsChange: (List<MediaItem> selectedSong) {
+                        setState(() {
+                          selected = selectedSong;
                         });
-                      }).then((value) async {
-                        print('selected: ${selected.length}');
-                        List<MediaItem> tmp = List.from(songs.value);
-                        for (var song in selected) {
-                          await widget.db.addPlaylistSong(
-                            playlist.getEntry(),
-                            (await widget.db.getSongData(int.parse(song.id)))!,
-                          );
-                          tmp.add(song);
-                        }
-                        songs.value = tmp;
                       });
-                    },
-                  ),
-                  ReorderableListView.builder(
-                    shrinkWrap: true,
-                    buildDefaultDragHandles: false,
-                    onReorder: (oldIndex, newIndex) {},
-                    itemCount: songs.value.length,
-                    itemBuilder: (context, index) {
-                      MediaItem song = songs.value[index];
-                      //int songId = int.tryParse(song.id) ?? -1;
-                      //SongData songData;
+                    }).then((value) async {
+                      //add selected songs to paylist
+                      print('selected: ${selected.length}');
+                      //create copy of playlist
+                      var playlist = itemToEdit!;
+                      //create copy of songs
+                      List<MediaItem> tmp = List.from(songs.value);
+                      for (var song in selected) {
+                        await widget.db.addPlaylistSong(
+                          itemToEdit!.getEntry(),
+                          (await widget.db.getSongData(int.parse(song.id)))!,
+                        );
+                        //add song
+                        tmp.add(song);
+                        //add song to song order
+                        playlist.songOrder.add(int.parse(song.id));
+                      }
+                      //update playlist in DB
+                      updatePlaylist(playlist);
+                      //save songs
+                      songs.value = tmp;
+                      setState(() {});
+                    });
+                  },
+                ),
+                ReorderableListView.builder(
+                  shrinkWrap: true,
+                  scrollController: scrollController,
+                  //buildDefaultDragHandles: false,
+                  onReorder: ReorderSong,
+                  itemCount: songs.value.length,
+                  itemBuilder: (context, index) {
+                    MediaItem song = songs.value[index];
+                    //int songId = int.tryParse(song.id) ?? -1;
+                    //SongData songData;
 
-                      return ListTile(
-                        key: Key(index.toString()),
-                        leading: ArtUri(song.artUri ?? Uri.parse('')),
-                        title: Text(song.title),
-                        subtitle: Text(song.artist ?? ''),
-                        trailing: getSongContext(context, playlist, song),
-                      );
-                    },
-                  ),
-                ],
-              ),
+                    return ListTile(
+                      key: Key(index.toString()),
+                      leading: ArtUri(song.artUri ?? Uri.parse('')),
+                      title: Text(song.title),
+                      subtitle: Text(song.artist ?? ''),
+                      trailing:
+                          getSongContext(context, itemToEdit!, song, index),
+                    );
+                  },
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    await cancel();
+                  },
+                  child: Text('Back'),
+                ),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () async {
-                await cancel();
-              },
-              child: Text('Back'),
-            ),
-          ],
+            //),
+          ),
         ),
-      ),
+      ],
     );
   }
 

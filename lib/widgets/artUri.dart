@@ -45,20 +45,20 @@ class _ArtUriState extends State<ArtUri> {
   bool isWebImg(String path) {
     var containsHttp = path.contains('http://');
     var containsHttps = path.contains('https://');
-    print('path has http: $containsHttp');
-    print('path has https: $containsHttps');
+    //print('path has http: $containsHttp');
+    //print('path has https: $containsHttps');
     return containsHttp || containsHttps;
   }
 
   Future<bool> validate_image(Uri image) async {
     String imgPath = image.toString();
-    print('validating image: $imgPath');
+    //print('validating image: $imgPath');
 
     //print('validating image: ${image}');
     bool valid = false;
     if (isWebImg(imgPath)) {
       // Encapsulate in try/catch to prevent serverside errors
-      print('web image');
+      //print('web image');
       completer = Completer<bool>();
       if (currentSearch.toString() != image.toString()) {
         currentSearch = image;
@@ -70,17 +70,17 @@ class _ArtUriState extends State<ArtUri> {
         () async {
           if (!completer.isCompleted) {
             completer.complete(imageRequest(currentSearch));
-            print('finished imageRequest');
+            //print('finished imageRequest');
           }
         },
       );
       try {
         valid = await completer.future;
       } catch (e) {
-        print('something went wrong, image invalidated');
+        //print('something went wrong, image invalidated');
       }
     } else {
-      print('local image');
+      //print('local image');
       try {
         File img = File.fromUri(image);
         if (await img.exists()) {
@@ -88,7 +88,7 @@ class _ArtUriState extends State<ArtUri> {
         }
       } catch (e) {}
     }
-    print('image was valid: $valid');
+    //print('image was valid: $valid');
     currentSearchValid = valid;
     return valid;
   }
@@ -111,15 +111,15 @@ class _ArtUriState extends State<ArtUri> {
           //image is valid
           return true;
         } else {
-          print('invalid content encoding');
+          //print('invalid content encoding');
         }
       } else {
-        print('invalid content type');
+        //print('invalid content type');
         // Content type was not an image, add an error
         //self.add_error('image', ValidationError(_('URL is not an image. Expected \'image/(png, jpg, jpeg)\', got \''+type+'\' instead.')))
       }
     } else {
-      print('response was not \'200\' (OK)');
+      //print('response was not \'200\' (OK)');
       // Response was not 'OK', add an error
       //self.add_error('image', ValidationError(_('URL is not valid.')))
     }
@@ -176,14 +176,14 @@ class _ArtUriState extends State<ArtUri> {
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
-              print('No future to await');
+              //print('No future to await');
               return noArt;
             case ConnectionState.waiting:
               return loading;
             case ConnectionState.active:
               return loading;
             case ConnectionState.done:
-              print('future has finished');
+              //print('future has finished');
               if (snapshot.data!) {
                 String path = widget.uri.toString();
                 if (isWebImg(path)) {
@@ -217,7 +217,7 @@ class _ArtUriState extends State<ArtUri> {
                   );
                 }
               } else {
-                print('invalid uri');
+                //print('invalid uri');
                 return noArt;
               }
             default:
