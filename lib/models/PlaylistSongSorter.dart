@@ -6,7 +6,7 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:test_project/database/database.dart';
 import 'package:test_project/models/states/playlist/playlistData.dart';
 
-class PlaylistSongSorter {
+class SongSorter {
   //PlaylistSongSorter({required this.songs, required this.order});
 
   static List<SongDataDB> sort(List<SongDataDB> songs, List<int> order) {
@@ -31,7 +31,7 @@ class PlaylistSongSorter {
         sortedSongs.add(songToSort[0]);
       }
     }
-    print('Songs after: ${sortedSongs.map((s) => s.id).toList()}');
+    //print('Songs after: ${sortedSongs.map((s) => s.id).toList()}');
 
     return sortedSongs;
   }

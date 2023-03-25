@@ -349,10 +349,14 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
   Future<void> setRead() async {
     super.setRead();
     artUriNotifier.value = '';
-    widget.setAndroidBack(() async {
-      widget.app.navigation.goto(context, '/');
-      return false;
-    });
+    widget.setAndroidBack(
+      context,
+      () async {
+        widget.app.navigation.goto(context, '/');
+        return false;
+      },
+      Icons.home_rounded,
+    );
   }
 
   @override
@@ -361,10 +365,10 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
     // if (item.id != null) {
     //   print('editing ${item.name} - ${item.id}');
     // }
-    widget.setAndroidBack(() async {
+    widget.setAndroidBack(context, () async {
       cancel();
       return false;
-    });
+    }, Icons.arrow_back_rounded);
     itemToEdit = item;
     newName.text = itemToEdit!.title;
     newArtist.text = itemToEdit!.artist;

@@ -14,9 +14,9 @@ class HomePage extends ThemedPage {
   @override
   void initState(BuildContext context) {
     super.initState(context);
-    setAndroidBack(() async {
+    setAndroidBack(context, () async {
       return await app.navigation.exitDialog(context);
-    });
+    }, Icons.close_rounded);
   }
 }
 

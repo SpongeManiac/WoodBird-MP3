@@ -30,10 +30,16 @@ class SongsPage extends ThemedPage {
   State<StatefulWidget> createState() => _SongsPageState();
 
   @override
-  AppBarData getDefaultAppBar() {
-    print('getting def app bar');
-    return AppBarData(
-      title,
+  void initState(BuildContext context) {
+    // TODO: implement initState
+    super.initState(context);
+    setAndroidBack(
+      context,
+      () async {
+        await app.closeApp(context);
+        return false;
+      },
+      Icons.close_rounded,
     );
   }
 }
@@ -43,12 +49,6 @@ class SongsPage extends ThemedPage {
 //
 
 class _SongsPageState extends CRUDState<AudioSource> {
-  @override
-  void initState() {
-    super.initState();
-    widget.initState(context);
-  }
-
   Map<AudioSource, ContextPopupButton> songContexts =
       <AudioSource, ContextPopupButton>{};
 
@@ -112,30 +112,30 @@ class _SongsPageState extends CRUDState<AudioSource> {
               TextFormField(
                 keyboardType: TextInputType.text,
                 textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(
-                    icon: Container(
-                      height: 56,
-                      width: 56,
-                      child: IconButton(
-                        iconSize: 56.0,
-                        color: Theme.of(context).primaryColor,
-                        icon: ArtUri(Uri.parse(newArt.text)),
-                        onPressed: () async {
-                          widget.app.loadingProgressNotifier.value = null;
-                          widget.app.loadingNotifier.value = true;
-                          var path = await (widget.app as DesktopApp).getArt();
-                          if (path.isNotEmpty) {
-                            setState(() {
-                              newArt.text = path;
-                            });
-                          }
-                          widget.app.loadingNotifier.value = false;
-                          widget.app.loadingProgressNotifier.value = null;
-                        },
-                      ),
+                decoration: InputDecoration(
+                  icon: Container(
+                    height: 56,
+                    width: 56,
+                    child: IconButton(
+                      iconSize: 56.0,
+                      color: Theme.of(context).primaryColor,
+                      icon: ArtUri(Uri.parse(newArt.text)),
+                      onPressed: () async {
+                        widget.app.loadingProgressNotifier.value = null;
+                        widget.app.loadingNotifier.value = true;
+                        var path = await (widget.app as DesktopApp).getArt();
+                        if (path.isNotEmpty) {
+                          setState(() {
+                            newArt.text = path;
+                          });
+                        }
+                        widget.app.loadingNotifier.value = false;
+                        widget.app.loadingProgressNotifier.value = null;
+                      },
                     ),
-                    labelText: 'Art',
-                    hintText: 'Image URL/Path',
+                  ),
+                  labelText: 'Art',
+                  hintText: 'Image URL/Path',
                 ),
                 controller: newArt,
                 validator: (value) => validateDesc(value),
@@ -259,28 +259,25 @@ class _SongsPageState extends CRUDState<AudioSource> {
   }
 
   //set states
+
   @override
   Future<void> setRead() async {
     super.setRead();
     artUriNotifier.value = '';
-    widget.setAndroidBack(() async {
-      widget.app.navigation.goto(context, '/');
-      return false;
-    });
+    widget.setAndroidBack(
+      context,
+      () async {
+        await widget.app.closeApp(context);
+        return false;
+      },
+      Icons.close_rounded,
+    );
   }
 
   @override
   Future<void> setUpdate(AudioSource item) async {
-    widget.setAndroidBack(() async {
-      cancel();
-      return false;
-    });
+    await super.setUpdate(item);
     var tag = AudioInterface.getTag(item);
-    var idx = int.tryParse(tag.id);
-    // if(idx != null){
-
-    // }
-    itemToEdit = item;
     newName.text = tag.title;
     newArtist.text = tag.artist ?? '';
     var tagArtUri = tag.artUri.toString();
@@ -291,10 +288,10 @@ class _SongsPageState extends CRUDState<AudioSource> {
     state = ViewState.update;
   }
 
-  @override
-  Future<void> setDelete(AudioSource item) async {
-    await cancel();
-  }
+  // @override
+  // Future<void> setDelete(AudioSource item) async {
+  //   await cancel();
+  // }
 
   //crud ops
   @override

@@ -16,6 +16,19 @@ class SettingsPage extends ThemedPage {
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
+
+  @override
+  void initState(BuildContext context) {
+    super.initState(context);
+    setAndroidBack(
+      context,
+      () async {
+        app.navigation.goto(context, '/');
+        return false;
+      },
+      Icons.home_rounded,
+    );
+  }
 }
 
 class _SettingsPageState extends State<SettingsPage> {
@@ -34,13 +47,6 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    //init action button
-    widget.initFloatingAction(
-        _incrementCounter,
-        const Icon(
-          Icons.add,
-          color: Colors.grey,
-        ));
     //init this state
     widget.initState(context);
 
@@ -76,19 +82,6 @@ class _SettingsPageState extends State<SettingsPage> {
     _selectedItem = globals.themes.values.elementAt(state.theme);
     pickerColor = Color(state.color);
     _counter = state.count;
-  }
-
-  void _incrementCounter() {
-    _counter++;
-    var tmp = HomePageData(
-      copy.theme,
-      _counter,
-      copy.color,
-      copy.controls,
-      copy.swapTrack,
-      copy.darkMode,
-    );
-    copy = tmp;
   }
 
   Future<void> _themeChanged(MaterialColor? color) async {

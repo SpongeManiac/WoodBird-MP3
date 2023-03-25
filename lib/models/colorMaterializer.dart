@@ -57,6 +57,9 @@ class ColorMaterializer {
 
       data = ThemeData(
         //brightness: Brightness.dark,
+        primaryTextTheme: const TextTheme(
+          bodyMedium: TextStyle(color: Colors.white),
+        ),
         colorScheme: scheme,
         primaryColor: scheme.primary,
         primaryColorLight:
@@ -96,6 +99,9 @@ class ColorMaterializer {
 
       data = ThemeData(
         //brightness: Brightness.light,
+        primaryTextTheme: const TextTheme(
+          bodyMedium: TextStyle(color: Colors.white),
+        ),
         colorScheme: scheme,
         primaryColor: scheme.primary,
         primaryColorLight:

@@ -285,7 +285,7 @@ class SharedDatabase extends _$SharedDatabase {
       return result.readTable(songs);
     }).toList();
     //sort songs into playlist order
-    songsList = PlaylistSongSorter.sort(songsList, songOrder);
+    songsList = SongSorter.sort(songsList, songOrder);
     //..sort((a, b) => songOrder.indexOf(a.id) - songOrder.indexOf(b.id));
     //..sort((a, b) => a.id.compareTo(b.id));
     //final ref = {for (var e in songsList) e.id: e};

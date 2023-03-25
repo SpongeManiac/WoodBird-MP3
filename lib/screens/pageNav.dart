@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_window_close/flutter_window_close.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:test_project/screens/themedPage.dart';
+import 'package:test_project/widgets/appBar.dart';
 import 'package:test_project/widgets/playerMenu.dart';
 
 import '../globals.dart' show app;
@@ -21,6 +22,44 @@ class PageNav extends StatefulWidget {
     print('default back');
     return true;
   };
+
+  void setAppBarData(AppBarData data) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      app.appBarNotifier.value = data;
+    });
+  }
+
+  void setAppBarTitle(String title) {
+    AppBarData tmp = app.appBarNotifier.value.copy();
+    tmp.title = title;
+    setAppBarData(tmp);
+  }
+
+  void setAppBarActions(List<Widget> actions) {
+    AppBarData tmp = app.appBarNotifier.value.copy();
+    tmp.actions = actions;
+    setAppBarData(tmp);
+  }
+
+  //adds an icon button that performs the 'onBack' function
+  void setAndroidOnBack(BuildContext context, Future<bool> Function() onBack,
+      [IconData? appBarIcon]) {
+    androidOnBack = onBack;
+    if (appBarIcon != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        var copy = app.appBarNotifier.value.copy();
+        copy.onBack = IconButton(
+          onPressed: onBack,
+          icon: Icon(
+            appBarIcon,
+            color:
+                Theme.of(context).textTheme.bodyMedium!.color ?? Colors.white,
+          ),
+        );
+        app.appBarNotifier.value = copy;
+      });
+    }
+  }
 
   Future<bool> exitDialog(BuildContext context) async {
     print('running alert');
@@ -88,11 +127,15 @@ class PageNav extends StatefulWidget {
   void goto(BuildContext context, String route, [bool popNav = false]) {
     if (app.routes.containsKey(route)) {
       if (route != app.currentRoute) {
-        print('resetting back button');
-        androidOnBack = () async {
-          goto(context, '/');
-          return false;
-        };
+        // print('setting back button to go home');
+        // setAndroidOnBack(
+        //   context,
+        //   () async {
+        //     goto(context, '/');
+        //     return false;
+        //   },
+        //   Icons.home_rounded,
+        // );
         app.currentRoute = route;
         app.floatingActionNotifier.value = HideableFloatingActionData(false);
         app.routeNotifier.value = route;

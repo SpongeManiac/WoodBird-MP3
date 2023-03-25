@@ -22,7 +22,13 @@ class _AppBarTitleListenerState extends State<AppBarTitleListener> {
         builder: (context, data, __) {
           return AppBar(
             title: Text(data.title),
-            actions: data.actions,
+            actions: () {
+              var actions = data.actions != null ? data.actions! : <Widget>[];
+              if (data.onBack != null) {
+                actions.add(data.onBack!);
+              }
+              return actions;
+            }(),
           );
         });
   }
@@ -32,6 +38,7 @@ class AppBarData extends BaseData {
   AppBarData(this.title, [this.actions]);
 
   String title;
+  Widget? onBack;
   List<Widget>? actions;
 
   @override

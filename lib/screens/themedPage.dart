@@ -34,34 +34,13 @@ abstract class ThemedPage extends StatefulWidget {
     });
   }
 
-  AppBarData getDefaultAppBar() {
-    return AppBarData(title, null);
-  }
-
-  void setAppBarData(AppBarData data) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      app.appBarNotifier.value = data;
-    });
-  }
-
-  void setAppBarTitle(String title) {
-    AppBarData tmp = app.appBarNotifier.value.copy();
-    tmp.title = title;
-    setAppBarData(tmp);
-  }
-
-  void setAppBarActions(List<Widget> actions) {
-    AppBarData tmp = app.appBarNotifier.value.copy();
-    tmp.actions = actions;
-    setAppBarData(tmp);
-  }
-
-  void setAndroidBack(Future<bool> Function() callback) {
-    app.navigation.androidOnBack = callback;
+  void setAndroidBack(BuildContext context, Future<bool> Function() callback,
+      [IconData? appBarIcon]) {
+    app.navigation.setAndroidOnBack(context, callback, appBarIcon);
   }
 
   void initState(BuildContext context) {
-    setAppBarData(getDefaultAppBar());
+    app.navigation.setAppBarTitle(title);
   }
 
   Future<void> saveState() async {}

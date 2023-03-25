@@ -52,16 +52,40 @@ abstract class CRUDState<T> extends State<ThemedPage> {
   Future<void> setCreate() async {
     itemToEdit = null;
     state = ViewState.create;
+    widget.setAndroidBack(
+      context,
+      () async {
+        await setRead();
+        return false;
+      },
+      Icons.arrow_back_rounded,
+    );
   }
 
   Future<void> setRead() async {
     itemToEdit = null;
     state = ViewState.read;
+    widget.setAndroidBack(
+      context,
+      () async {
+        widget.app.navigation.goto(context, '/');
+        return false;
+      },
+      Icons.home_rounded,
+    );
   }
 
   Future<void> setUpdate(T item) async {
     itemToEdit = item;
     state = ViewState.update;
+    widget.setAndroidBack(
+      context,
+      () async {
+        await cancel();
+        return false;
+      },
+      Icons.arrow_back_rounded,
+    );
   }
 
   Future<void> setDelete(T item) async {
@@ -97,6 +121,12 @@ abstract class CRUDState<T> extends State<ThemedPage> {
     for (T item in items) {
       await delete(item);
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    widget.initState(context);
   }
 
   @override
