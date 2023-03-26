@@ -395,8 +395,8 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
 
   //set states
   @override
-  Future<void> setCreate() async {
-    await super.setCreate();
+  Future<void> setCreate([onBackOverride]) async {
+    await super.setCreate(onBackOverride);
     newName.text = '';
     newDescription.text = '';
     newArt.text = '';
@@ -404,24 +404,34 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   }
 
   @override
-  Future<void> setRead() async {
-    super.setRead();
+  Future<void> setRead([onBackOverride]) async {
+    super.setRead(onBackOverride);
     artUriNotifier.value = '';
   }
 
   @override
-  Future<void> setUpdate(PlaylistData item) async {
+  Future<void> setUpdate(PlaylistData item, [_]) async {
     print('switching to update');
     if (item.id != null) {
       print('editing ${item.title} - ${item.id}');
     }
-    await super.setUpdate(item);
+    widget.app.navigation.setAppBarTitle(item.title);
+    await super.setUpdate(
+      item,
+      //override onBack to change appBarTitle back to normal
+      () async {
+        widget.app.navigation.setAppBarTitle(widget.title);
+        await cancel();
+        return false;
+      },
+    );
     newName.text = itemToEdit!.title;
     playlistTitle.value = itemToEdit!.title;
     newDescription.text = itemToEdit!.description;
     newArt.text = itemToEdit!.art;
     artUriNotifier.value = newArt.text;
     await setPlaylistSongs();
+
     state = ViewState.update;
   }
 

@@ -49,41 +49,46 @@ abstract class CRUDState<T> extends State<ThemedPage> {
     }
   }
 
-  Future<void> setCreate() async {
+  Future<void> setCreate([Future<bool> Function()? onBackOverride]) async {
     itemToEdit = null;
     state = ViewState.create;
     widget.setAndroidBack(
       context,
-      () async {
-        await setRead();
-        return false;
-      },
+      onBackOverride ??
+          () async {
+            await setRead();
+            return false;
+          },
       Icons.arrow_back_rounded,
     );
   }
 
-  Future<void> setRead() async {
+  Future<void> setRead([Future<bool> Function()? onBackOverride]) async {
     itemToEdit = null;
     state = ViewState.read;
     widget.setAndroidBack(
       context,
-      () async {
-        widget.app.navigation.goto(context, '/');
-        return false;
-      },
+      onBackOverride ??
+          () async {
+            widget.app.navigation.goto(context, '/');
+            return false;
+          },
       Icons.home_rounded,
     );
   }
 
-  Future<void> setUpdate(T item) async {
+  Future<void> setUpdate(T item,
+      [Future<bool> Function()? onBackOverride]) async {
     itemToEdit = item;
     state = ViewState.update;
+
     widget.setAndroidBack(
       context,
-      () async {
-        await cancel();
-        return false;
-      },
+      onBackOverride ??
+          () async {
+            await cancel();
+            return false;
+          },
       Icons.arrow_back_rounded,
     );
   }

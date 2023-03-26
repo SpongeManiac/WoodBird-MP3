@@ -336,7 +336,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
 
   //set states
   @override
-  Future<void> setCreate() async {
+  Future<void> setCreate([_]) async {
     newName.text = '';
     newArtist.text = '';
     newDescription.text = '';
@@ -346,21 +346,13 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
   }
 
   @override
-  Future<void> setRead() async {
-    super.setRead();
+  Future<void> setRead([_]) async {
     artUriNotifier.value = '';
-    widget.setAndroidBack(
-      context,
-      () async {
-        widget.app.navigation.goto(context, '/');
-        return false;
-      },
-      Icons.home_rounded,
-    );
+    super.setRead();
   }
 
   @override
-  Future<void> setUpdate(AlbumData item) async {
+  Future<void> setUpdate(AlbumData item, [_]) async {
     print('switching to update');
     // if (item.id != null) {
     //   print('editing ${item.name} - ${item.id}');

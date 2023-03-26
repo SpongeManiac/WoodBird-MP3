@@ -35,7 +35,7 @@ class _AppBarTitleListenerState extends State<AppBarTitleListener> {
 }
 
 class AppBarData extends BaseData {
-  AppBarData(this.title, [this.actions]);
+  AppBarData(this.title, [this.actions, this.onBack]);
 
   String title;
   Widget? onBack;
@@ -43,6 +43,6 @@ class AppBarData extends BaseData {
 
   @override
   AppBarData copy() {
-    return AppBarData(title, actions);
+    return AppBarData(title, actions, onBack);
   }
 }

@@ -261,7 +261,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
   //set states
 
   @override
-  Future<void> setRead() async {
+  Future<void> setRead([_]) async {
     super.setRead();
     artUriNotifier.value = '';
     widget.setAndroidBack(
@@ -275,7 +275,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
   }
 
   @override
-  Future<void> setUpdate(AudioSource item) async {
+  Future<void> setUpdate(AudioSource item, [_]) async {
     await super.setUpdate(item);
     var tag = AudioInterface.getTag(item);
     newName.text = tag.title;
