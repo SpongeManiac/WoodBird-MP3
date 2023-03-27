@@ -22,27 +22,28 @@ class _AppBarTitleListenerState extends State<AppBarTitleListener> {
         builder: (context, data, __) {
           return AppBar(
             title: Text(data.title),
-            actions: () {
-              var actions = data.actions != null ? data.actions! : <Widget>[];
-              if (data.onBack != null) {
-                actions.add(data.onBack!);
-              }
-              return actions;
-            }(),
+            actions: data.actions.values.toList(),
           );
         });
   }
 }
 
 class AppBarData extends BaseData {
-  AppBarData(this.title, [this.actions, this.onBack]);
+  AppBarData(this.title, [Map<String, Widget>? actions])
+      : actions = actions ?? <String, Widget>{};
 
   String title;
-  Widget? onBack;
-  List<Widget>? actions;
+  Map<String, Widget> actions;
+  //List<Widget>? actions;
+
+  void removeOnBack() {
+    if (actions.containsKey('onBack')) {
+      actions.remove('onBack');
+    }
+  }
 
   @override
   AppBarData copy() {
-    return AppBarData(title, actions, onBack);
+    return AppBarData(title, actions);
   }
 }

@@ -232,9 +232,43 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     songs.value = tmp;
   }
 
+  ContextPopupButton getMoreContext(BuildContext context) {
+    return ContextPopupButton(
+      icon: const Icon(
+        Icons.more_vert,
+        color: Colors.white,
+      ),
+      itemBuilder: (context) {
+        Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
+          'Edit Playlist': ContextItemTuple(
+            Icons.edit_rounded,
+            () async {
+              //pop context to show dialog
+              //Navigator.of(context).pop();
+              //show dialog
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                await showDialog(
+                  context: context,
+                  builder: (context) {
+                    return Dialog(
+                      child: SingleChildScrollView(
+                        child: playlistForm,
+                      ),
+                    );
+                  },
+                );
+              });
+            },
+          ),
+        };
+        return widget.buildPopupItems(context, choices);
+      },
+    );
+  }
+
   ContextPopupButton getPlaylistContext(
       BuildContext context, PlaylistData playlist) {
-    var popup = ContextPopupButton(
+    return ContextPopupButton(
       icon: Icon(
         Icons.more_vert,
         color: Theme.of(context).primaryColor,
@@ -268,38 +302,12 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
             await delete(playlist);
           }),
         };
-
-        List<PopupMenuItem<String>> list = [];
-
-        for (String val in choices.keys) {
-          var choice = choices[val];
-          list.add(
-            PopupMenuItem(
-              onTap: choice!.onPress,
-              child: Row(
-                children: [
-                  Icon(
-                    choice.icon,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  Expanded(
-                    child: Text(
-                      val,
-                      textAlign: TextAlign.right,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        return list;
+        return widget.buildPopupItems(context, choices);
       },
     );
 
-    playlistContexts[playlist] = popup;
-    return popup;
+    //playlistContexts[playlist] = popup;
+    //return popup;
   }
 
   ContextPopupButton getSongContext(BuildContext context, PlaylistData playlist,
@@ -318,37 +326,11 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
             },
           ),
         };
-
-        List<PopupMenuItem<String>> list = [];
-
-        for (String val in choices.keys) {
-          var choice = choices[val];
-          list.add(
-            PopupMenuItem(
-              onTap: choice!.onPress,
-              child: Row(
-                children: [
-                  Icon(
-                    choice.icon,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  Expanded(
-                    child: Text(
-                      val,
-                      textAlign: TextAlign.right,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        return list;
+        return widget.buildPopupItems(context, choices);
       },
     );
 
-    playlistContexts[playlist] = popup;
+    //playlistContexts[playlist] = popup;
     return popup;
   }
 
@@ -411,7 +393,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
 
   @override
   Future<void> setUpdate(PlaylistData item, [_]) async {
-    print('switching to update');
+    //print('switching to update');
     if (item.id != null) {
       print('editing ${item.title} - ${item.id}');
     }
@@ -421,10 +403,12 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
       //override onBack to change appBarTitle back to normal
       () async {
         widget.app.navigation.setAppBarTitle(widget.title);
+        widget.app.navigation.delAppBarAction('more');
         await cancel();
         return false;
       },
     );
+    widget.app.navigation.addAppBarAction('more', getMoreContext(context));
     newName.text = itemToEdit!.title;
     playlistTitle.value = itemToEdit!.title;
     newDescription.text = itemToEdit!.description;
@@ -618,11 +602,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                         //print('tap');
                         await setUpdate(playlist);
                       },
-                      onLongPress: () {
-                        //print('long press');
-                        //print(widget.songContexts[song]);
-                        playlistContexts[playlist]!.showDialog();
-                      },
+                      onLongPress: playlistContextBtn.showDialog,
                       leading: ArtUri(Uri.parse(playlist.art)),
                       title: Text(playlist.title),
                       subtitle: Text(playlist.description),
@@ -648,33 +628,6 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        //list tile for editing playlist info
-        ListTile(
-          title: ValueListenableBuilder<String>(
-            valueListenable: playlistTitle,
-            builder: (context, value, child) {
-              return Text(value);
-            },
-          ),
-          trailing: Icon(
-            Icons.edit_rounded,
-            color: Theme.of(context).primaryColor,
-          ),
-          onTap: () async {
-            //show edit popup
-            await showDialog(
-              context: context,
-              builder: (context) {
-                return Dialog(
-                  child: SingleChildScrollView(
-                    child: playlistForm,
-                  ),
-                );
-              },
-            );
-          },
-        ),
-
         ListTile(
           title: Text('Add songs...'),
           trailing: Icon(

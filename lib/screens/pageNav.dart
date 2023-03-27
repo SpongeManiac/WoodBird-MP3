@@ -24,9 +24,7 @@ class PageNav extends StatefulWidget {
   };
 
   void setAppBarData(AppBarData data) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      app.appBarNotifier.value = data;
-    });
+    app.appBarNotifier.value = data;
   }
 
   void setAppBarTitle(String title) {
@@ -35,29 +33,48 @@ class PageNav extends StatefulWidget {
     setAppBarData(tmp);
   }
 
-  void setAppBarActions(List<Widget> actions) {
+  void setAppBarActions(Map<String, Widget> actions) {
     AppBarData tmp = app.appBarNotifier.value.copy();
     tmp.actions = actions;
     setAppBarData(tmp);
   }
 
-  //adds an icon button that performs the 'onBack' function
-  void setAndroidOnBack(BuildContext context, Future<bool> Function() onBack,
+  void addAppBarAction(String actionName, Widget actionButton) {
+    AppBarData tmp = app.appBarNotifier.value.copy();
+    tmp.actions[actionName] = actionButton;
+    setAppBarData(tmp);
+  }
+
+  void delAppBarAction(String actionName) {
+    if (app.appBarNotifier.value.actions.containsKey(actionName)) {
+      AppBarData tmp = app.appBarNotifier.value.copy();
+      tmp.actions.remove(actionName);
+      setAppBarData(tmp);
+    }
+  }
+
+  //adds an icon button that performs the 'back' action
+  //if an action named 'back' is within the actions list
+  void setAndroidBackAction(
+      BuildContext context, Future<bool> Function() onBack,
       [IconData? appBarIcon]) {
     androidOnBack = onBack;
     if (appBarIcon != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        var copy = app.appBarNotifier.value.copy();
-        copy.onBack = IconButton(
+      //WidgetsBinding.instance.addPostFrameCallback((_) {
+      //var copy = app.appBarNotifier.value.copy();
+      addAppBarAction(
+        'onBack',
+        IconButton(
           onPressed: onBack,
           icon: Icon(
             appBarIcon,
-            color:
-                Theme.of(context).textTheme.bodyMedium!.color ?? Colors.white,
+            color: Colors.white,
           ),
-        );
-        app.appBarNotifier.value = copy;
-      });
+        ),
+      );
+      //app.appBarNotifier.value = copy;
+      //setState((){});
+      //});
     }
   }
 
@@ -127,18 +144,15 @@ class PageNav extends StatefulWidget {
   void goto(BuildContext context, String route, [bool popNav = false]) {
     if (app.routes.containsKey(route)) {
       if (route != app.currentRoute) {
-        // print('setting back button to go home');
-        // setAndroidOnBack(
-        //   context,
-        //   () async {
-        //     goto(context, '/');
-        //     return false;
-        //   },
-        //   Icons.home_rounded,
-        // );
+        //WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        //goto new page
+        app.routeNotifier.value = route;
+        //clear appbar actions
+        setAppBarActions({});
+        //set routes
         app.currentRoute = route;
         app.floatingActionNotifier.value = HideableFloatingActionData(false);
-        app.routeNotifier.value = route;
+        //});
       } else {
         //when same route
       }
@@ -203,7 +217,7 @@ class _PageNavState extends State<PageNav> {
                 Padding(
                   padding: EdgeInsets.only(bottom: 100),
                   child: WillPopScope(
-                    onWillPop: () => widget.androidOnBack(),
+                    onWillPop: widget.androidOnBack,
                     child: builder!(context),
                   ),
                 ),

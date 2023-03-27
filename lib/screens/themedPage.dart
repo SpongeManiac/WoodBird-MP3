@@ -3,6 +3,7 @@ import 'package:test_project/database/database.dart';
 import 'package:test_project/shared/baseApp.dart';
 import 'package:test_project/widgets/appBar.dart';
 import '../globals.dart' as globals;
+import '../models/contextItemTuple.dart';
 import '../widgets/hideableFloatingAction.dart';
 
 abstract class ThemedPage extends StatefulWidget {
@@ -36,11 +37,42 @@ abstract class ThemedPage extends StatefulWidget {
 
   void setAndroidBack(BuildContext context, Future<bool> Function() callback,
       [IconData? appBarIcon]) {
-    app.navigation.setAndroidOnBack(context, callback, appBarIcon);
+    app.navigation.setAndroidBackAction(context, callback, appBarIcon);
   }
 
   void initState(BuildContext context) {
-    app.navigation.setAppBarTitle(title);
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      app.navigation.setAppBarTitle(title);
+    });
+  }
+
+  List<PopupMenuItem<String>> buildPopupItems(
+      BuildContext context, Map<String, ContextItemTuple> items) {
+    List<PopupMenuItem<String>> contextButtonItems = [];
+    for (String val in items.keys) {
+      var choice = items[val];
+      contextButtonItems.add(
+        PopupMenuItem(
+          onTap: choice!.onPress,
+          child: Row(
+            children: [
+              Icon(
+                choice.icon,
+                color: Theme.of(context).primaryColor,
+              ),
+              Expanded(
+                child: Text(
+                  val,
+                  textAlign: TextAlign.right,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return contextButtonItems;
   }
 
   Future<void> saveState() async {}

@@ -157,6 +157,12 @@ class _SongsPageState extends CRUDState<AudioSource> {
     return null;
   }
 
+  @override
+  void initState() {
+    super.initState();
+    setState(() {});
+  }
+
   ContextPopupButton getSongContext(AudioSource song) {
     print('getting song popup context');
     var popup = ContextPopupButton(
