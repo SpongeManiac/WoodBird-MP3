@@ -21,6 +21,12 @@ abstract class CRUDState<T> extends State<ThemedPage> {
   T? get itemToEdit => editingNotifier.value;
   set itemToEdit(newItem) => editingNotifier.value = newItem;
 
+  //crud views
+  Widget? createView;
+  Widget? readView;
+  Widget? updateView;
+  Widget? deleteView;
+
   //view switching
   Future<void> setViewState(ViewState state, T? item) async {
     if ((state == ViewState.update || state == ViewState.delete)) {}
@@ -34,14 +40,14 @@ abstract class CRUDState<T> extends State<ThemedPage> {
         break;
       case ViewState.update:
         if (item == null) {
-          print('gave null item, cancelling update');
+          //print('gave null item, cancelling update');
         } else {
           await setUpdate(item);
         }
         break;
       case ViewState.delete:
         if (item == null) {
-          print('gave null item, cancelling delete');
+          //print('gave null item, cancelling delete');
         } else {
           await setDelete(item);
         }
@@ -102,11 +108,11 @@ abstract class CRUDState<T> extends State<ThemedPage> {
     await setRead();
   }
 
-  //crud views
-  Widget createView(BuildContext context);
-  Widget readView(BuildContext context);
-  Widget updateView(BuildContext context);
-  Widget deleteView(BuildContext context);
+  //crud view builer
+  Widget createViewBuilder(BuildContext context);
+  Widget readViewBuilder(BuildContext context);
+  Widget updateViewBuilder(BuildContext context);
+  Widget deleteViewBuilder(BuildContext context);
 
   //crud functions
   Future<List<T?>> create();
@@ -139,18 +145,18 @@ abstract class CRUDState<T> extends State<ThemedPage> {
     return ValueListenableBuilder<ViewState>(
       valueListenable: stateNotifier,
       builder: (context, state, _) {
-        print('current state: $state');
+        //print('current state: $state');
         switch (state) {
           case ViewState.create:
-            return createView(context);
+            return createView ?? createViewBuilder(context);
           case ViewState.read:
-            return readView(context);
+            return readView ?? readViewBuilder(context);
           case ViewState.update:
-            return updateView(context);
+            return updateView ?? updateViewBuilder(context);
           case ViewState.delete:
-            return deleteView(context);
+            return deleteView ?? deleteViewBuilder(context);
           default:
-            return Center(child: Text('Invalid State'));
+            return const Center(child: Text('Invalid State'));
         }
       },
     );

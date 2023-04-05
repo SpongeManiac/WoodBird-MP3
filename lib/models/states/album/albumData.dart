@@ -34,6 +34,17 @@ class AlbumData extends BaseDataDB {
     );
   }
 
+  static AlbumData fromDB(AlbumDataDB data) {
+    return AlbumData(
+      id: data.id,
+      title: data.title,
+      songOrder: json.decode(data.songOrder).cast<int>(),
+      artist: data.artist,
+      description: data.description,
+      art: data.art,
+    );
+  }
+
   @override
   AlbumData fromEntry(DataClass dataclass) {
     AlbumDataDB data = dataclass as AlbumDataDB;
@@ -49,16 +60,20 @@ class AlbumData extends BaseDataDB {
   @override
   AlbumsCompanion getCompanion() {
     return AlbumsCompanion(
-      id: id == null ? const Value.absent() : Value(id!),
-    );
+        //id: id == null ? Value.absent() : Value(id!),
+        songOrder: Value(songOrder.toString()),
+        title: Value(title),
+        artist: Value(artist),
+        description: Value(description),
+        art: Value(art));
   }
 
   @override
   AlbumDataDB getEntry() {
     return AlbumDataDB(
       id: id!,
-      title: title,
       songOrder: songOrder.toString(),
+      title: title,
       artist: artist,
       description: description,
       art: art,
@@ -74,7 +89,7 @@ class AlbumData extends BaseDataDB {
       await db.updateAlbumData(getEntry());
     } else {
       print('Album does not exist, upserting');
-      id = await db.setAlbumData(getCompanion());
+      id = await db.addAlbumData(getCompanion());
     }
     print('album id after: $id');
   }

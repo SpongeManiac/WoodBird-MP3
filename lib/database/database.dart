@@ -172,7 +172,7 @@ class SharedDatabase extends _$SharedDatabase {
         .get();
   }
 
-  //playlists
+  //playlist
   Future<bool> playlistExists(int id) async {
     if (id < 0) {
       return false;
@@ -188,17 +188,37 @@ class SharedDatabase extends _$SharedDatabase {
     }
   }
 
+  //album
+  Future<bool> albumExists(int id) async {
+    if (id < 0) {
+      return false;
+    }
+    var count = countAll(filter: albums.id.equals(id));
+    var res = await (selectOnly(albums)..addColumns([count]))
+        .map((row) => row.read(count))
+        .getSingle();
+    if (res != null && res > 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  //playlist
   Future<int> addPlaylistData(PlaylistsCompanion companion) async {
     int newId = await into(playlists).insert(companion);
     print('new id: $newId');
-    //PlaylistsCompanion.insert(name: )
     return newId;
   }
 
-  //Future<int> addPlaylistData(PlaylistsCompanion companion) async {
-  //  int newId = await into(playlists).insert(entity)
-  //}
+  //album
+  Future<int> addAlbumData(AlbumsCompanion companion) async {
+    int newId = await into(albums).insert(companion);
+    print('new id: $newId');
+    return newId;
+  }
 
+  //playlist
   Future<PlaylistDataDB?> getPlaylistData(int id) async {
     return await (select(playlists)
           ..where((tbl) => tbl.id.equals(id))
@@ -206,11 +226,27 @@ class SharedDatabase extends _$SharedDatabase {
         .getSingleOrNull();
   }
 
+  //album
+  Future<AlbumDataDB?> getAlbumData(int id) async {
+    return await (select(albums)
+          ..where((tbl) => tbl.id.equals(id))
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
+  //playlist
   Future<bool> updatePlaylistData(PlaylistDataDB playlist) async {
     print('Updating playlist: new songOrder: ${playlist.songOrder}');
     return await update(playlists).replace(playlist);
   }
 
+  //album
+  Future<bool> updateAlbumData(AlbumDataDB album) async {
+    print('Updating playlist: new songOrder: ${album.songOrder}');
+    return await update(albums).replace(album);
+  }
+
+  //playlist
   Future<int> delPlaylistData(PlaylistDataDB playlist) async {
     //get playlist relations
     var playlistSongs = await getPlaylistSongs(playlist);
@@ -222,6 +258,18 @@ class SharedDatabase extends _$SharedDatabase {
         .go();
   }
 
+  //album
+  Future<int> delAlbumData(AlbumDataDB album) async {
+    //get playlist relations
+    var albumSongs = await getAlbumSongs(album);
+    for (var song in albumSongs) {
+      await delAlbumSong(album, song);
+    }
+    print('deleting ${album.title}, index ${album.id}');
+    return await (delete(playlists)..where((p) => p.id.equals(album.id))).go();
+  }
+
+  //playlist
   Future<int> addPlaylistSong(PlaylistDataDB playlist, SongDataDB song) async {
     //add song into song order
     //List<int> songOrder = json.decode(playlist.songOrder).cast<int>();
@@ -246,6 +294,16 @@ class SharedDatabase extends _$SharedDatabase {
     return await into(playlistSongs).insert(entry);
   }
 
+  //album
+  Future<int> addAlbumSong(AlbumDataDB album, SongDataDB song) async {
+    AlbumSongsCompanion entry = AlbumSongsCompanion(
+      album: Value(album.id),
+      song: Value(song.id),
+    );
+    return await into(albumSongs).insert(entry);
+  }
+
+  //playlist
   Future<int> delPlaylistSong(PlaylistDataDB playlist, SongDataDB song) async {
     //del song from song order
     //List<int> songOrder = json.decode(playlist.songOrder).cast<int>();
@@ -266,6 +324,18 @@ class SharedDatabase extends _$SharedDatabase {
         .go();
   }
 
+  //album
+  Future<int> delAlbumSong(AlbumDataDB album, SongDataDB song) async {
+    final firstSongID = selectOnly(albumSongs)
+      ..addColumns([albumSongs.id])
+      ..where(
+          albumSongs.album.equals(album.id) & albumSongs.song.equals(song.id));
+    return await (delete(albumSongs)
+          ..where((e) => e.id.equalsExp(subqueryExpression(firstSongID))))
+        .go();
+  }
+
+  //playlist
   Future<List<SongDataDB>> getPlaylistSongs(PlaylistDataDB playlist) async {
     // var playlistQuery = select(playlists)
     //   ..where((tbl) => tbl.id.equals(playlist.id));
@@ -295,89 +365,102 @@ class SharedDatabase extends _$SharedDatabase {
     return songsList;
   }
 
+  //album
+  Future<List<SongDataDB>> getAlbumSongs(AlbumDataDB album) async {
+    List<int> songOrder = json.decode(album.songOrder).cast<int>();
+    final songsQuery = await (select(albumSongs).join(
+      [
+        leftOuterJoin(
+          songs,
+          songs.id.equalsExp(albumSongs.song),
+        ),
+      ],
+    )..where(albumSongs.album.equals(album.id)))
+        .get();
+
+    var songsList = songsQuery.map((result) {
+      return result.readTable(songs);
+    }).toList();
+    //sort songs into playlist order
+    songsList = SongSorter.sort(songsList, songOrder);
+    return songsList;
+  }
+
+  //playlist
   Future<List<PlaylistDataDB>> getAllPlaylists() async {
     return await (select(playlists)
           ..orderBy([(t) => OrderingTerm(expression: t.title)]))
         .get();
   }
 
-  //albums
-  Future<bool> albumExists(int id) async {
-    if (id < 0) {
-      return false;
-    }
-    var count = countAll(filter: albums.id.equals(id));
-    var res = await (selectOnly(albums)..addColumns([count]))
-        .map((row) => row.read(count))
-        .get();
-    if (res.length == 1) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  Future<int> setAlbumData(AlbumsCompanion companion) async {
-    int newId = await into(albums).insertOnConflictUpdate(companion);
-    print('new id: $newId');
-    //PlaylistsCompanion.insert(name: )
-    return newId;
-  }
-
-  Future<bool> updateAlbumData(AlbumDataDB album) async {
-    return await update(albums).replace(album);
-  }
-
-  Future<int> delAlbumData(AlbumDataDB album) async {
-    print('deleting ${album.title}, index ${album.id}');
-    return await (delete(albums)..where((p) => p.id.equals(album.id))).go();
-  }
-
-  Future<int> addAlbumSong(AlbumDataDB album, SongDataDB song) async {
-    AlbumSongsCompanion entry = AlbumSongsCompanion(
-      album: Value(album.id),
-      song: Value(song.id),
-    );
-    return await into(albumSongs).insert(entry);
-  }
-
-  Future<int> delAlbumSong(AlbumDataDB album, SongDataDB song) async {
-    final firstSongID = selectOnly(albumSongs)
-      ..addColumns([albumSongs.id])
-      ..where(
-          albumSongs.album.equals(album.id) & albumSongs.song.equals(song.id));
-    return await (delete(albumSongs)
-          ..where((e) => e.id.equalsExp(subqueryExpression(firstSongID))))
-        .go();
-  }
-
-  Future<List<SongDataDB>> getAlbumSongs(AlbumData album) async {
-    // var playlistQuery = select(playlists)
-    //   ..where((tbl) => tbl.id.equals(playlist.id));
-    //get songs from playlist
-    if (album.id == null) {
-      return List.empty();
-    }
-    final songsQuery = await (select(albumSongs).join(
-      [
-        innerJoin(
-          songs,
-          songs.id.equalsExp(albumSongs.song),
-        ),
-      ],
-    )..where(albumSongs.album.equals(album.id!)))
-        .get();
-
-    var songsList = songsQuery.map((result) {
-      return result.readTable(songs);
-    }).toList();
-    print('got ${songsList.length} songs in playlist');
-    return songsList;
-  }
-
+  //album
   Future<List<AlbumDataDB>> getAllAlbums() async {
     return await (select(albums)
           ..orderBy([(t) => OrderingTerm(expression: t.title)]))
         .get();
   }
+
+  // Future<int> setAlbumData(AlbumsCompanion companion) async {
+  //   int newId = await into(albums).insertOnConflictUpdate(companion);
+  //   print('new id: $newId');
+  //   //PlaylistsCompanion.insert(name: )
+  //   return newId;
+  // }
+
+  // Future<bool> updateAlbumData(AlbumDataDB album) async {
+  //   return await update(albums).replace(album);
+  // }
+
+  // Future<int> delAlbumData(AlbumDataDB album) async {
+  //   print('deleting ${album.title}, index ${album.id}');
+  //   return await (delete(albums)..where((p) => p.id.equals(album.id))).go();
+  // }
+
+  // Future<int> addAlbumSong(AlbumDataDB album, SongDataDB song) async {
+  //   AlbumSongsCompanion entry = AlbumSongsCompanion(
+  //     album: Value(album.id),
+  //     song: Value(song.id),
+  //   );
+  //   return await into(albumSongs).insert(entry);
+  // }
+
+  // Future<int> delAlbumSong(AlbumDataDB album, SongDataDB song) async {
+  //   final firstSongID = selectOnly(albumSongs)
+  //     ..addColumns([albumSongs.id])
+  //     ..where(
+  //         albumSongs.album.equals(album.id) & albumSongs.song.equals(song.id));
+  //   return await (delete(albumSongs)
+  //         ..where((e) => e.id.equalsExp(subqueryExpression(firstSongID))))
+  //       .go();
+  // }
+
+  // Future<List<SongDataDB>> getAlbumSongs(AlbumData album) async {
+  //   // var playlistQuery = select(playlists)
+  //   //   ..where((tbl) => tbl.id.equals(playlist.id));
+  //   //get songs from playlist
+  //   if (album.id == null) {
+  //     return List.empty();
+  //   }
+  //   final songsQuery = await (select(albumSongs).join(
+  //     [
+  //       innerJoin(
+  //         songs,
+  //         songs.id.equalsExp(albumSongs.song),
+  //       ),
+  //     ],
+  //   )..where(albumSongs.album.equals(album.id!)))
+  //       .get();
+
+  //   var songsList = songsQuery.map((result) {
+  //     return result.readTable(songs);
+  //   }).toList();
+  //   print('got ${songsList.length} songs in playlist');
+  //   return songsList;
+  // }
+
+  // Future<List<AlbumDataDB>> getAllAlbums() async {
+  //   return await (select(albums)
+  //         ..orderBy([(t) => OrderingTerm(expression: t.title)]))
+  //       .get();
+  // }
 }

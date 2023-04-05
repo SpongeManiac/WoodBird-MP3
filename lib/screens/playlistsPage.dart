@@ -47,7 +47,8 @@ class PlaylistsPage extends ThemedPage {
 class _PlaylistsPageState extends CRUDState<PlaylistData> {
   ValueNotifier<List<MediaItem>> songs = ValueNotifier(<MediaItem>[]);
   ValueNotifier<String> artUriNotifier = ValueNotifier<String>('');
-  ValueNotifier<String> playlistTitle = ValueNotifier<String>('');
+  //ValueNotifier<String> playlistTitle = ValueNotifier<String>('');
+  //ValueNotifier<String> playlistArt = ValueNotifier<String>('');
 
   TextEditingController newName = TextEditingController(text: '');
   TextEditingController newDescription = TextEditingController(text: '');
@@ -206,6 +207,11 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   void initState() {
     super.initState();
     widget.initState(context);
+    //create crud views
+    //createView = createViewBuilder(context);
+    //readView = readViewBuilder(context);
+    //updateView = updateViewBuilder(context);
+    //deleteView = deleteViewBuilder(context);
   }
 
   String? validateTitle(String? val) {
@@ -410,10 +416,8 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     );
     widget.app.navigation.addAppBarAction('more', getMoreContext(context));
     newName.text = itemToEdit!.title;
-    playlistTitle.value = itemToEdit!.title;
     newDescription.text = itemToEdit!.description;
-    newArt.text = itemToEdit!.art;
-    artUriNotifier.value = newArt.text;
+    newArt.text = artUriNotifier.value = itemToEdit!.art;
     await setPlaylistSongs();
 
     state = ViewState.update;
@@ -435,20 +439,21 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   Future<PlaylistData> update(PlaylistData item) async {
     print('playlist id before: ${item.id}');
     item.title = newName.text;
+    //update appbar title
+    widget.app.navigation.setAppBarTitle(item.title);
     item.description = newDescription.text;
-    item.art = newArt.text;
+    item.art = artUriNotifier.value = newArt.text;
     //var tmp = List.of(playlists);
     print('saving playlist changes to db');
     //bool isNew = (item.id == null || !await widget.db.playlistExists(item.id!));
     await item.saveData();
-    playlistTitle.value = newName.text;
     await widget.app.loadPlaylists();
     return item;
   }
 
   @override
   Future<void> delete(PlaylistData item) async {
-    var tmp = List.of(playlists);
+    //var tmp = List.of(playlists);
     if (playlists.contains(item)) {
       await widget.db.delPlaylistData(item.getEntry());
       await widget.app.loadPlaylists();
@@ -491,7 +496,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     //return false;
   }
 
-  Future<void> ReorderSong(int oldIndex, int newIndex) async {
+  Future<void> reorderSong(int oldIndex, int newIndex) async {
     var songList = songs.value;
     print(
         'Before reorder: ${songList.map((s) => int.parse(s.id)).toList().toString()}');
@@ -519,7 +524,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
 
   //views
   @override
-  Widget createView(BuildContext context) {
+  Widget createViewBuilder(BuildContext context) {
     return Center(
       child: Column(
         children: [
@@ -565,7 +570,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   }
 
   @override
-  Widget readView(BuildContext context) {
+  Widget readViewBuilder(BuildContext context) {
     return ValueListenableBuilder<List<PlaylistData>>(
       valueListenable: widget.app.playlistsNotifier,
       builder: ((context, newPlaylists, _) {
@@ -603,7 +608,12 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                         await setUpdate(playlist);
                       },
                       onLongPress: playlistContextBtn.showDialog,
-                      leading: ArtUri(Uri.parse(playlist.art)),
+                      leading: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ArtUri(
+                          Uri.parse(playlist.art),
+                        ),
+                      ),
                       title: Text(playlist.title),
                       subtitle: Text(playlist.description),
                       trailing: playlistContextBtn,
@@ -619,96 +629,115 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   }
 
   @override
-  Widget updateView(BuildContext context) {
+  Widget updateViewBuilder(BuildContext context) {
     if (itemToEdit == null) {
       return Text('Invalid playlist');
     }
     //var playlist = itemToEdit!;
     print('${songs.value.length} songs gotten');
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
+    return Stack(
       children: [
-        ListTile(
-          title: Text('Add songs...'),
-          trailing: Icon(
-            Icons.add_rounded,
-            color: Theme.of(context).primaryColor,
-          ),
-          onTap: () async {
-            //avoid dialog being closed after choosing option
-            List<MediaItem> selected = [];
-            await Future.delayed(Duration(seconds: 0), () async {
-              await SelectDialog.showModal<MediaItem>(context,
-                  label: 'Select songs to add.',
-                  multipleSelectedValues: selected,
-                  items: widget.app.songsNotifier.value
-                      .map(AudioInterface.getTag)
-                      .toList(), itemBuilder: (context, tag, isSelected) {
-                return ListTile(
-                  title: Text(tag.title),
-                  subtitle: Text(tag.artist ?? ''),
-                  trailing: (isSelected ? Icon(Icons.check_rounded) : null),
-                );
-              }, onMultipleItemsChange: (List<MediaItem> selectedSong) {
-                setState(() {
-                  selected = selectedSong;
-                });
-              });
-            }).then((value) async {
-              //add selected songs to paylist
-              print('selected: ${selected.length}');
-              //create copy of playlist
-              var playlist = itemToEdit!;
-              //create copy of songs
-              List<MediaItem> tmp = List.from(songs.value);
-              for (var song in selected) {
-                await widget.db.addPlaylistSong(
-                  itemToEdit!.getEntry(),
-                  (await widget.db.getSongData(int.parse(song.id)))!,
-                );
-                //add song
-                tmp.add(song);
-                //add song to song order
-                playlist.songOrder.add(int.parse(song.id));
-              }
-              //update playlist in DB
-              updatePlaylist(playlist);
-              //save songs
-              songs.value = tmp;
-              setState(() {});
-            });
-          },
+        Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Opacity(
+                  opacity: 0.10,
+                  child: ArtUri(
+                    Uri.parse(itemToEdit!.art),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-        Expanded(
-          child: ReorderableListView.builder(
-            shrinkWrap: true,
-            scrollController: scrollController,
-            //buildDefaultDragHandles: false,
-            padding: const EdgeInsets.all(10),
-            onReorder: ReorderSong,
-            itemCount: songs.value.length,
-            itemBuilder: (context, index) {
-              MediaItem song = songs.value[index];
-              //int songId = int.tryParse(song.id) ?? -1;
-              //SongData songData;
+        Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            ListTile(
+              title: Text('Add songs...'),
+              trailing: Icon(
+                Icons.add_rounded,
+                color: Theme.of(context).primaryColor,
+              ),
+              onTap: () async {
+                //avoid dialog being closed after choosing option
+                List<MediaItem> selected = [];
+                await Future.delayed(Duration(seconds: 0), () async {
+                  await SelectDialog.showModal<MediaItem>(context,
+                      label: 'Select songs to add.',
+                      multipleSelectedValues: selected,
+                      items: widget.app.songsNotifier.value
+                          .map(AudioInterface.getTag)
+                          .toList(), itemBuilder: (context, tag, isSelected) {
+                    return ListTile(
+                      title: Text(tag.title),
+                      subtitle: Text(tag.artist ?? ''),
+                      trailing: (isSelected ? Icon(Icons.check_rounded) : null),
+                    );
+                  }, onMultipleItemsChange: (List<MediaItem> selectedSong) {
+                    setState(() {
+                      selected = selectedSong;
+                    });
+                  });
+                }).then((value) async {
+                  //add selected songs to paylist
+                  print('selected: ${selected.length}');
+                  //create copy of playlist
+                  var playlist = itemToEdit!;
+                  //create copy of songs
+                  List<MediaItem> tmp = List.from(songs.value);
+                  for (var song in selected) {
+                    await widget.db.addPlaylistSong(
+                      itemToEdit!.getEntry(),
+                      (await widget.db.getSongData(int.parse(song.id)))!,
+                    );
+                    //add song
+                    tmp.add(song);
+                    //add song to song order
+                    playlist.songOrder.add(int.parse(song.id));
+                  }
+                  //update playlist in DB
+                  updatePlaylist(playlist);
+                  //save songs
+                  songs.value = tmp;
+                  setState(() {});
+                });
+              },
+            ),
+            Expanded(
+              child: ReorderableListView.builder(
+                shrinkWrap: true,
+                scrollController: scrollController,
+                //buildDefaultDragHandles: false,
+                padding: const EdgeInsets.all(10),
+                onReorder: reorderSong,
+                itemCount: songs.value.length,
+                itemBuilder: (context, index) {
+                  MediaItem song = songs.value[index];
+                  //int songId = int.tryParse(song.id) ?? -1;
+                  //SongData songData;
 
-              return ListTile(
-                key: Key(index.toString()),
-                leading: ArtUri(song.artUri ?? Uri.parse('')),
-                title: Text(song.title),
-                subtitle: Text(song.artist ?? ''),
-                trailing: getSongContext(context, itemToEdit!, song, index),
-              );
-            },
-          ),
+                  return ListTile(
+                    key: Key(index.toString()),
+                    leading: ArtUri(song.artUri ?? Uri.parse('')),
+                    title: Text(song.title),
+                    subtitle: Text(song.artist ?? ''),
+                    trailing: getSongContext(context, itemToEdit!, song, index),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
   @override
-  Widget deleteView(BuildContext context) {
+  Widget deleteViewBuilder(BuildContext context) {
     setRead();
-    return readView(context);
+    return readViewBuilder(context);
   }
 }

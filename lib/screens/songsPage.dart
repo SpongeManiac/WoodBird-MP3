@@ -454,13 +454,13 @@ class _SongsPageState extends CRUDState<AudioSource> {
 
   //views
   @override
-  Widget createView(BuildContext context) {
+  Widget createViewBuilder(BuildContext context) {
     setRead();
-    return readView(context);
+    return readViewBuilder(context);
   }
 
   @override
-  Widget readView(BuildContext context) {
+  Widget readViewBuilder(BuildContext context) {
     return ValueListenableBuilder<List<AudioSource>>(
       valueListenable: widget.app.songsNotifier,
       builder: (context, newSongs, _) {
@@ -537,7 +537,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
   }
 
   @override
-  Widget updateView(BuildContext context) {
+  Widget updateViewBuilder(BuildContext context) {
     if (itemToEdit == null) {
       return Text('Invalid song');
     }
@@ -626,8 +626,8 @@ class _SongsPageState extends CRUDState<AudioSource> {
   }
 
   @override
-  Widget deleteView(BuildContext context) {
+  Widget deleteViewBuilder(BuildContext context) {
     setRead();
-    return readView(context);
+    return readViewBuilder(context);
   }
 }
