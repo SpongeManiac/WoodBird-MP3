@@ -43,7 +43,6 @@ dependencies:
   flutter_platform_alert: ^0.3.0
   sqlite3_flutter_libs: ^0.5.8
   file_picker: ^5.0.1
-  receive_sharing_intent: ^1.4.5
   just_audio: ^0.9.29
   just_audio_background: ^0.0.1-beta.7
   #just_audio_windows: ^0.1.0

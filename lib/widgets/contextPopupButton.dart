@@ -17,9 +17,9 @@ class _ContextPopupButtonState extends PopupMenuButtonState<String> {
   @override
   void initState() {
     super.initState();
-    print('setting showDialog');
+    //print('setting showDialog');
     (widget as ContextPopupButton).showDialog = () {
-      print('showing button');
+      //print('showing button');
       super.showButtonMenu();
     };
   }
@@ -27,7 +27,7 @@ class _ContextPopupButtonState extends PopupMenuButtonState<String> {
   @override
   Widget build(BuildContext context) {
     (widget as ContextPopupButton).showDialog = () {
-      print('showing button');
+      //print('showing button');
       super.showButtonMenu();
     };
     return super.build(context);

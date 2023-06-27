@@ -54,8 +54,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   TextEditingController newDescription = TextEditingController(text: '');
   TextEditingController newArt = TextEditingController(text: '');
 
-  Map<PlaylistData, ContextPopupButton> playlistContexts =
-      <PlaylistData, ContextPopupButton>{};
+  Map<PlaylistData, ContextPopupButton> playlistContexts = <PlaylistData, ContextPopupButton>{};
 
   List<PlaylistData> get playlists => widget.app.playlistsNotifier.value;
   set playlists(playlists) => widget.app.playlistsNotifier.value = playlists;
@@ -104,10 +103,10 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                       widget.app.loadingProgressNotifier.value = null;
                       widget.app.loadingNotifier.value = true;
                       var path = await (widget.app as DesktopApp).getArt();
-                      if (path.isNotEmpty) {
+                      if (!path.hasEmptyPath) {
                         setState(() {
-                          newArt.text = path;
-                          artUriNotifier.value = path;
+                          newArt.text = path.toString();
+                          artUriNotifier.value = path.toString();
                         });
                       }
                       widget.app.loadingNotifier.value = false;
@@ -228,8 +227,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   Future<void> setPlaylistSongs() async {
     if (itemToEdit == null) return;
     List<MediaItem> tmp = [];
-    List<SongDataDB> songsDB =
-        await widget.db.getPlaylistSongs(itemToEdit!.getEntry());
+    List<SongDataDB> songsDB = await widget.db.getPlaylistSongs(itemToEdit!.getEntry());
     //sort songs
     for (var song in songsDB) {
       tmp.add(AudioInterface.getTag(SongData.fromDB(song).source));
@@ -272,8 +270,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     );
   }
 
-  ContextPopupButton getPlaylistContext(
-      BuildContext context, PlaylistData playlist) {
+  ContextPopupButton getPlaylistContext(BuildContext context, PlaylistData playlist) {
     return ContextPopupButton(
       icon: Icon(
         Icons.more_vert,
@@ -284,20 +281,18 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
           'Set queue': ContextItemTuple(
             Icons.queue_music_rounded,
             () async {
-              List<AudioSource> songs =
-                  (await widget.db.getPlaylistSongs(playlist.getEntry()))
-                      .map((s) => SongData.fromDB(s).source)
-                      .toList();
+              List<AudioSource> songs = (await widget.db.getPlaylistSongs(playlist.getEntry()))
+                  .map((s) => SongData.fromDB(s).source)
+                  .toList();
               await widget.app.audioInterface.setQueue(songs);
             },
           ),
           'Add to queue': ContextItemTuple(
             Icons.playlist_add_rounded,
             () async {
-              List<AudioSource> songs =
-                  (await widget.db.getPlaylistSongs(playlist.getEntry()))
-                      .map((s) => SongData.fromDB(s).source)
-                      .toList();
+              List<AudioSource> songs = (await widget.db.getPlaylistSongs(playlist.getEntry()))
+                  .map((s) => SongData.fromDB(s).source)
+                  .toList();
               await widget.app.audioInterface.addToQueue(songs);
             },
           ),
@@ -316,8 +311,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     //return popup;
   }
 
-  ContextPopupButton getSongContext(BuildContext context, PlaylistData playlist,
-      MediaItem song, int songIndex) {
+  ContextPopupButton getSongContext(BuildContext context, PlaylistData playlist, MediaItem song, int songIndex) {
     var popup = ContextPopupButton(
       icon: Icon(
         Icons.more_vert,
@@ -426,11 +420,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   //crud ops
   @override
   Future<List<PlaylistData>> create() async {
-    var data = PlaylistData(
-        title: newName.text,
-        songOrder: [],
-        description: newDescription.text,
-        art: newArt.text);
+    var data = PlaylistData(title: newName.text, songOrder: [], description: newDescription.text, art: newArt.text);
     await update(data);
     return [data];
   }
@@ -466,8 +456,8 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
     int songID = int.parse(song.id);
     var tmp = List.of(songs.value);
     if (tmp.contains(song) && songID > -1) {
-      int itemsDeleted = await widget.db.delPlaylistSong(
-          itemToEdit!.getEntry(), (await widget.db.getSongData(songID))!);
+      int itemsDeleted =
+          await widget.db.delPlaylistSong(itemToEdit!.getEntry(), (await widget.db.getSongData(songID))!);
       if (itemsDeleted > 0) {
         //   print('Removing song from playlist');
         //   tmp.remove(song);
@@ -498,8 +488,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
 
   Future<void> reorderSong(int oldIndex, int newIndex) async {
     var songList = songs.value;
-    print(
-        'Before reorder: ${songList.map((s) => int.parse(s.id)).toList().toString()}');
+    print('Before reorder: ${songList.map((s) => int.parse(s.id)).toList().toString()}');
     songList = AudioInterface.moveGeneric(songList, oldIndex, newIndex);
     var songOrder = songList.map((s) => int.parse(s.id)).toList();
     var playlist = itemToEdit!;
@@ -599,8 +588,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                   itemBuilder: (context, index) {
                     PlaylistData playlist = newPlaylists[index];
 
-                    var playlistContextBtn =
-                        getPlaylistContext(context, playlist);
+                    var playlistContextBtn = getPlaylistContext(context, playlist);
                     return ListTile(
                       enabled: true,
                       onTap: () async {
@@ -668,9 +656,8 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                   await SelectDialog.showModal<MediaItem>(context,
                       label: 'Select songs to add.',
                       multipleSelectedValues: selected,
-                      items: widget.app.songsNotifier.value
-                          .map(AudioInterface.getTag)
-                          .toList(), itemBuilder: (context, tag, isSelected) {
+                      items: widget.app.songsNotifier.value.map(AudioInterface.getTag).toList(),
+                      itemBuilder: (context, tag, isSelected) {
                     return ListTile(
                       title: Text(tag.title),
                       subtitle: Text(tag.artist ?? ''),

@@ -104,10 +104,10 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
                       widget.app.loadingProgressNotifier.value = null;
                       widget.app.loadingNotifier.value = true;
                       var path = await (widget.app as DesktopApp).getArt();
-                      if (path.isNotEmpty) {
+                      if (!path.hasEmptyPath) {
                         setState(() {
-                          newArt.text = path;
-                          artUriNotifier.value = path;
+                          newArt.text = path.toString();
+                          artUriNotifier.value = path.toString();
                         });
                       }
                       widget.app.loadingNotifier.value = false;
@@ -223,8 +223,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
   Future<void> setAlbumSongs() async {
     if (itemToEdit == null) return;
     List<MediaItem> tmp = [];
-    List<SongDataDB> songsDB =
-        await widget.db.getAlbumSongs(itemToEdit!.getEntry());
+    List<SongDataDB> songsDB = await widget.db.getAlbumSongs(itemToEdit!.getEntry());
     //sort songs
     for (var song in songsDB) {
       tmp.add(AudioInterface.getTag(SongData.fromDB(song).source));
@@ -279,9 +278,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
             Icons.queue_music_rounded,
             () async {
               List<AudioSource> songs =
-                  (await widget.db.getAlbumSongs(Album.getEntry()))
-                      .map((s) => SongData.fromDB(s).source)
-                      .toList();
+                  (await widget.db.getAlbumSongs(Album.getEntry())).map((s) => SongData.fromDB(s).source).toList();
               await widget.app.audioInterface.setQueue(songs);
             },
           ),
@@ -289,9 +286,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
             Icons.playlist_add_rounded,
             () async {
               List<AudioSource> songs =
-                  (await widget.db.getAlbumSongs(Album.getEntry()))
-                      .map((s) => SongData.fromDB(s).source)
-                      .toList();
+                  (await widget.db.getAlbumSongs(Album.getEntry())).map((s) => SongData.fromDB(s).source).toList();
               await widget.app.audioInterface.addToQueue(songs);
             },
           ),
@@ -310,8 +305,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
     //return popup;
   }
 
-  ContextPopupButton getSongContext(
-      BuildContext context, AlbumData Album, MediaItem song, int songIndex) {
+  ContextPopupButton getSongContext(BuildContext context, AlbumData Album, MediaItem song, int songIndex) {
     var popup = ContextPopupButton(
       icon: Icon(
         Icons.more_vert,
@@ -423,11 +417,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
   @override
   Future<List<AlbumData>> create() async {
     var data = AlbumData(
-        title: newName.text,
-        songOrder: [],
-        artist: newArtist.text,
-        description: newDescription.text,
-        art: newArt.text);
+        title: newName.text, songOrder: [], artist: newArtist.text, description: newDescription.text, art: newArt.text);
     await update(data);
     return [data];
   }
@@ -465,8 +455,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
     int songID = int.parse(song.id);
     var tmp = List.of(songs.value);
     if (tmp.contains(song) && songID > -1) {
-      int itemsDeleted = await widget.db.delAlbumSong(
-          itemToEdit!.getEntry(), (await widget.db.getSongData(songID))!);
+      int itemsDeleted = await widget.db.delAlbumSong(itemToEdit!.getEntry(), (await widget.db.getSongData(songID))!);
       if (itemsDeleted > 0) {
         //   print('Removing song from Album');
         //   tmp.remove(song);
@@ -497,8 +486,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
 
   Future<void> reorderSong(int oldIndex, int newIndex) async {
     var songList = songs.value;
-    print(
-        'Before reorder: ${songList.map((s) => int.parse(s.id)).toList().toString()}');
+    print('Before reorder: ${songList.map((s) => int.parse(s.id)).toList().toString()}');
     songList = AudioInterface.moveGeneric(songList, oldIndex, newIndex);
     var songOrder = songList.map((s) => int.parse(s.id)).toList();
     var Album = itemToEdit!;
@@ -661,9 +649,8 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
                   await SelectDialog.showModal<MediaItem>(context,
                       label: 'Select songs to add.',
                       multipleSelectedValues: selected,
-                      items: widget.app.songsNotifier.value
-                          .map(AudioInterface.getTag)
-                          .toList(), itemBuilder: (context, tag, isSelected) {
+                      items: widget.app.songsNotifier.value.map(AudioInterface.getTag).toList(),
+                      itemBuilder: (context, tag, isSelected) {
                     return ListTile(
                       title: Text(tag.title),
                       subtitle: Text(tag.artist ?? ''),

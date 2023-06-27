@@ -45,20 +45,27 @@ class _ArtUriState extends State<ArtUri> {
   bool isWebImg(String path) {
     var containsHttp = path.contains('http://');
     var containsHttps = path.contains('https://');
-    print('path has http: $containsHttp');
-    print('path has https: $containsHttps');
+    var containsFile = path.contains('file://');
+    //print('path is http: $containsHttp');
+    //print('path is https: $containsHttps');
+    //print('path is file: $containsHttps');
     return containsHttp || containsHttps;
   }
 
   Future<bool> validate_image(Uri image) async {
     String imgPath = image.toString();
-    print('validating image: $imgPath');
+    //print('validating image: $imgPath');
+    if (imgPath.isEmpty) {
+      //no url
+      //print('No image to check.');
+      return false;
+    }
 
     //print('validating image: ${image}');
     bool valid = false;
     if (isWebImg(imgPath)) {
       // Encapsulate in try/catch to prevent serverside errors
-      print('web image');
+      //print('web image');
       completer = Completer<bool>();
       if (currentSearchValid) {
         return true;
@@ -67,34 +74,35 @@ class _ArtUriState extends State<ArtUri> {
       timer = Timer(
         const Duration(milliseconds: 50),
         () async {
-          print('starting timer');
+          //print('starting timer');
           if (!completer.isCompleted) {
             completer.complete(imageRequest(currentSearch));
-            print('finished imageRequest');
+            //print('finished imageRequest');
           }
         },
       );
       try {
         valid = await completer.future;
         //completer.complete(imageRequest(currentSearch));
-        print('finished imageRequest');
+        //print('finished imageRequest');
       } catch (e) {
-        print('something went wrong, image invalidated');
+        //print('something went wrong, image invalidated');
       }
     } else {
-      print('local image');
+      //print('local image');
       try {
         File img = File.fromUri(image);
         if (await img.exists()) {
           valid = true;
         } else {
-          print('Image does not exist at: ${img.toString()}');
+          //print('Image does not exist at: ${img.toString()}');
         }
       } catch (e) {
-        print('something went wrong, image invalidated');
+        //print('something went wrong, image invalidated');
       }
     }
-    print('image was valid: $valid');
+
+    ///print('image was valid: $valid');
     currentSearchValid = valid;
     return valid;
   }
@@ -224,7 +232,6 @@ class _ArtUriState extends State<ArtUri> {
                   );
                 }
               } else {
-                print('invalid uri');
                 return noArt;
               }
             default:

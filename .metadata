@@ -1,11 +1,11 @@
 # This file tracks properties of this Flutter project.
 # Used by Flutter tool to assess capabilities and perform upgrades etc.
 #
-# This file should be version controlled.
+# This file should be version controlled and should not be manually edited.
 
 version:
-  revision: a1e4cfad5e1ada5b63171009778cb3caf0b920ce
-  channel: master
+  revision: "11c8a626b14efa0c9e3b89bbcaaf148b56903a60"
+  channel: "master"
 
 project_type: app
 
@@ -13,26 +13,26 @@ project_type: app
 migration:
   platforms:
     - platform: root
-      create_revision: a1e4cfad5e1ada5b63171009778cb3caf0b920ce
-      base_revision: a1e4cfad5e1ada5b63171009778cb3caf0b920ce
+      create_revision: 11c8a626b14efa0c9e3b89bbcaaf148b56903a60
+      base_revision: 11c8a626b14efa0c9e3b89bbcaaf148b56903a60
     - platform: android
-      create_revision: a1e4cfad5e1ada5b63171009778cb3caf0b920ce
-      base_revision: a1e4cfad5e1ada5b63171009778cb3caf0b920ce
+      create_revision: 11c8a626b14efa0c9e3b89bbcaaf148b56903a60
+      base_revision: 11c8a626b14efa0c9e3b89bbcaaf148b56903a60
     - platform: ios
-      create_revision: a1e4cfad5e1ada5b63171009778cb3caf0b920ce
-      base_revision: a1e4cfad5e1ada5b63171009778cb3caf0b920ce
+      create_revision: 11c8a626b14efa0c9e3b89bbcaaf148b56903a60
+      base_revision: 11c8a626b14efa0c9e3b89bbcaaf148b56903a60
     - platform: linux
-      create_revision: a1e4cfad5e1ada5b63171009778cb3caf0b920ce
-      base_revision: a1e4cfad5e1ada5b63171009778cb3caf0b920ce
+      create_revision: 11c8a626b14efa0c9e3b89bbcaaf148b56903a60
+      base_revision: 11c8a626b14efa0c9e3b89bbcaaf148b56903a60
     - platform: macos
-      create_revision: a1e4cfad5e1ada5b63171009778cb3caf0b920ce
-      base_revision: a1e4cfad5e1ada5b63171009778cb3caf0b920ce
+      create_revision: 11c8a626b14efa0c9e3b89bbcaaf148b56903a60
+      base_revision: 11c8a626b14efa0c9e3b89bbcaaf148b56903a60
     - platform: web
-      create_revision: a1e4cfad5e1ada5b63171009778cb3caf0b920ce
-      base_revision: a1e4cfad5e1ada5b63171009778cb3caf0b920ce
+      create_revision: 11c8a626b14efa0c9e3b89bbcaaf148b56903a60
+      base_revision: 11c8a626b14efa0c9e3b89bbcaaf148b56903a60
     - platform: windows
-      create_revision: a1e4cfad5e1ada5b63171009778cb3caf0b920ce
-      base_revision: a1e4cfad5e1ada5b63171009778cb3caf0b920ce
+      create_revision: 11c8a626b14efa0c9e3b89bbcaaf148b56903a60
+      base_revision: 11c8a626b14efa0c9e3b89bbcaaf148b56903a60
 
   # User provided section
 

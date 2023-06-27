@@ -1,7 +1,6 @@
 import 'package:drift/src/runtime/data_class.dart' show DataClass, Value;
 import 'package:just_audio/just_audio.dart' show AudioSource, UriAudioSource;
-import 'package:just_audio_background/just_audio_background.dart'
-    show MediaItem;
+import 'package:just_audio_background/just_audio_background.dart' show MediaItem;
 import 'package:test_project/models/AudioInterface.dart';
 import 'package:test_project/models/MediaItemDB.dart';
 
@@ -62,7 +61,8 @@ class SongData extends BaseDataDB {
 
   static SongData fromSource(AudioSource source) {
     MediaItem tag = AudioInterface.getTag(source);
-    print('got tag: \n${tag.id}\n${tag.title}\n${tag.artist}');
+    //print('got tag: \n${tag.id}\n${tag.title}\n${tag.artist}');
+    print('Song Art Uri: ${tag.artUri}');
     var basename = ((source as UriAudioSource).uri.toFilePath());
     return SongData(
       id: int.tryParse(tag.id),

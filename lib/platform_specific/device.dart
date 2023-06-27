@@ -65,6 +65,7 @@ class DesktopApp extends BaseApp {
       FlutterWindowClose.closeWindow();
     }
   }
+
   Future<Image?> getArtLocal() async {
     var artDirectory = Directory(artDir);
     if (!await artDirectory.exists()) {
@@ -77,11 +78,12 @@ class DesktopApp extends BaseApp {
       withData: true,
       withReadStream: true,
     );
-    if(result != null && result.count == 1){
+    if (result != null && result.count == 1) {
       return Image.memory(result.files[0].bytes!);
     }
   }
-  Future<String> getArt() async {
+
+  Future<Uri> getArt() async {
     var artDirectory = Directory(artDir);
     if (!await artDirectory.exists()) {
       await artDirectory.create();
@@ -95,7 +97,7 @@ class DesktopApp extends BaseApp {
     );
     if (result != null && result.count == 1) {
       String? path = result.paths[0];
-      if (path == null) return '';
+      if (path == null) return Uri.parse('');
       String base = p.basename(path);
       //var dir = p.join(songs, base);
 
@@ -116,14 +118,14 @@ class DesktopApp extends BaseApp {
       }
       //remove temp cache file
       //if (await tempFile.exists()) {
-        //await tempFile.delete();
+      //await tempFile.delete();
       //}
 
-      return preCachedFile.path;
+      return Uri.file(preCachedFile.uri.path);
     } else {
       print('No result or cancelled');
 
-      return '';
+      return Uri.parse('');
     }
   }
 
@@ -187,8 +189,7 @@ class _DesktopAppState extends State<DesktopApp> with WidgetsBindingObserver {
         //print(globals.app.theme);
         //var bColor = settings.darkMode ? color.shade900 : null;
 
-        var theme =
-            ColorMaterializer.getTheme(globals.app.theme, settings.darkMode);
+        var theme = ColorMaterializer.getTheme(globals.app.theme, settings.darkMode);
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: widget.appTitle,
