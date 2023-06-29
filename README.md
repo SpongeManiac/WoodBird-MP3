@@ -1,4 +1,4 @@
 # woodbirdmp3
-Available on Mac, IOS, and Android.
+Available on Windows, Mac, iOS, and Android.
 
-Windows will not be supported until `just_audio_windows` is updated and fixed.
+Mac and iOS are untested.
