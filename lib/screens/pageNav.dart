@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_window_close/flutter_window_close.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:test_project/screens/themedPage.dart';
@@ -24,7 +23,9 @@ class PageNav extends StatefulWidget {
   };
 
   void setAppBarData(AppBarData data) {
-    app.appBarNotifier.value = data;
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      app.appBarNotifier.value = data;
+    });
   }
 
   void setAppBarTitle(String title) {
@@ -55,9 +56,7 @@ class PageNav extends StatefulWidget {
 
   //adds an icon button that performs the 'back' action
   //if an action named 'back' is within the actions list
-  void setAndroidBackAction(
-      BuildContext context, Future<bool> Function() onBack,
-      [IconData? appBarIcon]) {
+  void setAndroidBackAction(BuildContext context, Future<bool> Function() onBack, [IconData? appBarIcon]) {
     androidOnBack = onBack;
     if (appBarIcon != null) {
       //WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -90,31 +89,26 @@ class PageNav extends StatefulWidget {
         context: context,
         builder: (context) {
           print('building dialog');
-          return AlertDialog(
-              title: const Text('Do you really want to quit?'),
-              actions: [
-                ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(true);
-                      _alertShowing = false;
-                    },
-                    child: Text(
-                      'Yes',
-                      style: TextStyle(
-                          color:
-                              Theme.of(context).primaryTextTheme.button!.color),
-                    )),
-                ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                          const Color.fromARGB(255, 202, 202, 202)),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop(false);
-                      _alertShowing = false;
-                    },
-                    child: const Text('No'))
-              ]);
+          return AlertDialog(title: const Text('Do you really want to quit?'), actions: [
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                  _alertShowing = false;
+                },
+                child: Text(
+                  'Yes',
+                  style: TextStyle(color: Theme.of(context).primaryTextTheme.labelLarge!.color),
+                )),
+            ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 202, 202, 202)),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                  _alertShowing = false;
+                },
+                child: const Text('No'))
+          ]);
         });
     //print('Alert is gone');
     _alertShowing = false;
@@ -215,7 +209,7 @@ class _PageNavState extends State<PageNav> {
             return Stack(
               children: [
                 Padding(
-                  padding: EdgeInsets.only(bottom: 100),
+                  padding: const EdgeInsets.only(bottom: 100),
                   child: WillPopScope(
                     onWillPop: widget.androidOnBack,
                     child: builder!(context),

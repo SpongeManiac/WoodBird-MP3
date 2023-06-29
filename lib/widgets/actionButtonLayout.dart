@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:test_project/widgets/hideableFloatingAction.dart';
 
 class ActionButtonLayout extends StatelessWidget {
-  ActionButtonLayout({this.actionButton, required this.child});
+  ActionButtonLayout({super.key, this.actionButton, required this.child});
   Widget? actionButton;
   Widget child;
   @override

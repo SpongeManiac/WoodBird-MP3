@@ -1,14 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 class ArtUri extends StatefulWidget {
-  ArtUri(this.uri, {this.maxSize, this.padding, this.opacity});
+  ArtUri(this.uri, {super.key, this.maxSize, this.padding, this.opacity});
 
   Uri uri;
   double? padding;
@@ -117,11 +114,11 @@ class _ArtUriState extends State<ArtUri> {
       // Get the content type (Mime-Type) of the response
       String type = response.headers['content-type'] ?? '';
       // Split the content type at the slash
-      var split_text = type.split('/');
+      var splitText = type.split('/');
       // Check if the content type is an image
-      if (split_text[0] == 'image') {
+      if (splitText[0] == 'image') {
         // Check if the image type is in 'VALID_IMAGE_TYPES'
-        if (VALID_IMAGE_TYPES.contains(split_text[1])) {
+        if (VALID_IMAGE_TYPES.contains(splitText[1])) {
           //image is valid
           print('image is valid');
           return true;
@@ -145,7 +142,7 @@ class _ArtUriState extends State<ArtUri> {
     if (widget.maxSize != null) {
       return Opacity(
         opacity: widget.opacity ?? 1,
-        child: Container(
+        child: SizedBox(
           height: widget.maxSize,
           width: widget.maxSize,
           child: FittedBox(
@@ -203,7 +200,7 @@ class _ArtUriState extends State<ArtUri> {
                 String path = widget.uri.toString();
                 if (isWebImg(path)) {
                   //print('is web img');
-                  return Container(
+                  return SizedBox(
                     height: widget.maxSize,
                     width: widget.maxSize,
                     child: FittedBox(
@@ -216,7 +213,7 @@ class _ArtUriState extends State<ArtUri> {
                   );
                 } else {
                   //print('is file img');
-                  return Container(
+                  return SizedBox(
                     //color: Colors.red,
                     height: widget.maxSize,
                     width: widget.maxSize,

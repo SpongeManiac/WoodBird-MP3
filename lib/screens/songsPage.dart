@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 //import 'package:badges/badges.dart';
 //import 'package:marquee/marquee.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:select_dialog/select_dialog.dart';
 import 'package:test_project/database/database.dart';
 import 'package:test_project/models/states/song/songData.dart';
@@ -17,9 +15,6 @@ import 'package:test_project/widgets/artUri.dart';
 import 'package:test_project/widgets/contextPopupButton.dart';
 import '../models/AudioInterface.dart';
 import '../models/contextItemTuple.dart';
-import '../widgets/contextPopupButton.dart';
-import '../widgets/appBar.dart';
-import '../widgets/loadingIndicator.dart';
 import 'themedPage.dart';
 import 'package:path/path.dart' as p;
 
@@ -71,7 +66,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
   Widget get songForm => Form(
         key: formKey,
         child: Padding(
-          padding: EdgeInsets.all(10),
+          padding: const EdgeInsets.all(10),
           child: Column(
             children: [
               TextFormField(
@@ -225,7 +220,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
               //avoid dialog being closed after choosing option
               List<MediaItem> selected = [];
               //List<MediaItem> selected = [];
-              await Future.delayed(Duration(seconds: 0), () async {
+              await Future.delayed(const Duration(seconds: 0), () async {
                 await SelectDialog.showModal<MediaItem>(context,
                     label: 'Select playlists to add song to.',
                     multipleSelectedValues: selected,
@@ -234,7 +229,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
                   return ListTile(
                     title: Text(item.title),
                     subtitle: Text(item.artist ?? ''),
-                    trailing: (isSelected ? Icon(Icons.check_rounded) : null),
+                    trailing: (isSelected ? const Icon(Icons.check_rounded) : null),
                   );
                 }, onMultipleItemsChange: (List<MediaItem> selectedSong) {
                   setState(() {
@@ -424,8 +419,19 @@ class _SongsPageState extends CRUDState<AudioSource> {
 
   @override
   Future<AudioSource> update(AudioSource item) async {
-    MediaItem tag = AudioInterface.getTag(item);
-    //print('updating ${tag.title} with id ${tag.id}');
+    var tag = AudioInterface.getTag(item);
+    //check if newArt is different
+    var artUri = tag.artUri ?? Uri.parse('');
+    var path = artUri.toString();
+    if (newArt.text != artUri.toString() && path.contains('file:///')) {
+      //delete old photo if it exists
+      var file = File.fromUri(artUri);
+      if (await file.exists()) {
+        //old image exists, delete it
+        await file.delete();
+        print('Deleted old photo from cache');
+      }
+    }
     var newTag = MediaItem(
       id: tag.id,
       title: newName.text,
@@ -502,7 +508,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
           child: Column(
             children: [
               ListTile(
-                title: Text('Add Song(s)...'),
+                title: const Text('Add Song(s)...'),
                 trailing: Icon(
                   Icons.add_rounded,
                   color: Theme.of(context).primaryColorDark,
@@ -573,26 +579,26 @@ class _SongsPageState extends CRUDState<AudioSource> {
   @override
   Widget updateViewBuilder(BuildContext context) {
     if (itemToEdit == null) {
-      return Text('Invalid song');
+      return const Text('Invalid song');
     }
     var song = itemToEdit!;
     //print('editing ${toEditTag.title}, path: ${(song as UriAudioSource).uri.toFilePath()}');
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(10),
+        padding: const EdgeInsets.all(10),
         child: Column(
           children: [
             Container(
               //height: Theme.of(context).textTheme.headlineLar!.fontSize,
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Row(
                   children: [
                     const Text('Editing:'),
                     Expanded(
                       child: Text(
                         toEditTag.title,
-                        style: Theme.of(context).textTheme.headline6,
+                        style: Theme.of(context).textTheme.titleLarge,
                         textAlign: TextAlign.center,
                       ),
                       // Padding(
@@ -627,7 +633,7 @@ class _SongsPageState extends CRUDState<AudioSource> {
                     await update(song);
                     await setRead();
                   },
-                  child: Text('Save'),
+                  child: const Text('Save'),
                   // style: ButtonStyle(
                   //   backgroundColor: Theme.of(context).,
                   // ),

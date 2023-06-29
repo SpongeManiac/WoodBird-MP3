@@ -2,9 +2,7 @@
 
 import 'dart:core';
 
-import 'package:just_audio_background/just_audio_background.dart';
 import 'package:test_project/database/database.dart';
-import 'package:test_project/models/states/playlist/playlistData.dart';
 
 class SongSorter {
   //PlaylistSongSorter({required this.songs, required this.order});

@@ -25,7 +25,7 @@ class FlyoutItem extends StatelessWidget {
       title: Text(
         text,
         style: TextStyle(
-          fontSize: Theme.of(context).textTheme.headline4?.fontSize,
+          fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,
         ),
       ),
     );

@@ -2,7 +2,6 @@ import 'package:drift/src/runtime/data_class.dart' show DataClass, Value;
 import 'package:just_audio/just_audio.dart' show AudioSource, UriAudioSource;
 import 'package:just_audio_background/just_audio_background.dart' show MediaItem;
 import 'package:test_project/models/AudioInterface.dart';
-import 'package:test_project/models/MediaItemDB.dart';
 
 import '../../../globals.dart' show app, db;
 import 'package:path/path.dart' as p;

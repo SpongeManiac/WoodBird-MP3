@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:marquee/marquee.dart';
-import 'package:path/path.dart';
 //import 'package:test_project/models/AudioInterface_old.bak';
 import 'package:test_project/widgets/artUri.dart';
 import 'package:test_project/widgets/loopModeButton.dart';
@@ -20,8 +19,7 @@ class PlayerMenu extends StatefulWidget {
 
   AudioInterface get interface => app.audioInterface;
 
-  Map<AudioSource, ContextPopupButton> songContexts =
-      <AudioSource, ContextPopupButton>{};
+  Map<AudioSource, ContextPopupButton> songContexts = <AudioSource, ContextPopupButton>{};
 
   @override
   State<StatefulWidget> createState() => _PlayerMenuState();
@@ -78,14 +76,12 @@ class _PlayerMenuState extends State<PlayerMenu> {
     }
   }
 
-  ContextPopupButton getSongContext(
-      BuildContext context, AudioSource song, int index) {
+  ContextPopupButton getSongContext(BuildContext context, AudioSource song, int index) {
     var popup = ContextPopupButton(
       icon: Icon(Icons.more_vert, color: Theme.of(context).primaryColor),
       itemBuilder: (context) {
         Map<String, ContextItemTuple> choices = <String, ContextItemTuple>{
-          'Remove from queue':
-              ContextItemTuple(Icons.playlist_remove_rounded, () async {
+          'Remove from queue': ContextItemTuple(Icons.playlist_remove_rounded, () async {
             await widget.interface.removeIdx(index);
           }),
           'Play': ContextItemTuple(Icons.play_arrow_rounded, () async {
@@ -100,13 +96,11 @@ class _PlayerMenuState extends State<PlayerMenu> {
             await widget.interface.moveDownIdx(index);
             setState(() {});
           }),
-          'Move to top':
-              ContextItemTuple(Icons.format_list_numbered_rounded, () async {
+          'Move to top': ContextItemTuple(Icons.format_list_numbered_rounded, () async {
             await widget.interface.moveTopIdx(index);
             setState(() {});
           }),
-          'Move to bottom':
-              ContextItemTuple(Icons.low_priority_rounded, () async {
+          'Move to bottom': ContextItemTuple(Icons.low_priority_rounded, () async {
             await widget.interface.moveEndIdx(index);
             setState(() {});
           }),
@@ -147,7 +141,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
     if (currentIdx < newIdx) {
       newIdx--;
     }
-    print('moving $currentIdx to $newIdx');
+    //print('moving $currentIdx to $newIdx');
     moveControl(currentIdx, newIdx);
   }
 
@@ -161,16 +155,15 @@ class _PlayerMenuState extends State<PlayerMenu> {
         }
         return Center(
           child: Container(
-            color: Theme.of(context).backgroundColor,
+            color: Theme.of(context).colorScheme.background,
             child: Column(
               children: [
                 Container(
-                  color: Color.alphaBlend(Colors.white.withOpacity(0.2),
-                      Theme.of(context).primaryColorLight),
+                  color: Color.alphaBlend(Colors.white.withOpacity(0.2), Theme.of(context).primaryColorLight),
                   child: ValueListenableBuilder<bool>(
                       valueListenable: app.swapTrackBar,
                       builder: ((context, swap, child) {
-                        var seekBar = Container(
+                        var seekBar = SizedBox(
                           height: 40,
                           child: Row(
                             children: [
@@ -180,13 +173,9 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                   builder: (context, snapshot) {
                                     final positionData = snapshot.data;
                                     return SeekBar(
-                                      duration: positionData?.duration ??
-                                          Duration.zero,
-                                      position: positionData?.position ??
-                                          Duration.zero,
-                                      bufferedPosition:
-                                          positionData?.bufferedPosition ??
-                                              Duration.zero,
+                                      duration: positionData?.duration ?? Duration.zero,
+                                      position: positionData?.position ?? Duration.zero,
+                                      bufferedPosition: positionData?.bufferedPosition ?? Duration.zero,
                                       onChangeEnd: widget.interface.player.seek,
                                     );
                                   },
@@ -196,16 +185,15 @@ class _PlayerMenuState extends State<PlayerMenu> {
                           ),
                         );
 
-                        var controls = Container(
+                        var controls = SizedBox(
                           height: 60,
                           child: Row(
                             children: [
                               Expanded(
                                 child: Padding(
-                                  padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                  padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                                   child: StreamBuilder<int?>(
-                                    stream: widget
-                                        .interface.player.currentIndexStream,
+                                    stream: widget.interface.player.currentIndexStream,
                                     builder: (context, newSong) {
                                       var idx = newSong.data ?? -1;
                                       //print('idx is $idx');
@@ -214,12 +202,10 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                         if (newQueue > 0) {
                                           source = widget.interface.playlist[0];
                                         } else {
-                                          source = widget
-                                              .interface.emptyQueue.source;
+                                          source = widget.interface.emptyQueue.source;
                                         }
                                       } else if (newQueue == 0) {
-                                        source =
-                                            widget.interface.emptyQueue.source;
+                                        source = widget.interface.emptyQueue.source;
                                       } else {
                                         source = widget.interface.playlist[idx];
                                       }
@@ -229,17 +215,14 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                       // } else {
                                       //   source = widget.interface.playlist[idx];
                                       // }
-                                      MediaItem tag =
-                                          AudioInterface.getTag(source);
+                                      MediaItem tag = AudioInterface.getTag(source);
                                       // print((source as UriAudioSource)
                                       //     .uri
                                       //     .toFilePath());
                                       return Marquee(
                                         text: '${tag.title} - ${tag.artist} | ',
                                         style: TextStyle(
-                                            color: Theme.of(context)
-                                                .primaryColorDark,
-                                            fontWeight: FontWeight.bold),
+                                            color: Theme.of(context).primaryColorDark, fontWeight: FontWeight.bold),
                                       );
                                     },
                                   ),
@@ -254,34 +237,28 @@ class _PlayerMenuState extends State<PlayerMenu> {
                               ),
                               Expanded(
                                 child: Padding(
-                                  padding: EdgeInsets.all(10),
+                                  padding: const EdgeInsets.all(10),
                                   child: Container(
                                     decoration: BoxDecoration(
                                       color: Colors.white.withOpacity(0.15),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Theme.of(context)
-                                              .primaryColorDark
-                                              .withOpacity(.2),
+                                          color: Theme.of(context).primaryColorDark.withOpacity(.2),
                                           spreadRadius: 4,
                                           blurRadius: 5,
                                         ),
                                       ],
                                       border: Border.all(
-                                        color:
-                                            Theme.of(context).primaryColorDark,
+                                        color: Theme.of(context).primaryColorDark,
                                         width: 2.0,
                                       ),
-                                      borderRadius:
-                                          BorderRadius.all(Radius.circular(20)),
+                                      borderRadius: const BorderRadius.all(Radius.circular(20)),
                                     ),
                                     child: ClipRRect(
-                                      borderRadius:
-                                          BorderRadius.all(Radius.circular(20)),
+                                      borderRadius: const BorderRadius.all(Radius.circular(20)),
                                       child: ValueListenableBuilder<List<int>>(
                                         valueListenable: app.controls,
-                                        builder:
-                                            ((context, List<int> controls, _) {
+                                        builder: ((context, List<int> controls, _) {
                                           //print('controls: ${controls.length}');
                                           return ReorderableListView.builder(
                                             shrinkWrap: true,
@@ -301,16 +278,12 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                                     key: const Key('prev'),
                                                     child: IconButton(
                                                       icon: Icon(
-                                                        Icons
-                                                            .skip_previous_rounded,
-                                                        color: Theme.of(context)
-                                                            .primaryColorDark,
+                                                        Icons.skip_previous_rounded,
+                                                        color: Theme.of(context).primaryColorDark,
                                                       ),
                                                       //iconSize: 20,
                                                       onPressed: () async {
-                                                        await widget
-                                                            .interface.player
-                                                            .seekToPrevious();
+                                                        await widget.interface.player.seekToPrevious();
                                                       },
                                                     ),
                                                   );
@@ -320,8 +293,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                                     key: const Key('play'),
                                                     child: PlayPauseButton(
                                                       //size: 20,
-                                                      color: Theme.of(context)
-                                                          .primaryColorDark,
+                                                      color: Theme.of(context).primaryColorDark,
                                                     ),
                                                   );
                                                 case 2: //next
@@ -331,14 +303,11 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                                     child: IconButton(
                                                       icon: Icon(
                                                         Icons.skip_next_rounded,
-                                                        color: Theme.of(context)
-                                                            .primaryColorDark,
+                                                        color: Theme.of(context).primaryColorDark,
                                                       ),
                                                       //iconSize: 20,
                                                       onPressed: () async {
-                                                        await widget
-                                                            .interface.player
-                                                            .seekToNext();
+                                                        await widget.interface.player.seekToNext();
                                                       },
                                                     ),
                                                   );
@@ -348,8 +317,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                                     key: const Key('shuffle'),
                                                     child: ShuffleModeButton(
                                                       //size: 20,
-                                                      color: Theme.of(context)
-                                                          .primaryColorDark,
+                                                      color: Theme.of(context).primaryColorDark,
                                                     ),
                                                   );
                                                 case 4: //loop mode
@@ -358,8 +326,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                                     key: const Key('loop'),
                                                     child: LoopModeButton(
                                                       //size: 20,
-                                                      color: Theme.of(context)
-                                                          .primaryColorDark,
+                                                      color: Theme.of(context).primaryColorDark,
                                                     ),
                                                   );
                                                 default:
@@ -369,10 +336,8 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                                     child: IconButton(
                                                       onPressed: () {},
                                                       icon: Icon(
-                                                        Icons
-                                                            .question_mark_rounded,
-                                                        color: Theme.of(context)
-                                                            .primaryColorDark,
+                                                        Icons.question_mark_rounded,
+                                                        color: Theme.of(context).primaryColorDark,
                                                       ),
                                                     ),
                                                   );
@@ -409,7 +374,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
                         currentSong = widget.interface.playlist[currentPlaying];
                         currentSongTag = AudioInterface.getTag(currentSong);
                       }
-                      print('loading song queu in media menu');
+                      //print('loading song queu in media menu');
                       return Stack(
                         children: [
                           //Expanded(
@@ -444,11 +409,9 @@ class _PlayerMenuState extends State<PlayerMenu> {
                             itemCount: newQueue,
                             itemBuilder: (context, index) {
                               var isCurrent = index == currentPlaying;
-                              AudioSource song =
-                                  widget.interface.playlist[index];
+                              AudioSource song = widget.interface.playlist[index];
                               MediaItem tag = AudioInterface.getTag(song);
-                              var songContextBtn =
-                                  getSongContext(context, song, index);
+                              var songContextBtn = getSongContext(context, song, index);
                               if (isCurrent) {
                                 return ReorderableDelayedDragStartListener(
                                   index: index,
@@ -457,32 +420,27 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(10),
                                       border: Border.all(
-                                        color:
-                                            Theme.of(context).primaryColorLight,
+                                        color: Theme.of(context).primaryColorLight,
                                         width: 2,
                                         style: BorderStyle.solid,
-                                        strokeAlign:
-                                            BorderSide.strokeAlignInside,
+                                        strokeAlign: BorderSide.strokeAlignInside,
                                       ),
                                     ),
                                     child: ListTile(
                                       onTap: () async {
-                                        await widget.interface
-                                            .setCurrent(index);
+                                        await widget.interface.setCurrent(index);
                                       },
                                       title: Text(
                                         tag.title,
                                         style: TextStyle(
-                                          color: Theme.of(context)
-                                              .primaryColorLight,
+                                          color: Theme.of(context).primaryColorLight,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                       subtitle: Text(
                                         tag.artist ?? '',
                                         style: TextStyle(
-                                          color: Theme.of(context)
-                                              .primaryColorLight,
+                                          color: Theme.of(context).primaryColorLight,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -501,15 +459,13 @@ class _PlayerMenuState extends State<PlayerMenu> {
                                     title: Text(
                                       tag.title,
                                       style: TextStyle(
-                                        color:
-                                            Theme.of(context).primaryColorLight,
+                                        color: Theme.of(context).primaryColorLight,
                                       ),
                                     ),
                                     subtitle: Text(
                                       tag.artist ?? '',
                                       style: TextStyle(
-                                        color:
-                                            Theme.of(context).primaryColorLight,
+                                        color: Theme.of(context).primaryColorLight,
                                       ),
                                     ),
                                     trailing: songContextBtn,

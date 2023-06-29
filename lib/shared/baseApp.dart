@@ -25,10 +25,7 @@ import '../widgets/flyout/flyout.dart';
 import '../widgets/hideableFloatingAction.dart';
 
 class BaseApp extends StatefulWidget {
-  BaseApp(
-      {super.key,
-      this.appTitle = 'WoodBird MP3',
-      this.navTitle = 'WoodBird MP3'}) {
+  BaseApp({super.key, this.appTitle = 'WoodBird MP3', this.navTitle = 'WoodBird MP3'}) {
     () async {
       songsDir = await getSongsDir();
       artDir = await getArtDir();
@@ -66,8 +63,7 @@ class BaseApp extends StatefulWidget {
   AudioInterface get audioInterface => _audioInterface ??= AudioInterface();
   String appTitle;
 
-  ValueNotifier<AppBarData> appBarNotifier =
-      ValueNotifier(AppBarData('WoodBird MP3'));
+  ValueNotifier<AppBarData> appBarNotifier = ValueNotifier(AppBarData('WoodBird MP3'));
   String? navTitle;
   String get currentNavTitle {
     return navTitle ??= appBarNotifier.value.title;
@@ -87,21 +83,17 @@ class BaseApp extends StatefulWidget {
       ValueNotifier(HideableFloatingActionData(false));
 
   final ValueNotifier<bool> loadingNotifier = ValueNotifier<bool>(false);
-  final ValueNotifier<double?> loadingProgressNotifier =
-      ValueNotifier<double?>(0);
+  final ValueNotifier<double?> loadingProgressNotifier = ValueNotifier<double?>(0);
 
   late AudioHandler handler;
   late AudioSession session;
 
   //homepage
-  final ValueNotifier<HomePageData> homePageStateNotifier =
-      ValueNotifier(HomePageData(0, 0, 0));
+  final ValueNotifier<HomePageData> homePageStateNotifier = ValueNotifier(HomePageData(0, 0, 0));
 
   //theme
   MaterialColor get theme =>
-      globals.themes[
-          globals.themes.keys.toList()[homePageStateNotifier.value.theme]] ??
-      globals.themes['Blue']!;
+      globals.themes[globals.themes.keys.toList()[homePageStateNotifier.value.theme]] ?? globals.themes['Blue']!;
 
   //controls list
   ValueNotifier<List<int>> controls = ValueNotifier([]);
@@ -110,16 +102,13 @@ class BaseApp extends StatefulWidget {
   ValueNotifier<bool> darkMode = ValueNotifier(false);
 
   //songs list
-  final ValueNotifier<List<AudioSource>> songsNotifier =
-      ValueNotifier(<AudioSource>[]);
+  final ValueNotifier<List<AudioSource>> songsNotifier = ValueNotifier(<AudioSource>[]);
 
   //playlists
-  final ValueNotifier<List<PlaylistData>> playlistsNotifier =
-      ValueNotifier(<PlaylistData>[]);
+  final ValueNotifier<List<PlaylistData>> playlistsNotifier = ValueNotifier(<PlaylistData>[]);
 
   //albums
-  final ValueNotifier<List<AlbumData>> albumsNotifier =
-      ValueNotifier(<AlbumData>[]);
+  final ValueNotifier<List<AlbumData>> albumsNotifier = ValueNotifier(<AlbumData>[]);
 
   final Map<String, ThemedPage Function(BuildContext)> routes = {
     //'/': (context) => HomePage(title: 'Home'),
@@ -177,10 +166,10 @@ class BaseApp extends StatefulWidget {
     var homeStateDB = await globals.db.getHomeState();
 
     //give default value if null
-    homeStateDB ??= HomePageStateDB(
+    homeStateDB ??= const HomePageStateDB(
       id: 1,
       theme: 0,
-      color: 0xFF000000,
+      color: 0xFF00FF00,
       controls: '[0,1,2,3,4]',
       swapTrack: false,
       darkMode: true,
@@ -205,20 +194,17 @@ class BaseApp extends StatefulWidget {
     print('darkMode: ${darkMode.value}');
 
     //theme vals
-    globals.themes['Custom'] =
-        ColorMaterializer.getMaterial(Color(homeStateDB.color));
+    globals.themes['Custom'] = ColorMaterializer.getMaterial(Color(homeStateDB.color));
     // themeNotifier.value =
     //     globals.themes[globals.themes.keys.toList()[homeStateDB.theme]] ??
     //         globals.themes['Blue']!;
 
     //home page state
-    homePageStateNotifier.value =
-        homePageStateNotifier.value.fromEntry(homeStateDB);
+    homePageStateNotifier.value = homePageStateNotifier.value.fromEntry(homeStateDB);
   }
 
   Future<void> saveHomeState() async {
-    await globals.db
-        .setHomeState(globals.app.homePageStateNotifier.value.getEntry());
+    await globals.db.setHomeState(globals.app.homePageStateNotifier.value.getEntry());
   }
 
   Future<void> loadSongs() async {

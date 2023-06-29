@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 class ColorMaterializer {
@@ -27,8 +25,7 @@ class ColorMaterializer {
   static Color darken(Color c, [int percent = 10]) {
     assert(1 <= percent && percent <= 100);
     var f = 1 - percent / 100;
-    return Color.fromARGB(c.alpha, (c.red * f).round(), (c.green * f).round(),
-        (c.blue * f).round());
+    return Color.fromARGB(c.alpha, (c.red * f).round(), (c.green * f).round(), (c.blue * f).round());
   }
 
   /// Lighten a color by [percent] amount (100 = white)
@@ -36,10 +33,7 @@ class ColorMaterializer {
   static Color lighten(Color c, [int percent = 10]) {
     assert(1 <= percent && percent <= 100);
     var p = percent / 100;
-    return Color.fromARGB(
-        c.alpha,
-        c.red + ((255 - c.red) * p).round(),
-        c.green + ((255 - c.green) * p).round(),
+    return Color.fromARGB(c.alpha, c.red + ((255 - c.red) * p).round(), c.green + ((255 - c.green) * p).round(),
         c.blue + ((255 - c.blue) * p).round());
   }
 
@@ -60,31 +54,47 @@ class ColorMaterializer {
         primaryTextTheme: const TextTheme(
           bodyMedium: TextStyle(color: Colors.white),
         ),
-        colorScheme: scheme,
         primaryColor: scheme.primary,
-        primaryColorLight:
-            Color.alphaBlend(Colors.white.withOpacity(0.1), scheme.primary),
-        primaryColorDark:
-            Color.alphaBlend(Colors.black.withOpacity(0.2), scheme.primary),
-        secondaryHeaderColor:
-            Color.alphaBlend(Colors.black.withOpacity(0.1), scheme.primary),
+        primaryColorLight: Color.alphaBlend(Colors.white.withOpacity(0.1), scheme.primary),
+        primaryColorDark: Color.alphaBlend(Colors.black.withOpacity(0.2), scheme.primary),
+        secondaryHeaderColor: Color.alphaBlend(Colors.black.withOpacity(0.1), scheme.primary),
         appBarTheme: AppBarTheme(color: scheme.primary),
         switchTheme: SwitchThemeData(
           thumbColor: MaterialStateProperty.resolveWith<Color>((states) {
             return scheme.primary;
           }),
         ),
-        toggleableActiveColor: scheme.secondary,
         scaffoldBackgroundColor: scheme.background,
         canvasColor: scheme.background,
-        backgroundColor: scheme.background,
         cardColor: scheme.surface,
-        bottomAppBarColor: scheme.surface,
         dialogBackgroundColor: scheme.surface,
         indicatorColor: scheme.primary,
         dividerColor: scheme.onSurface.withOpacity(0.12),
-        errorColor: scheme.error,
         applyElevationOverlayColor: true,
+        checkboxTheme: CheckboxThemeData(
+          fillColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+            if (states.contains(MaterialState.disabled)) {
+              return null;
+            }
+            if (states.contains(MaterialState.selected)) {
+              return scheme.secondary;
+            }
+            return null;
+          }),
+        ),
+        radioTheme: RadioThemeData(
+          fillColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+            if (states.contains(MaterialState.disabled)) {
+              return null;
+            }
+            if (states.contains(MaterialState.selected)) {
+              return scheme.secondary;
+            }
+            return null;
+          }),
+        ),
+        bottomAppBarTheme: BottomAppBarTheme(color: scheme.surface),
+        colorScheme: scheme.copyWith(background: scheme.background).copyWith(error: scheme.error),
         // buttonTheme: ButtonThemeData(
 
         // ),
@@ -102,31 +112,47 @@ class ColorMaterializer {
         primaryTextTheme: const TextTheme(
           bodyMedium: TextStyle(color: Colors.white),
         ),
-        colorScheme: scheme,
         primaryColor: scheme.primary,
-        primaryColorLight:
-            Color.alphaBlend(Colors.white.withOpacity(0.1), scheme.primary),
-        primaryColorDark:
-            Color.alphaBlend(Colors.black.withOpacity(0.2), scheme.primary),
-        secondaryHeaderColor:
-            Color.alphaBlend(Colors.white.withOpacity(0.1), scheme.primary),
+        primaryColorLight: Color.alphaBlend(Colors.white.withOpacity(0.1), scheme.primary),
+        primaryColorDark: Color.alphaBlend(Colors.black.withOpacity(0.2), scheme.primary),
+        secondaryHeaderColor: Color.alphaBlend(Colors.white.withOpacity(0.1), scheme.primary),
         appBarTheme: AppBarTheme(color: scheme.primary),
         switchTheme: SwitchThemeData(
           thumbColor: MaterialStateProperty.resolveWith<Color>((states) {
             return scheme.primary;
           }),
         ),
-        toggleableActiveColor: scheme.secondary,
         scaffoldBackgroundColor: scheme.background,
         canvasColor: scheme.background,
-        backgroundColor: scheme.background,
         cardColor: scheme.surface,
-        bottomAppBarColor: scheme.surface,
         dialogBackgroundColor: scheme.surface,
         indicatorColor: scheme.onPrimary,
         dividerColor: scheme.onSurface.withOpacity(0.12),
-        errorColor: scheme.error,
         applyElevationOverlayColor: false,
+        checkboxTheme: CheckboxThemeData(
+          fillColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+            if (states.contains(MaterialState.disabled)) {
+              return null;
+            }
+            if (states.contains(MaterialState.selected)) {
+              return scheme.secondary;
+            }
+            return null;
+          }),
+        ),
+        radioTheme: RadioThemeData(
+          fillColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+            if (states.contains(MaterialState.disabled)) {
+              return null;
+            }
+            if (states.contains(MaterialState.selected)) {
+              return scheme.secondary;
+            }
+            return null;
+          }),
+        ),
+        bottomAppBarTheme: BottomAppBarTheme(color: scheme.surface),
+        colorScheme: scheme.copyWith(background: scheme.background).copyWith(error: scheme.error),
       );
     }
     return ThemeBundle(scheme, data);

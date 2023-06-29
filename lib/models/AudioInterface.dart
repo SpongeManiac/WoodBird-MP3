@@ -1,5 +1,3 @@
-import 'dart:math';
-
 // import 'package:audio_service/audio_service.dart';
 // import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -50,13 +48,11 @@ class AudioInterface {
     children: [],
   );
 
-  Stream<PositionData> get positionDataStream =>
-      Rx.combineLatest3<Duration, Duration, Duration?, PositionData>(
-          player.positionStream,
-          player.bufferedPositionStream,
-          player.durationStream,
-          (position, bufferedPosition, duration) => PositionData(
-              position, bufferedPosition, duration ?? Duration.zero));
+  Stream<PositionData> get positionDataStream => Rx.combineLatest3<Duration, Duration, Duration?, PositionData>(
+      player.positionStream,
+      player.bufferedPositionStream,
+      player.durationStream,
+      (position, bufferedPosition, duration) => PositionData(position, bufferedPosition, duration ?? Duration.zero));
 
   // Future<AudioHandler> makeHandler() async {
   //   var handler = await AudioService.init(
@@ -540,14 +536,12 @@ class AudioInterface {
       print('Out of bounds queue index: $song');
       return;
     }
-    player.seek(Duration(seconds: 0), index: song);
+    player.seek(const Duration(seconds: 0), index: song);
   }
 
   Future<void> togglePlay() async {
     print('playing: $playing');
-    AudioSource current = player.currentIndex == null
-        ? emptyQueue.source
-        : playlist[player.currentIndex!];
+    AudioSource current = player.currentIndex == null ? emptyQueue.source : playlist[player.currentIndex!];
     if (playlist.children.isNotEmpty && current != emptyQueue.source) {
       if (playing) {
         await player.pause();
@@ -708,7 +702,7 @@ class AudioInterface {
   Future<void> setQueue(List<AudioSource> songs) async {
     playlist.clear();
     await addToQueue(songs);
-    player.seek(Duration(seconds: 0), index: songs.indexOf(songs.first));
+    player.seek(const Duration(seconds: 0), index: songs.indexOf(songs.first));
   }
 
   Future<void> addToQueue(List<AudioSource> songs) async {

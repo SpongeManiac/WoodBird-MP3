@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test_project/database/database.dart';
 import 'package:test_project/shared/baseApp.dart';
-import 'package:test_project/widgets/appBar.dart';
 import '../globals.dart' as globals;
 import '../models/contextItemTuple.dart';
 import '../widgets/hideableFloatingAction.dart';

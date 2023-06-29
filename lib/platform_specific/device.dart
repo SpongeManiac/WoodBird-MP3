@@ -6,7 +6,6 @@ import 'package:flutter_window_close/flutter_window_close.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:test_project/database/database.dart';
 import 'package:test_project/models/colorMaterializer.dart';
 
 import '../models/states/pages/homePageData.dart';
@@ -81,6 +80,7 @@ class DesktopApp extends BaseApp {
     if (result != null && result.count == 1) {
       return Image.memory(result.files[0].bytes!);
     }
+    return null;
   }
 
   Future<Uri> getArt() async {

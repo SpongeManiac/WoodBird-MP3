@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test_project/screens/themedPage.dart';
 
-import '../models/contextItemTuple.dart';
-import '../widgets/appBar.dart';
-import '../widgets/contextPopupButton.dart';
 
 class HomePage extends ThemedPage {
   HomePage({super.key, required super.title});
@@ -32,6 +29,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(child: Text('Hello!'));
+    return const Center(child: Text('Hello!'));
   }
 }

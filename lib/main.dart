@@ -1,5 +1,4 @@
 //import 'package:flutter/foundation.dart';
-import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'globals.dart' as globals;
@@ -10,9 +9,10 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   () async {
     await JustAudioBackground.init(
-      androidNotificationChannelId: 'com.example.woodbirdmp3.channel.audio',
+      androidNotificationChannelId: 'com.rpgrogan.free.woodbirdmp3.channel.audio',
       androidNotificationChannelName: 'Audio playback',
       androidNotificationOngoing: true,
+      androidNotificationIcon: 'mipmap/ic_stat_logo',
     );
 
     //print('${globals.db}');

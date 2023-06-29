@@ -6,7 +6,6 @@ import 'package:test_project/screens/themedPage.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 
 import '../models/states/pages/homePageData.dart';
-import '../widgets/actionButtonLayout.dart';
 
 class SettingsPage extends ThemedPage {
   SettingsPage({
@@ -42,7 +41,7 @@ class _SettingsPageState extends State<SettingsPage> {
     widget.app.homePageStateNotifier.value = newVal;
   }
 
-  Color pickerColor = Colors.black;
+  Color pickerColor = Colors.green;
 
   @override
   void initState() {
@@ -172,8 +171,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   child: ListView(
                     children: [
                       ListTile(
-                        title: Text('Theme Color'),
-                        subtitle: Text('Set the color of the app\'s theme.'),
+                        title: const Text('Theme Color'),
+                        subtitle: const Text('Set the color of the app\'s theme.'),
                         trailing: DropdownButtonHideUnderline(
                           child: DropdownButton2(
                             items: _themeDropdown,
@@ -203,8 +202,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ),
                       SwitchListTile(
-                        title: Text('Swap SeekBar & Controls'),
-                        subtitle: Text('Swap the seekbar and player controls.'),
+                        title: const Text('Swap SeekBar & Controls'),
+                        subtitle: const Text('Swap the seekbar and player controls.'),
                         value: widget.app.swapTrackBar.value,
                         onChanged: (newVal) {
                           var tmp = copy;
@@ -215,8 +214,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         },
                       ),
                       SwitchListTile(
-                        title: Text('Dark Mode'),
-                        subtitle: Text('Nocturnal Friendly.'),
+                        title: const Text('Dark Mode'),
+                        subtitle: const Text('Nocturnal Friendly.'),
                         value: widget.app.darkMode.value,
                         onChanged: (newVal) {
                           var tmp = copy;
@@ -227,11 +226,10 @@ class _SettingsPageState extends State<SettingsPage> {
                         },
                       ),
                       ListTile(
-                        title: Text('Reset Player'),
-                        subtitle: Text(
-                            'Resets the audio player. Usually fixes playback issues.'),
+                        title: const Text('Reset Player'),
+                        subtitle: const Text('Resets the audio player. Usually fixes playback issues.'),
                         trailing: IconButton(
-                          icon: Icon(Icons.refresh),
+                          icon: const Icon(Icons.refresh),
                           onPressed: () async {
                             await widget.app.audioInterface.resetPlayer();
                           },

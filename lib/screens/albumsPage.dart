@@ -150,9 +150,9 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
                         Navigator.of(context).pop();
                       }
                     },
-                    child: Text('Save'),
+                    child: const Text('Save'),
                   ),
-                  Padding(padding: EdgeInsets.symmetric(horizontal: 10)),
+                  const Padding(padding: EdgeInsets.symmetric(horizontal: 10)),
                   ElevatedButton(
                     onPressed: () {
                       if (state == ViewState.create) {
@@ -164,7 +164,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
                         Navigator.of(context).pop();
                       }
                     },
-                    child: Text('cancel'),
+                    child: const Text('cancel'),
                   ),
                 ],
               ),
@@ -569,7 +569,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
           child: Column(
             children: [
               ListTile(
-                title: Text('Create Album...'),
+                title: const Text('Create Album...'),
                 trailing: Icon(
                   Icons.add,
                   color: Theme.of(context).primaryColor,
@@ -612,7 +612,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
   @override
   Widget updateViewBuilder(BuildContext context) {
     if (itemToEdit == null) {
-      return Text('Invalid Album');
+      return const Text('Invalid Album');
     }
     //var Album = itemToEdit!;
     print('${songs.value.length} songs gotten');
@@ -637,7 +637,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             ListTile(
-              title: Text('Add songs...'),
+              title: const Text('Add songs...'),
               trailing: Icon(
                 Icons.add_rounded,
                 color: Theme.of(context).primaryColor,
@@ -645,7 +645,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
               onTap: () async {
                 //avoid dialog being closed after choosing option
                 List<MediaItem> selected = [];
-                await Future.delayed(Duration(seconds: 0), () async {
+                await Future.delayed(const Duration(seconds: 0), () async {
                   await SelectDialog.showModal<MediaItem>(context,
                       label: 'Select songs to add.',
                       multipleSelectedValues: selected,
@@ -654,7 +654,7 @@ class _AlbumsPageState extends CRUDState<AlbumData> {
                     return ListTile(
                       title: Text(tag.title),
                       subtitle: Text(tag.artist ?? ''),
-                      trailing: (isSelected ? Icon(Icons.check_rounded) : null),
+                      trailing: (isSelected ? const Icon(Icons.check_rounded) : null),
                     );
                   }, onMultipleItemsChange: (List<MediaItem> selectedSong) {
                     setState(() {

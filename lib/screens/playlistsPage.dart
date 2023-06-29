@@ -1,16 +1,12 @@
 import 'dart:io';
 
-import 'package:expandable/expandable.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
-import 'package:marquee/marquee.dart';
 import 'package:select_dialog/select_dialog.dart';
 import 'package:test_project/database/database.dart';
 import 'package:test_project/models/AudioInterface.dart';
-import 'package:test_project/models/MediaItemDB.dart';
 import 'package:test_project/models/states/playlist/playlistData.dart';
 import 'package:test_project/models/states/song/songData.dart';
 import 'package:test_project/screens/CRUDPage.dart';
@@ -20,7 +16,6 @@ import 'package:path/path.dart' as p;
 
 import '../models/contextItemTuple.dart';
 import '../platform_specific/device.dart';
-import '../widgets/appBar.dart';
 import '../widgets/artUri.dart';
 
 class PlaylistsPage extends ThemedPage {
@@ -149,9 +144,9 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                         Navigator.of(context).pop();
                       }
                     },
-                    child: Text('Save'),
+                    child: const Text('Save'),
                   ),
-                  Padding(padding: EdgeInsets.symmetric(horizontal: 10)),
+                  const Padding(padding: EdgeInsets.symmetric(horizontal: 10)),
                   ElevatedButton(
                     onPressed: () {
                       if (state == ViewState.create) {
@@ -163,7 +158,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                         Navigator.of(context).pop();
                       }
                     },
-                    child: Text('cancel'),
+                    child: const Text('cancel'),
                   ),
                 ],
               ),
@@ -571,7 +566,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
           child: Column(
             children: [
               ListTile(
-                title: Text('Create Playlist...'),
+                title: const Text('Create Playlist...'),
                 trailing: Icon(
                   Icons.add,
                   color: Theme.of(context).primaryColor,
@@ -619,7 +614,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
   @override
   Widget updateViewBuilder(BuildContext context) {
     if (itemToEdit == null) {
-      return Text('Invalid playlist');
+      return const Text('Invalid playlist');
     }
     //var playlist = itemToEdit!;
     print('${songs.value.length} songs gotten');
@@ -644,7 +639,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             ListTile(
-              title: Text('Add songs...'),
+              title: const Text('Add songs...'),
               trailing: Icon(
                 Icons.add_rounded,
                 color: Theme.of(context).primaryColor,
@@ -652,7 +647,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
               onTap: () async {
                 //avoid dialog being closed after choosing option
                 List<MediaItem> selected = [];
-                await Future.delayed(Duration(seconds: 0), () async {
+                await Future.delayed(const Duration(seconds: 0), () async {
                   await SelectDialog.showModal<MediaItem>(context,
                       label: 'Select songs to add.',
                       multipleSelectedValues: selected,
@@ -661,7 +656,7 @@ class _PlaylistsPageState extends CRUDState<PlaylistData> {
                     return ListTile(
                       title: Text(tag.title),
                       subtitle: Text(tag.artist ?? ''),
-                      trailing: (isSelected ? Icon(Icons.check_rounded) : null),
+                      trailing: (isSelected ? const Icon(Icons.check_rounded) : null),
                     );
                   }, onMultipleItemsChange: (List<MediaItem> selectedSong) {
                     setState(() {

@@ -15,7 +15,6 @@ class LoadingIndicator extends StatelessWidget {
     return ValueListenableBuilder<bool>(
       valueListenable: loadingNotifier,
       builder: (context, loading, _) {
-        print('loading: $loading');
         return Visibility(
           visible: loading,
           child: ValueListenableBuilder<double?>(
@@ -26,8 +25,7 @@ class LoadingIndicator extends StatelessWidget {
                 children: [
                   Positioned.fill(
                     child: Container(
-                      color:
-                          Theme.of(context).primaryColorDark.withOpacity(0.2),
+                      color: Theme.of(context).primaryColorDark.withOpacity(0.2),
                     ),
                   ),
                   Positioned.fill(

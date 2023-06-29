@@ -1,4 +1,3 @@
-import 'package:drift/src/runtime/data_class.dart';
 import 'package:flutter/material.dart';
 import '../globals.dart' as globals;
 import '../models/states/baseState.dart';

@@ -2,10 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:test_project/models/PlaylistSongSorter.dart';
-import 'package:test_project/models/states/playlist/playlistData.dart';
-import 'package:test_project/models/states/song/songData.dart';
 
-import '../models/states/album/albumData.dart';
 
 part 'database.g.dart';
 
